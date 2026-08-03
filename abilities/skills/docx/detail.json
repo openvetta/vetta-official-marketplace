@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "Word 文档处理能力",
+      "items": [
+        {
+          "title": "解包改 XML 再回包",
+          "description": "在 OpenXML 层原地修改，样式、页眉页脚、分节、编号、修订与图片原样保留。",
+          "icon": "solar:box-bold"
+        },
+        {
+          "title": "中文公文排版",
+          "description": "一等支持中文/CJK 文档与 GB/T 9704 公文版式。",
+          "icon": "solar:document-text-bold"
+        },
+        {
+          "title": "套模板与填充",
+          "description": "按模板批量填充占位符，适合合同、报告、论文等重复性文档。",
+          "icon": "solar:copy-bold"
+        },
+        {
+          "title": "渲染校验",
+          "description": "内置校验与渲染脚本，交付前确认版式没有跑偏。",
+          "icon": "solar:magnifer-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "工作流",
+      "items": [
+        {
+          "title": "解包",
+          "description": "把 .docx 拆成 OpenXML 结构。"
+        },
+        {
+          "title": "原地编辑",
+          "description": "只改需要变的节点，不重建文档。"
+        },
+        {
+          "title": "回包并校验",
+          "description": "重新打包后跑校验与渲染检查。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "运行依赖",
+      "content": "该能力依赖本机 Python 3 工具链（lxml、python-docx），部分格式转换与渲染检查还需要 LibreOffice。"
+    },
+    {
+      "type": "markdown",
+      "content": "## 适用场景\n\n创建、编辑、填充、重排与转换 Word 文档：合同、报告、方案、公文、论文、邮件合并与模板套用。"
+    }
+  ]
+}

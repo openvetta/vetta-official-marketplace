@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "remotion-best-practices",
+  "version": "1.0.0",
+  "icon": "solar:videocamera-record-bold",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "SKILL.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/openvetta/vetta-official-marketplace"
+      },
+      {
+        "key": "docs",
+        "value": "https://www.remotion.dev/docs"
+      }
+    ]
+  }
+}

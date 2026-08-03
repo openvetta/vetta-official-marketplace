@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "pdf",
+  "version": "1.0.0",
+  "icon": "assets/pdf-small.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "SKILL.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/openvetta/vetta-official-marketplace"
+      },
+      {
+        "key": "license",
+        "value": "Apache-2.0"
+      }
+    ]
+  }
+}

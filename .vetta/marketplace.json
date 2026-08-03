@@ -2,8 +2,88 @@
   "schemaVersion": 1,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.03-1",
+  "marketplaceVersion": "2026.08.03-2",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.32",
-  "abilities": []
+  "abilities": [
+    {
+      "type": "skill",
+      "slug": "xlsx",
+      "name": "Spreadsheet Toolkit",
+      "description": "Create, read, analyze, edit, repair and validate spreadsheets (.xlsx/.xlsm/.csv/.tsv) without format loss, with first-class Chinese/CJK support.",
+      "version": "2.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "category": "Documents",
+      "tags": ["spreadsheet", "excel", "csv", "data"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "表格工具箱",
+            "description": "创建、读取、分析、编辑与修复表格文件，保留透视表、宏、图表与格式，中文场景一等支持。"
+          }
+        }
+      },
+      "source": { "path": "abilities/skills/xlsx" }
+    },
+    {
+      "type": "skill",
+      "slug": "docx",
+      "name": "Word Document Toolkit",
+      "description": "Create, edit, fill, reformat and convert Word documents with zero format loss via an OpenXML-level Python toolchain.",
+      "version": "2.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "category": "Documents",
+      "tags": ["word", "docx", "document", "template"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Word 文档工具箱",
+            "description": "在 OpenXML 层原地编辑 Word 文档，样式、页眉页脚、编号与修订原样保留，支持中文公文排版。"
+          }
+        }
+      },
+      "source": { "path": "abilities/skills/docx" }
+    },
+    {
+      "type": "skill",
+      "slug": "pdf",
+      "name": "PDF Toolkit",
+      "description": "Read, create and review PDFs where layout matters, verifying output by rendering pages instead of trusting the text layer.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "Apache-2.0",
+      "category": "Documents",
+      "tags": ["pdf", "document", "render"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "PDF 工具箱",
+            "description": "读取、生成与审阅 PDF，通过渲染页面确认最终版式，而不是只看文本抽取结果。"
+          }
+        }
+      },
+      "source": { "path": "abilities/skills/pdf" }
+    },
+    {
+      "type": "skill",
+      "slug": "remotion-best-practices",
+      "name": "Remotion Best Practices",
+      "description": "Domain knowledge for building videos programmatically with Remotion: animation, sequencing, captions, audio, dynamic duration and rendering.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "category": "Development",
+      "tags": ["remotion", "video", "react", "animation"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Remotion 最佳实践",
+            "description": "用 React/TypeScript 编写视频的领域知识：动画、镜头编排、字幕、音频、动态时长与渲染。"
+          }
+        }
+      },
+      "source": { "path": "abilities/skills/remotion-best-practices" }
+    }
+  ]
 }

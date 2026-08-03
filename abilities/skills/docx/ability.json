@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "docx",
+  "version": "2.0.0",
+  "icon": "solar:document-add-bold",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "SKILL.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/openvetta/vetta-official-marketplace"
+      },
+      {
+        "key": "license",
+        "value": "MIT"
+      }
+    ]
+  }
+}
