@@ -3,7 +3,7 @@
   "type": "skill",
   "slug": "xlsx",
   "version": "2.0.0",
-  "icon": "solar:document-text-bold",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "detail.json",
@@ -17,6 +17,9 @@
         "key": "license",
         "value": "MIT"
       }
-    ]
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
   }
 }

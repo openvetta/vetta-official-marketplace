@@ -179,7 +179,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
     "path": "detail.json",
     "fallback": "README.md",
     "meta": [{ "key": "repository", "value": "https://github.com/openvetta/vetta-official-marketplace" }],
-    "i18n": { "en": { "path": "detail.en.json" } }
+    "i18n": { "zh": { "path": "detail.zh.json" } }
   }
 }
 ```
@@ -208,7 +208,41 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 | `markdown` | `content` | 纯 Markdown 正文 |
 | `links` | `items[]{label, href}` | `href` 必须是 `http:` / `https:` |
 
-多语言：`ability.json` 的 `detail.i18n.<locale>.path` 指向另一份 detail 文件（不写 `format` 时继承外层）。
+## 多语言（必做）
+
+**规则：默认语言一律写英文，中文放在 `zh` 覆盖里。** 不要把中文写在默认位置——那样英文界面的用户看到的就是中文。
+
+两层都要写：
+
+1. **目录卡片**（名称 / 简介 / 标签）—— 在 `.vetta/marketplace.json` 条目里：
+
+   ```json
+   {
+     "name": "Spreadsheet Toolkit",
+     "description": "Create, read, analyze and edit spreadsheets without format loss.",
+     "tags": ["spreadsheet", "excel"],
+     "detail": { "i18n": { "zh": { "name": "表格工具箱", "description": "创建、读取、分析与编辑表格文件，保留透视表、宏与格式。" } } }
+   }
+   ```
+
+2. **详情页正文** —— 在包里放两份 detail 文件，`ability.json` 用 `detail.i18n.<locale>.path` 指过去：
+
+   ```text
+   detail.json      # 英文，默认
+   detail.zh.json   # 中文覆盖
+   ```
+
+   ```json
+   "detail": { "format": "blocks", "path": "detail.json", "i18n": { "zh": { "path": "detail.zh.json" } } }
+   ```
+
+要点：
+
+- locale 键用基语言 `zh` 即可，界面语言是 `zh-CN` 时会回退命中；写 `zh-CN` 反而只对该地区生效
+- i18n 覆盖是**整体替换**，不与默认值合并：`i18n.zh` 给了 `blocks`，中文详情页就完全用这份，不会跟英文块混排
+- `i18n.<locale>` 不写 `format` 时继承外层；不写 `meta` 时回落到外层 `meta`（元信息一般不用翻译，不必重复）
+- `tags` 整体替换，给空数组等于没给
+- 目录里的 `name` / `description` / `tags` 同时是搜索词来源，中文覆盖写全才能被中文关键词搜到
 
 ## 体积与安全限制
 
@@ -234,6 +268,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] mcp 条目在 manifest 里没有 `config` 键
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持
+- [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里
 - [ ] 若能力用到桌面端新特性，`minAppVersion` 已相应提高
 - [ ] 在桌面端「能力 → 添加市场源」里实际添加本仓库，确认能列出新能力并安装成功
 

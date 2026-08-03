@@ -3,57 +3,57 @@
   "blocks": [
     {
       "type": "feature-grid",
-      "title": "表格处理能力",
+      "title": "Spreadsheet capabilities",
       "items": [
         {
-          "title": "零格式丢失",
-          "description": "编辑已有工作簿时保留透视表、VBA 宏、图表、迷你图、条件格式与命名区域。",
+          "title": "Zero format loss",
+          "description": "Editing an existing workbook preserves pivot tables, VBA macros, charts, sparklines, conditional formatting and named ranges.",
           "icon": "solar:shield-check-bold"
         },
         {
-          "title": "中文优先",
-          "description": "处理中文表名与表头、GB18030/GBK 编码、全角字符，以及 ¥、万/亿、年月日等中文数字与日期约定。",
+          "title": "CJK first-class",
+          "description": "Handles Chinese sheet names and headers, GB18030/GBK encodings, full-width characters, and Chinese number and date conventions.",
           "icon": "solar:global-bold"
         },
         {
-          "title": "创建与分析",
-          "description": "从零构建工作簿，或读取分析既有文件；支持公式重算与校验。",
+          "title": "Create and analyze",
+          "description": "Builds workbooks from scratch or reads and analyzes existing files, including formula recalculation and validation.",
           "icon": "solar:chart-square-bold"
         },
         {
-          "title": "结果自检",
-          "description": "输出后先渲染检查再交付，避免公式错误与排版问题流到用户手里。",
+          "title": "Verified output",
+          "description": "Renders and checks the result before delivering, so formula and layout errors do not reach you.",
           "icon": "solar:magnifer-bold"
         }
       ]
     },
     {
       "type": "steps",
-      "title": "典型用法",
+      "title": "How it works",
       "items": [
         {
-          "title": "描述你要的表格",
-          "description": "例如「按季度汇总这份销售数据并做成透视表」。"
+          "title": "Describe the spreadsheet you want",
+          "description": "For example: summarize this sales data by quarter and build a pivot table."
         },
         {
-          "title": "Agent 直接产出文件",
-          "description": "不派生子 Agent，直接写出 .xlsx / .csv 文件。"
+          "title": "The agent writes the file directly",
+          "description": "No sub-agents are spawned; the .xlsx or .csv file is produced in place."
         },
         {
-          "title": "交付前自检",
-          "description": "校验公式与格式后再返回结果。"
+          "title": "Self-check before delivery",
+          "description": "Formulas and formatting are validated before the result is returned."
         }
       ]
     },
     {
       "type": "callout",
       "tone": "info",
-      "title": "支持的格式",
-      "content": ".xlsx、.xlsm、.xltx、.csv、.tsv。编辑既有文件时按原格式回写，不做降级保存。"
+      "title": "Supported formats",
+      "content": ".xlsx, .xlsm, .xltx, .csv and .tsv. Existing files are written back in their original format without downgrade saves."
     },
     {
       "type": "markdown",
-      "content": "## 适用场景\n\n报表、看板、预算、财务模型、透视表，以及任何需要产出或读取表格数据的任务。财务专用约定被隔离在单独章节中，通用场景不受影响。"
+      "content": "## When to use\n\nReports, dashboards, budgets, financial models, pivot tables, and any task that produces or reads tabular data. Finance-specific conventions are isolated in their own section and do not affect general use."
     }
   ]
 }

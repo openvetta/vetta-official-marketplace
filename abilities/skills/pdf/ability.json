@@ -3,7 +3,7 @@
   "type": "skill",
   "slug": "pdf",
   "version": "1.0.0",
-  "icon": "assets/pdf-small.svg",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "detail.json",
@@ -17,6 +17,9 @@
         "key": "license",
         "value": "Apache-2.0"
       }
-    ]
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
   }
 }

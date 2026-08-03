@@ -17,6 +17,9 @@
         "key": "docs",
         "value": "https://www.remotion.dev/docs"
       }
-    ]
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
   }
 }

@@ -3,26 +3,26 @@
   "blocks": [
     {
       "type": "feature-grid",
-      "title": "用 React 写视频",
+      "title": "Video as React code",
       "items": [
         {
-          "title": "动画与时间轴",
-          "description": "基于 useCurrentFrame() 用 interpolate / spring 做动画，按 Sequence 编排镜头与转场。",
+          "title": "Animation and timing",
+          "description": "Animates with interpolate and spring over useCurrentFrame(), and sequences shots and transitions with Sequence.",
           "icon": "solar:clock-circle-bold"
         },
         {
-          "title": "字幕与音频",
-          "description": "涵盖字幕转写、文本动画、音频处理与文本测量。",
+          "title": "Captions and audio",
+          "description": "Covers transcription-driven captions, text animation, audio handling and text measurement.",
           "icon": "solar:microphone-bold"
         },
         {
-          "title": "素材与特效",
-          "description": "GIF、Lottie、3D、图表、光效等常见素材与视觉效果的接法。",
+          "title": "Assets and effects",
+          "description": "How to wire up GIFs, Lottie, 3D, charts and light-leak style visual effects.",
           "icon": "solar:magic-stick-3-bold"
         },
         {
-          "title": "渲染与时长",
-          "description": "通过 calculateMetadata 动态计算时长，并给出渲染到 MP4 的正确姿势。",
+          "title": "Duration and rendering",
+          "description": "Computes duration dynamically via calculateMetadata and renders to MP4 the right way.",
           "icon": "solar:play-circle-bold"
         }
       ]
@@ -30,19 +30,19 @@
     {
       "type": "callout",
       "tone": "info",
-      "title": "为什么需要这个能力",
-      "content": "Remotion 的组件与 props 一直在演进（例如 @remotion/media）。这份领域知识会在动手调用 API 前先被查阅，避免写出过时用法。"
+      "title": "Why this skill exists",
+      "content": "Remotion's components and props keep evolving (for example @remotion/media). This domain knowledge is consulted before reaching for an API, which keeps the generated code off outdated usage."
     },
     {
       "type": "markdown",
-      "content": "## 适用场景\n\n编写或修改 Remotion 代码时使用：搭建新视频项目、编排场景与转场、做字幕与动画、动态计算时长、执行渲染。"
+      "content": "## When to use\n\nWhenever you write or edit Remotion code: scaffolding a video project, sequencing scenes and transitions, captions and animation, dynamic duration, and rendering."
     },
     {
       "type": "links",
-      "title": "相关链接",
+      "title": "Links",
       "items": [
         {
-          "label": "Remotion 官方文档",
+          "label": "Remotion documentation",
           "href": "https://www.remotion.dev/docs"
         }
       ]
