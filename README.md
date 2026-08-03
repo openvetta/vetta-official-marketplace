@@ -20,6 +20,23 @@ abilities/<type>/<slug>/assets/
 
 Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. Bundle members may only reference `skill`, `mcp`, or `plugin` entries declared in the same manifest.
 
+## Adding an ability
+
+**Read [`AGENTS.md`](./AGENTS.md) first — it is the authoring manual for this repository (written in Chinese), and every rule in it maps to a hard validation in the desktop client.**
+
+If you are an AI agent working in this repository, `AGENTS.md` is your instruction file: follow it end to end rather than inferring the format from existing packages.
+
+The short version:
+
+1. Pick a type: `skill`, `mcp`, `plugin`, or `bundle`.
+2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`).
+3. Add presentation files: `ability.json`, optionally `detail.json` and `assets/`.
+4. Register the entry in `.vetta/marketplace.json` under `abilities[]`.
+5. Bump the top-level `marketplaceVersion`.
+6. Work through the checklist at the end of `AGENTS.md`, then add this repository as a marketplace source in the desktop app and verify the ability installs.
+
+Slug and version must match exactly across three places: the catalog entry, the package file, and `ability.json`. A mismatch fails the whole source, and the desktop client reports only `sync-failed` without a reason — so verify locally instead of guessing.
+
 ## Update rules
 
 - Increment `marketplaceVersion` whenever repository marketplace content changes. The desktop client rejects a synced archive whose content changed without a version bump.
