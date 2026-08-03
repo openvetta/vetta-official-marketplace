@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "name": "vetta-official-marketplace",
+  "displayName": "Vetta Official Marketplace",
+  "marketplaceVersion": "2026.08.03",
+  "repository": "https://github.com/openvetta/vetta-official-marketplace",
+  "minAppVersion": "0.5.32",
+  "abilities": []
+}
