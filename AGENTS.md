@@ -121,6 +121,36 @@ version: 1.0.0           # 必须 === 条目的 version
 - `parameters[]` 是让用户在 UI 里填的凭据项。`key` 会作为 stdio 的 `env` 键名或 http 的 header 名写入；`valueTemplate` 必须包含 `{value}`（例如 `"Bearer {value}"`），用户填的值会替换进去
 - `parameters[]` 也是 strict schema，不要加自定义字段
 
+需要由 Desktop 托管官方二进制的 MCP 可以使用 `schemaVersion: 2`，在同一个 `mcp.json` 中增加受管运行时：
+
+```json
+{
+  "schemaVersion": 2,
+  "runtime": {
+    "kind": "managed-binary",
+    "platforms": {
+      "win32-x64": {
+        "url": "https://example.com/server.exe",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "archive": "file",
+        "executable": "server.exe"
+      }
+    }
+  },
+  "server": {
+    "type": "stdio",
+    "command": "${VETTA_MCP_EXECUTABLE}",
+    "args": ["--stdio"]
+  }
+}
+```
+
+- `runtime.kind` 当前只能是 `managed-binary`；平台键为 `win32|darwin|linux` 与 `x64|arm64` 的组合。
+- 产物 URL 必须是无凭据的 HTTPS，`sha256` 必须是 64 位小写十六进制；`archive` 只能是 `file` 或 `zip`。
+- ZIP 内不能有绝对路径、目录逃逸、符号链接或加密条目；不要提交或执行任何 shell、PowerShell、JavaScript 安装脚本。
+- `server.command` 必须精确为 `${VETTA_MCP_EXECUTABLE}`。参数、环境变量和工作目录可以使用 `${VETTA_MCP_RUNTIME_DIR}`、`${VETTA_MCP_DATA_DIR}`、`${VETTA_MCP_CACHE_DIR}`。
+- 只有已发布并可验证的 Release 产物才能注册；示例 URL 和 SHA-256 不能直接用于市场条目。
+
 ### plugin
 
 包内必须有 `plugin.json`：
@@ -266,6 +296,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] `ability.json` 的 `type` / `slug` / `version` 与 manifest 条目逐字一致
 - [ ] bundle 成员都能在本 manifest 里找到，且类型匹配
 - [ ] mcp 条目在 manifest 里没有 `config` 键
+- [ ] `schemaVersion: 2` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持
 - [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里

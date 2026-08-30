@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "Xiaohongshu automation",
+      "items": [
+        {
+          "title": "Search and read notes",
+          "description": "Search Xiaohongshu, read note details and inspect profiles through MCP tools.",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "Publish and interact",
+          "description": "Publish content and perform supported comment, like, collect and notification actions.",
+          "icon": "solar:chat-round-like-bold"
+        },
+        {
+          "title": "Built-in QR login",
+          "description": "Use the MCP login tools to generate a QR code and keep the resulting cookies in Vetta-managed data.",
+          "icon": "solar:qr-code-bold"
+        },
+        {
+          "title": "Managed local runtime",
+          "description": "Vetta downloads and verifies the official release binary for your platform; no Go or manual MCP configuration is required.",
+          "icon": "solar:shield-check-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "How it works",
+      "items": [
+        {
+          "title": "Install this Ability",
+          "description": "Vetta selects the matching official release, verifies its SHA-256 and installs it in an isolated runtime directory."
+        },
+        {
+          "title": "Complete QR login",
+          "description": "Ask the agent to call the login QR-code tool, then scan it with Xiaohongshu. Cookies are stored outside the versioned runtime."
+        },
+        {
+          "title": "Use Xiaohongshu tools",
+          "description": "The server starts over stdio and is available to the agent as a normal MCP server."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "First run",
+      "content": "The official server downloads its bundled browser on first use (roughly 150–190 MB). Network access is required once; the browser cache is kept separately from your login data."
+    },
+    {
+      "type": "markdown",
+      "content": "## Privacy and account safety\n\nThis Ability connects to the official `xpzouying/xiaohongshu-mcp` server. Vetta stores cookies in its managed Ability data directory and does not place them in the versioned executable directory. Review the upstream project's terms and Xiaohongshu account policies before publishing or interacting at scale."
+    }
+  ]
+}

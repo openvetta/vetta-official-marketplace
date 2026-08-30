@@ -2,7 +2,7 @@
 
 Official ability marketplace for the Vetta desktop application's GitHub ability source.
 
-The catalog is currently empty: `.vetta/marketplace.json` declares `"abilities": []`.
+The catalog includes document skills and the `xiaohongshu-mcp` managed MCP Ability.
 
 ## Repository layout
 
@@ -44,5 +44,6 @@ Slug and version must match exactly across three places: the catalog entry, the 
 - Increment `configVersion` when an ability's configuration contract changes.
 - Slugs are unique across the whole manifest, not per type.
 - Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets.
+- Managed binary MCP packages may declare a `schemaVersion: 2` runtime with HTTPS release assets and SHA-256 checksums; they must not execute install scripts.
 - Compose detail pages from the host-rendered block whitelist; never add executable HTML, JavaScript, CSS, iframe content, or custom actions.
 - `minAppVersion` gates the whole marketplace: clients older than that version refuse to load this source.

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "小红书自动化能力",
+      "items": [
+        {
+          "title": "搜索与阅读笔记",
+          "description": "通过 MCP 工具搜索小红书、读取笔记详情并查看用户主页。",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "发布与互动",
+          "description": "支持发布内容，以及评论、点赞、收藏和通知等已实现的互动操作。",
+          "icon": "solar:chat-round-like-bold"
+        },
+        {
+          "title": "内置扫码登录",
+          "description": "直接调用 MCP 登录工具生成二维码，登录后的 Cookie 保存在 Vetta 管理的数据目录。",
+          "icon": "solar:qr-code-bold"
+        },
+        {
+          "title": "受管本地运行时",
+          "description": "Vetta 自动下载并校验官方 Release 二进制，不需要安装 Go 或手工编辑 MCP 配置。",
+          "icon": "solar:shield-check-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "使用方式",
+      "items": [
+        {
+          "title": "安装此 Ability",
+          "description": "Vetta 自动选择当前平台的官方 Release，校验 SHA-256 后安装到隔离的运行时目录。"
+        },
+        {
+          "title": "完成扫码登录",
+          "description": "让 Agent 调用登录二维码工具，然后使用小红书 App 扫码。Cookie 会保存在版本目录之外。"
+        },
+        {
+          "title": "使用小红书工具",
+          "description": "服务通过 stdio 启动，Agent 可以像使用普通 MCP 一样调用它。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "首次运行",
+      "content": "官方服务首次运行时会下载内置浏览器，体积约 150–190 MB。首次使用需要网络，之后会复用浏览器缓存；缓存与登录数据相互隔离。"
+    },
+    {
+      "type": "markdown",
+      "content": "## 隐私与账号安全\n\n此 Ability 连接官方 `xpzouying/xiaohongshu-mcp` 服务。Vetta 将 Cookie 保存在 Ability 专属数据目录，不会放入版本化可执行文件目录。批量发布或互动前，请阅读上游项目说明及小红书账号使用政策。"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "xiaohongshu-mcp",
+  "version": "2.5.0",
+  "icon": "solar:camera-bold",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "README.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/xpzouying/xiaohongshu-mcp"
+      },
+      {
+        "key": "license",
+        "value": "Apache-2.0"
+      }
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
+  }
+}

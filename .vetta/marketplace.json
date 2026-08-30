@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.03-3",
+  "marketplaceVersion": "2026.08.30-2",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
-  "minAppVersion": "0.5.32",
+  "minAppVersion": "0.5.49",
   "abilities": [
     {
       "type": "skill",
@@ -84,6 +84,27 @@
         }
       },
       "source": { "path": "abilities/skills/remotion-best-practices" }
+    },
+    {
+      "type": "mcp",
+      "slug": "xiaohongshu-mcp",
+      "name": "Xiaohongshu MCP",
+      "description": "Search, read, publish and interact with Xiaohongshu through an official MCP server.",
+      "version": "2.5.0",
+      "configVersion": 1,
+      "license": "Apache-2.0",
+      "author": "xpzouying",
+      "category": "Social",
+      "tags": ["xiaohongshu", "rednote", "social", "content", "automation"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "小红书 MCP",
+            "description": "通过官方 MCP 服务搜索、阅读、发布和互动小红书内容。"
+          }
+        }
+      },
+      "source": { "path": "abilities/mcp/xiaohongshu-mcp" }
     }
   ]
 }
