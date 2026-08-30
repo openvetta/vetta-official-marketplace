@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "type": "mcp",
-  "slug": "xiaohongshu-mcp",
-  "version": "2.5.0",
+  "slug": "x-api-mcp",
+  "version": "1.0.0",
   "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
@@ -10,12 +10,12 @@
     "fallback": "README.md",
     "meta": [
       {
-        "key": "repository",
-        "value": "https://github.com/xpzouying/xiaohongshu-mcp"
+        "key": "homepage",
+        "value": "https://docs.x.com/tools/mcp"
       },
       {
-        "key": "license",
-        "value": "Apache-2.0"
+        "key": "repository",
+        "value": "https://github.com/xdevplatform/xurl"
       }
     ],
     "i18n": {

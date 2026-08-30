@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "通过 MCP 使用 X API",
+      "items": [
+        {
+          "title": "搜索帖子与用户",
+          "description": "搜索 X 全量归档，查询用户、帖子、时间线和提及内容。",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "查看趋势与新闻",
+          "description": "通过官方托管的 X MCP 服务获取新闻和指定地点的趋势。",
+          "icon": "solar:chart-bold"
+        },
+        {
+          "title": "只读 App-only 访问",
+          "description": "使用 X App-only Bearer Token 直接通过 HTTPS 连接，不需要本地运行时或 Bridge。",
+          "icon": "solar:shield-check-bold"
+        },
+        {
+          "title": "Vetta 安全收集密钥",
+          "description": "Token 通过 secret 参数收集，并写入 MCP 请求头配置。",
+          "icon": "solar:key-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "使用方式",
+      "items": [
+        {
+          "title": "创建 X 应用",
+          "description": "在 X Developer Portal 创建应用，并复制 App-only Bearer Token。"
+        },
+        {
+          "title": "安装此 Ability",
+          "description": "Vetta 连接官方托管的 X MCP 端点，并通过受保护的输入框收集 Token。"
+        },
+        {
+          "title": "搜索和查看 X 内容",
+          "description": "使用帖子搜索、用户查询、趋势和新闻等只读 MCP 工具。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "只读范围",
+      "content": "App-only 直连没有用户上下文，不能执行账号操作。书签或 Articles 等写入操作需要单独的 xurl OAuth Bridge，本 Ability 不会把它伪装成免安装能力。"
+    },
+    {
+      "type": "markdown",
+      "content": "## 安全说明\n\n建议为 MCP 使用独立的 X 应用，并只授予必要权限。Vetta 只会通过 HTTPS 将 Bearer Token 发送到 `https://api.x.com/mcp`；不要把 Token 粘贴到提示词、源码或共享日志中。X API 的使用仍受 X 的速率限制和开发者条款约束。"
+    }
+  ]
+}

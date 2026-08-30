@@ -2,7 +2,7 @@
 
 Official ability marketplace for the Vetta desktop application's GitHub ability source.
 
-The catalog includes document skills and the `xiaohongshu-mcp` managed MCP Ability.
+The catalog includes document skills plus the `xiaohongshu-mcp` and `x-api-mcp` MCP Abilities.
 
 ## Repository layout
 

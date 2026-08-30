@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.30-2",
+  "marketplaceVersion": "2026.08.30-4",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -105,6 +105,26 @@
         }
       },
       "source": { "path": "abilities/mcp/xiaohongshu-mcp" }
+    },
+    {
+      "type": "mcp",
+      "slug": "x-api-mcp",
+      "name": "X API MCP",
+      "description": "Search X posts, users, trends and news through the official hosted X API MCP server.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "author": "X Developer Platform",
+      "category": "Social",
+      "tags": ["x", "twitter", "social", "search", "news", "api"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "X API MCP",
+            "description": "通过官方托管的 X API MCP 服务搜索帖子、用户、趋势和新闻。"
+          }
+        }
+      },
+      "source": { "path": "abilities/mcp/x-api-mcp" }
     }
   ]
 }
