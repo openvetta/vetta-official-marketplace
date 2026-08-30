@@ -43,6 +43,10 @@ Slug and version must match exactly across three places: the catalog entry, the 
 - Keep each catalog `slug` and `version` equal to its `SKILL.md` frontmatter.
 - Increment `configVersion` when an ability's configuration contract changes.
 - Slugs are unique across the whole manifest, not per type.
+- Keep `category` as the stable grouping identity and provide matching `categoryI18n.zh` / `categoryI18n.en`
+  labels on every categorized entry. Desktop switches group labels with the app language; older clients simply
+  keep displaying `category`. This optional metadata does not require an ability version or `minAppVersion` bump,
+  but the catalog change still requires a new `marketplaceVersion`.
 - Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets.
 - Managed binary MCP packages may declare a `schemaVersion: 2` runtime with HTTPS release assets and SHA-256 checksums; they must not execute install scripts.
 - Compose detail pages from the host-rendered block whitelist; never add executable HTML, JavaScript, CSS, iframe content, or custom actions.

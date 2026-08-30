@@ -58,6 +58,7 @@ abilities/<type>/<slug>/assets/
   "license": "MIT",
   "author": "Vetta",
   "category": "Examples",
+  "categoryI18n": { "zh": "示例", "en": "Examples" },
   "tags": ["example"],
   "detail": { "i18n": { "zh": { "name": "…", "description": "…" } } },
   "source": { "path": "abilities/skills/hello-vetta" }
@@ -68,6 +69,8 @@ abilities/<type>/<slug>/assets/
 - `source.path` 必须是仓库内相对路径，不能逃出市场根目录
 - `configVersion` 在能力的配置契约变化时 +1
 - `detail.i18n.<locale>` 用来放多语言的 `name` / `description`，目录页直接用
+- `category` 是稳定分组标识，`categoryI18n` 是可选的语言键到显示名的字符串映射。官方能力必须补齐 `zh` / `en`，
+  同一分类的译名保持一致；不要把 `category` 改成当前语言的译名。旧客户端忽略该可选字段，无须提高 `minAppVersion`。
 - **`type: "mcp"` 的条目禁止出现 `config` 键**（安装配置只能放在包里的 `mcp.json`）；写了会直接报 `MCP configuration must be stored in source.path/mcp.json`
 
 ## 各类型包规范
@@ -242,7 +245,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 **规则：默认语言一律写英文，中文放在 `zh` 覆盖里。** 不要把中文写在默认位置——那样英文界面的用户看到的就是中文。
 
-两层都要写：
+卡片、分组和正文都要写：
 
 1. **目录卡片**（名称 / 简介 / 标签）—— 在 `.vetta/marketplace.json` 条目里：
 
@@ -255,7 +258,16 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
    }
    ```
 
-2. **详情页正文** —— 在包里放两份 detail 文件，`ability.json` 用 `detail.i18n.<locale>.path` 指过去：
+2. **分类分组** —— 条目保留英文分类标识，并通过 `categoryI18n` 提供译名：
+
+   ```json
+   { "category": "Documents", "categoryI18n": { "zh": "文档", "en": "Documents" } }
+   ```
+
+   `categoryI18n` 与 `detail.i18n` 是不同字段；只翻译卡片或正文不会翻译分组。切换语言只改变显示名，
+   不改变分类归属或排序；自定义来源不提供译名时，客户端显示原分类名。
+
+3. **详情页正文** —— 在包里放两份 detail 文件，`ability.json` 用 `detail.i18n.<locale>.path` 指过去：
 
    ```text
    detail.json      # 英文，默认
@@ -300,6 +312,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持
 - [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里
+- [ ] `categoryI18n` 已补齐 `zh` / `en`，同分类译名一致，`category` 保持稳定
 - [ ] 若能力用到桌面端新特性，`minAppVersion` 已相应提高
 - [ ] 在桌面端「能力 → 添加市场源」里实际添加本仓库，确认能列出新能力并安装成功
 

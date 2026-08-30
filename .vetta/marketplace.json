@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.30-4",
+  "marketplaceVersion": "2026.08.30-5",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -15,6 +15,7 @@
       "configVersion": 1,
       "license": "MIT",
       "category": "Documents",
+      "categoryI18n": { "zh": "文档", "en": "Documents" },
       "tags": ["spreadsheet", "excel", "csv", "data"],
       "detail": {
         "i18n": {
@@ -35,6 +36,7 @@
       "configVersion": 1,
       "license": "MIT",
       "category": "Documents",
+      "categoryI18n": { "zh": "文档", "en": "Documents" },
       "tags": ["word", "docx", "document", "template"],
       "detail": {
         "i18n": {
@@ -55,6 +57,7 @@
       "configVersion": 1,
       "license": "Apache-2.0",
       "category": "Documents",
+      "categoryI18n": { "zh": "文档", "en": "Documents" },
       "tags": ["pdf", "document", "render"],
       "detail": {
         "i18n": {
@@ -74,6 +77,7 @@
       "version": "1.0.0",
       "configVersion": 1,
       "category": "Development",
+      "categoryI18n": { "zh": "开发", "en": "Development" },
       "tags": ["remotion", "video", "react", "animation"],
       "detail": {
         "i18n": {
@@ -95,6 +99,7 @@
       "license": "Apache-2.0",
       "author": "xpzouying",
       "category": "Social",
+      "categoryI18n": { "zh": "社交", "en": "Social" },
       "tags": ["xiaohongshu", "rednote", "social", "content", "automation"],
       "detail": {
         "i18n": {
@@ -115,6 +120,7 @@
       "configVersion": 1,
       "author": "X Developer Platform",
       "category": "Social",
+      "categoryI18n": { "zh": "社交", "en": "Social" },
       "tags": ["x", "twitter", "social", "search", "news", "api"],
       "detail": {
         "i18n": {
