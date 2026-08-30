@@ -1,4 +1,4 @@
-# X API MCP
+# X API
 
 Connect Vetta to X's hosted API MCP server at <https://api.x.com/mcp> using an App-only Bearer Token.
 

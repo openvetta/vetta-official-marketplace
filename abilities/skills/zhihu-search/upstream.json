@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/klarkxy/zhihu-search",
+  "revision": "2246138b8c04a7d1647beaf23381468f63aa1bfe",
+  "license": "SATA-2.0",
+  "files": {
+    "SKILL.md": "skills/zhihu-search/SKILL.md",
+    "LICENSE": "LICENSE"
+  },
+  "adaptations": [
+    "Add Vetta-required version frontmatter and pin CLI examples to PyPI 2.0.0.",
+    "Use the Vetta companion server identity zhihu-search-mcp.",
+    "Separate MCP credentials from standalone CLI credentials; do not bypass a disabled companion.",
+    "Replace client-specific setup instructions with Vetta setup and add bilingual presentation files.",
+    "Do not copy client-specific agents/openai.yaml or modify upstream Python source."
+  ],
+  "runtime": {
+    "package": "zhihu-search",
+    "version": "2.0.0",
+    "registry": "https://pypi.org/project/zhihu-search/2.0.0/",
+    "verifiedWheelSha256": "0bdcd13f1a4d835320360a6e00c3d22efd73fe5e8966644d4395f86ba2cc85a7"
+  }
+}

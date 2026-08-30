@@ -10,7 +10,7 @@
 2. 建包目录：`abilities/skills/<slug>/`、`abilities/mcp/<slug>/`、`abilities/plugins/<slug>/`、`abilities/bundles/<slug>/`（注意 mcp 目录没有复数 s）
 3. 写包内文件（见「各类型包规范」）
 4. 写展示层 `ability.json`（可选 `detail.json`、`assets/`）
-5. 在 `.vetta/marketplace.json` 的 `abilities[]` 注册条目
+5. 需要独立展示时在 `.vetta/marketplace.json` 的 `abilities[]` 注册；仅 bundle 成员则在 bundle 中写包路径引用
 6. **bump 顶层 `marketplaceVersion`**
 7. 按「提交前检查清单」自检
 
@@ -34,13 +34,13 @@ abilities/<type>/<slug>/assets/
 
 | 字段 | 约束 |
 | --- | --- |
-| `schemaVersion` | 固定 `1` |
+| `schemaVersion` | `1` 或 `2`；包路径 bundle 成员需 `2`，官方源当前使用 `2` |
 | `name` | slug 格式，市场标识 |
 | `displayName` | 可选 |
 | `marketplaceVersion` | 版本格式；**内容一变就必须改** |
 | `repository` | 合法 URL |
 | `minAppVersion` | 语义版本；低于该版本的桌面端整源拒绝加载 |
-| `abilities` | 数组，可以为空 |
+| `abilities` | 独立上架条目数组，可以为空 |
 
 - slug 格式：`^[a-z0-9][a-z0-9-]{0,63}$`
 - 版本格式：`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`
@@ -65,7 +65,9 @@ abilities/<type>/<slug>/assets/
 }
 ```
 
-- `slug` 在整个 manifest 内**全局唯一**，不分类型
+- `slug` 在整个解析后目录内**全局唯一**，不分类型；多个 bundle 可引用同一个类型和路径的成员
+- 展示名称描述用途，不包含 `MCP` / `Skill` / `Plugin` / `Bundle` 或「技能 / 插件 / 套装」类型后缀；
+  类型由客户端标签展示。改名只调整默认名称、语言覆盖及详情标题，不改变已有 slug、安装身份或配置版本。
 - `source.path` 必须是仓库内相对路径，不能逃出市场根目录
 - `configVersion` 在能力的配置契约变化时 +1
 - `detail.i18n.<locale>` 用来放多语言的 `name` / `description`，目录页直接用
@@ -184,21 +186,33 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
   "slug": "starter",
   "config": {
     "members": [
-      { "type": "skill", "slug": "hello-vetta" },
-      { "type": "mcp", "slug": "context7" }
+      { "type": "skill", "slug": "hello-vetta", "source": { "path": "abilities/skills/hello-vetta" } },
+      { "type": "mcp", "slug": "context7", "source": { "path": "abilities/mcp/context7" } }
     ]
   }
 }
 ```
 
 - `members` 至少 1 项，`type` 只能是 `skill` / `mcp` / `plugin`
-- 每个成员必须是**同一份 manifest 里已声明**的能力，且 type 与 slug 都对得上，否则报 `Bundle member not found in marketplace`
+- v1 / v2 都允许 `{ type, slug }` 引用顶层已注册能力；没有 `source` 的成员必须在顶层存在
+- v2 支持成员 `source.path`，相对**市场根目录**，不是 bundle 所在目录。包无需在顶层注册；
+  未注册成员必须在自己的 `ability.json` 提供名称、版本和其他目录元信息（见下节）
+- 顶层注册决定独立展示。仅 bundle 引用的成员不进入「发现」及顶部图标区，仍可在 bundle 详情中查看、勾选安装，
+  安装后可在「我的」中更新、启停和卸载；未被任何条目引用的包不会自动加载
+- 同 slug 必须同 type、同规范化路径；同时顶层注册时沿用顶层目录字段及既有包展示合并规则，不重复生成成员
 - 成员不能重复
-- `source` 可选（通常指向一个只放展示资源的目录）
+- bundle 自身的 `source` 可选（通常指向一个只放展示资源的目录），与成员的 source 相互独立
+- 不增设 `hidden` / `listed` 作者字段，不内联成员制品、运行配置或安装脚本
+- 改变上架位置时保留成员 slug、version、configVersion，只有实际制品或配置契约变化才提升对应版本；始终 bump marketplaceVersion
+- 本源 v2 需要包含该解析功能的 Desktop 构建（目标 `0.5.49`），先更新客户端再切换格式；
+  旧构建刷新不能获得新解析器，会拒绝 v2 整源并沿用可用旧缓存。包文件自身的 schemaVersion 不因此改变
 
 ## 展示层：`ability.json` / `detail.json`
 
-`ability.json` 存在才会加载展示信息，不存在就只用 manifest 里的字段。
+独立上架的能力可省略 `ability.json`，此时只用 manifest 字段。仅 bundle 引用的包则必须提供它作为目录元信息入口：
+除下例身份与展示字段外，还必须有 `name`；可提供 `description`、`configVersion`、`license`、`author`、`category`、
+`categoryI18n`、`tags`，校验规则与顶层条目相同。不允许包含 `config` / `source`，MCP 配置仍只放 `mcp.json`。
+翻译直接放 `detail.i18n.zh`，可以同时包含 `name` / `description` / `tags` 与详情 `path`，无需再在 marketplace 复制一份。
 
 ```json
 {
@@ -217,7 +231,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 }
 ```
 
-- `type` / `slug` / `version` 三者必须与 manifest 条目**完全一致**，否则报 Presentation identity does not match ability
+- `type` / `slug` / `version` 三者必须与对应目录能力**完全一致**；未上架成员的 type / slug 匹配引用，version 匹配制品
 - `detail.format`：`blocks`（结构化）或 `markdown`（整篇正文）
 - `detail.fallback`：主 detail 解析失败时的兜底文件，通常写 `README.md`。**注意它会掩盖错误** —— 详情页看起来正常但内容退化成了 README，本地自检时要留意
 - `meta[].key` 只能是 `homepage` / `repository` / `docs` / `license`；也可以不给 key 而给 `label` 自定义标题
@@ -247,7 +261,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 卡片、分组和正文都要写：
 
-1. **目录卡片**（名称 / 简介 / 标签）—— 在 `.vetta/marketplace.json` 条目里：
+1. **目录卡片**（名称 / 简介 / 标签）—— 独立条目在 `.vetta/marketplace.json` 中，仅 bundle 成员在包内 `ability.json` 中：
 
    ```json
    {
@@ -304,9 +318,11 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 - [ ] `marketplaceVersion` 已 bump（**最常见的翻车点**：内容变了但版本没变，桌面端直接报 `Marketplace content changed without a marketplaceVersion update`）
 - [ ] 新能力的 `slug` 在 manifest 内唯一
+- [ ] 默认名称与多语言名称不包含能力类型后缀，现有 slug 未因展示改名而变化
 - [ ] 包内 `SKILL.md` / `mcp.json` / `plugin.json` 的 slug、version 与 manifest 条目逐字一致
 - [ ] `ability.json` 的 `type` / `slug` / `version` 与 manifest 条目逐字一致
-- [ ] bundle 成员都能在本 manifest 里找到，且类型匹配
+- [ ] bundle 无路径成员在顶层存在；路径成员使用 v2、包与元信息存在、身份和路径无冲突
+- [ ] 仅 bundle 成员没有重复注册到顶层，除非确实需要独立展示；包内默认名称、语言覆盖和分类齐全
 - [ ] mcp 条目在 manifest 里没有 `config` 键
 - [ ] `schemaVersion: 2` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
@@ -314,6 +330,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里
 - [ ] `categoryI18n` 已补齐 `zh` / `en`，同分类译名一致，`category` 保持稳定
 - [ ] 若能力用到桌面端新特性，`minAppVersion` 已相应提高
+- [ ] 已运行 `node --test tests/marketplace.test.mjs`；这是内容回归检查，不替代 Desktop 的完整 Schema 校验
 - [ ] 在桌面端「能力 → 添加市场源」里实际添加本仓库，确认能列出新能力并安装成功
 
 最后一条最有效：桌面端同步失败时只会记一句 `sync-failed`，没有具体原因，所以本地跑通一次比读十遍手册可靠。

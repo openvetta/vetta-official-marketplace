@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "type": "bundle",
+  "slug": "zhihu-research",
+  "version": "1.0.0",
+  "icon": "solar:magnifer-bold",
+  "detail": {
+    "format": "markdown",
+    "path": "README.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/klarkxy/zhihu-search"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/klarkxy/zhihu-search#readme"
+      },
+      {
+        "key": "license",
+        "value": "https://github.com/klarkxy/zhihu-search/blob/2246138b8c04a7d1647beaf23381468f63aa1bfe/LICENSE"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "README.zh.md"
+      }
+    }
+  }
+}

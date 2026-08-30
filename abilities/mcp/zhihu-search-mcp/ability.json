@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "zhihu-search-mcp",
+  "version": "2.0.0",
+  "icon": "solar:magnifer-bold",
+  "detail": {
+    "format": "markdown",
+    "path": "README.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/klarkxy/zhihu-search"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/klarkxy/zhihu-search#readme"
+      },
+      {
+        "key": "license",
+        "value": "https://github.com/klarkxy/zhihu-search/blob/2246138b8c04a7d1647beaf23381468f63aa1bfe/LICENSE"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "README.zh.md",
+        "name": "知乎搜索",
+        "description": "通过社区维护的 zhihu-search 客户端调用知乎搜索、直答与热榜；需要 uv 和知乎 Access Secret。",
+        "tags": [
+          "知乎",
+          "搜索",
+          "直答",
+          "热榜"
+        ]
+      }
+    }
+  },
+  "name": "Zhihu Search",
+  "description": "Connect to Zhihu search, direct answers and trending topics using the community-maintained zhihu-search client. Requires uv and a Zhihu Access Secret.",
+  "configVersion": 1,
+  "license": "SATA-2.0",
+  "author": "Klarkxy",
+  "category": "Social",
+  "categoryI18n": {
+    "zh": "社交",
+    "en": "Social"
+  },
+  "tags": [
+    "zhihu",
+    "search",
+    "answers",
+    "trending"
+  ]
+}

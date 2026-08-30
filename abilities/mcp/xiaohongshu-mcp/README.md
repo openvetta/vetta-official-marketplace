@@ -1,4 +1,4 @@
-# Xiaohongshu MCP
+# Xiaohongshu
 
 Official Xiaohongshu automation MCP server from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp).
 

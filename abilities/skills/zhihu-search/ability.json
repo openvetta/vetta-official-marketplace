@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "zhihu-search",
+  "version": "2.0.0",
+  "icon": "solar:magnifer-bold",
+  "detail": {
+    "format": "markdown",
+    "path": "README.md",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/klarkxy/zhihu-search"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/klarkxy/zhihu-search#readme"
+      },
+      {
+        "key": "license",
+        "value": "https://github.com/klarkxy/zhihu-search/blob/2246138b8c04a7d1647beaf23381468f63aa1bfe/LICENSE"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "README.zh.md",
+        "name": "知乎检索指南",
+        "description": "按任务选择中文社区检索方式，复用可见的知乎工具，附上来源并避免重复请求。",
+        "tags": [
+          "知乎",
+          "检索",
+          "口碑",
+          "来源",
+          "中文社区"
+        ]
+      }
+    }
+  },
+  "name": "Zhihu Research Guide",
+  "description": "Choose a focused Chinese-community query, reuse visible Zhihu tools, and return attributable sources without duplicate requests.",
+  "configVersion": 1,
+  "license": "SATA-2.0",
+  "author": "Klarkxy",
+  "category": "Social",
+  "categoryI18n": {
+    "zh": "社交",
+    "en": "Social"
+  },
+  "tags": [
+    "zhihu",
+    "research",
+    "sources",
+    "chinese-community"
+  ]
+}

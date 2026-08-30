@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.30-5",
+  "marketplaceVersion": "2026.08.30-7",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -92,7 +92,7 @@
     {
       "type": "mcp",
       "slug": "xiaohongshu-mcp",
-      "name": "Xiaohongshu MCP",
+      "name": "Xiaohongshu",
       "description": "Search, read, publish and interact with Xiaohongshu through an official MCP server.",
       "version": "2.5.0",
       "configVersion": 1,
@@ -104,7 +104,7 @@
       "detail": {
         "i18n": {
           "zh": {
-            "name": "小红书 MCP",
+            "name": "小红书",
             "description": "通过官方 MCP 服务搜索、阅读、发布和互动小红书内容。"
           }
         }
@@ -114,7 +114,7 @@
     {
       "type": "mcp",
       "slug": "x-api-mcp",
-      "name": "X API MCP",
+      "name": "X API",
       "description": "Search X posts, users, trends and news through the official hosted X API MCP server.",
       "version": "1.0.0",
       "configVersion": 1,
@@ -125,12 +125,40 @@
       "detail": {
         "i18n": {
           "zh": {
-            "name": "X API MCP",
+            "name": "X API",
             "description": "通过官方托管的 X API MCP 服务搜索帖子、用户、趋势和新闻。"
           }
         }
       },
       "source": { "path": "abilities/mcp/x-api-mcp" }
+    },
+    {
+      "type": "bundle",
+      "slug": "zhihu-research",
+      "name": "Zhihu Research",
+      "description": "Combine a research guide with Zhihu search, answers and trending topics. Select either member or install both.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "author": "Vetta / Klarkxy",
+      "category": "Social",
+      "categoryI18n": { "zh": "社交", "en": "Social" },
+      "tags": ["zhihu", "research", "search", "chinese-community"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "知乎调研",
+            "description": "将检索指南与知乎搜索、直答和热榜组合使用，成员可单独选择或一起安装。",
+            "tags": ["知乎", "调研", "搜索", "中文社区"]
+          }
+        }
+      },
+      "source": { "path": "abilities/bundles/zhihu-research" },
+      "config": {
+        "members": [
+          { "type": "skill", "slug": "zhihu-search", "source": { "path": "abilities/skills/zhihu-search" } },
+          { "type": "mcp", "slug": "zhihu-search-mcp", "source": { "path": "abilities/mcp/zhihu-search-mcp" } }
+        ]
+      }
     }
   ]
 }
