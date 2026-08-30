@@ -3,7 +3,7 @@
   "type": "skill",
   "slug": "zhihu-search",
   "version": "2.0.0",
-  "icon": "solar:magnifer-bold",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "markdown",
     "path": "README.md",

@@ -3,7 +3,7 @@
   "type": "bundle",
   "slug": "zhihu-research",
   "version": "1.0.0",
-  "icon": "solar:magnifer-bold",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "markdown",
     "path": "README.md",
