@@ -209,6 +209,20 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 ## 展示层：`ability.json` / `detail.json`
 
+### 面向 Vetta 用户编写
+
+- 详情是 Vetta 中的产品介绍，不是上游官网、工具目录或开发者 README 的复制品。先说用户能得到什么，
+  再给一个可直接在对话中使用的例子，最后用简短步骤说明安装、必要配置与开始使用。
+- 复用宿主的声明式详情区块；常见结构为用途介绍、对话示例、使用场景、开始步骤及必要提醒。
+  步骤描述用户在 Vetta 中的操作，不把工具调用、环境变量或内部存储流程写成用户操作。
+- 命令、固定版本、协议和高级排查留在独立技术文档，通过帮助链接按需访问；不要把技术 README 设为详情的静默 fallback。
+- 简化不能变成虚假承诺：尚需用户安装的依赖、提供的凭据、费用/额度及重要权限边界，应在开始使用前简明告知，
+  不宣称尚未实现的自动安装或免配置。示例回复用于说明预期流程，不冒充实际查询结果。
+- 默认英文与中文覆盖保持同等内容；卡片简介也描述使用价值。知乎三项的 `detail.json` / `detail.zh.json` 可作为案例，
+  `README.md` / `README.zh.md` 负责高级接入说明。更新后运行内容测试及 Desktop 真实解析器校验。
+
+### 包描述文件
+
 独立上架的能力可省略 `ability.json`，此时只用 manifest 字段。仅 bundle 引用的包则必须提供它作为目录元信息入口：
 除下例身份与展示字段外，还必须有 `name`；可提供 `description`、`configVersion`、`license`、`author`、`category`、
 `categoryI18n`、`tags`，校验规则与顶层条目相同。不允许包含 `config` / `source`，MCP 配置仍只放 `mcp.json`。
@@ -243,10 +257,11 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 { "schemaVersion": 1, "blocks": [ … ] }
 ```
 
-可用的 block 类型只有 7 种，**没有自定义 HTML / JS / CSS / iframe 的口子**：
+常用 block 类型如下（完整白名单以 Desktop Schema 为准），**没有自定义 HTML / JS / CSS / iframe 的口子**：
 
 | type | 必填 | 说明 |
 | --- | --- | --- |
+| `hero` | `title` | 用一句话说明价值，可加 `eyebrow`、`description` 与 `badges` |
 | `feature-grid` | `items[]{title, description}` | `items[].icon` 可用 `solar:` 或包内图片 |
 | `steps` | `items[]{title}` | `description` 可选 |
 | `showcase` | `showcase{template, user_prompt, assistant_reply}` | `template` 限 `chat-over-canvas` / `chat-thread`；`canvas` 限 `design` / `code` / `docs` / `generic`；`brand_icon_url` **不支持 `solar:`** |

@@ -1,4 +1,7 @@
-# 知乎调研
+# 知乎调研：接入与排查说明
+
+本文面向需要高级设置、问题排查或维护集成的人。Vetta 详情页使用独立的[产品介绍](detail.zh.json)，
+不直接展示这份技术说明；另有[英文详情](detail.json)。
 
 结合检索指南与调用工具，研究中文社区观点、真实体验、口碑和当前热点。底层使用
 [Klarkxy 的 zhihu-search](https://github.com/klarkxy/zhihu-search)：这是对接知乎开放平台的

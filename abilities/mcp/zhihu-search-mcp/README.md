@@ -1,4 +1,7 @@
-# Zhihu Search
+# Zhihu Search — integration notes
+
+This document is for advanced setup, troubleshooting and maintainers. The Vetta detail page uses
+[the product introduction](detail.json), with [a Chinese version](detail.zh.json), instead of displaying these technical notes.
 
 Connect Vetta to search, direct answers and trending topics through
 [zhihu-search](https://github.com/klarkxy/zhihu-search), a community-maintained client for the

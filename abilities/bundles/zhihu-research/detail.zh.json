@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "在 Vetta 中调研知乎",
+      "title": "把社区里的经验，变成有来源的参考",
+      "description": "告诉 Vetta 你想了解什么，查找相关讨论、梳理不同观点，并留下可以回看核查的来源链接。",
+      "badges": [
+        "真实体验",
+        "热点讨论",
+        "来源核查"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "帮我查查知乎上居家办公使用升降桌的体验，整理优点、常见问题和来源链接。",
+        "assistant_reply": "我会查找相关体验，区分反复出现的观点和个别感受，并附上可回看的链接。资料不足的地方会单独说明。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "从你关心的问题出发",
+      "items": [
+        {
+          "title": "了解口碑与体验",
+          "description": "围绕产品或使用场景，比较不同人的体验，整理值得关注的优点和问题。",
+          "icon": "solar:chat-round-dots-linear"
+        },
+        {
+          "title": "跟进当前讨论",
+          "description": "查看知乎正在讨论的话题，再聚焦与你的兴趣或工作相关的内容。",
+          "icon": "solar:chart-linear"
+        },
+        {
+          "title": "保留核查线索",
+          "description": "让总结附上来源链接；对其中一个观点感兴趣时，可以继续追问。",
+          "icon": "solar:link-linear"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "开始前：一次性准备",
+      "content": "需要知乎访问密钥（Access Secret），以及本机辅助工具 uv。目前 Vetta 不会自动安装 uv；可通过下方链接完成准备，安装后重启 Vetta。首次连接还需联网下载必要文件。"
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中三步开始",
+      "items": [
+        {
+          "title": "安装“知乎调研”",
+          "description": "点击安装，勾选“知乎检索指南”和“知乎搜索”。之后可在“我的”中分别管理。"
+        },
+        {
+          "title": "连接知乎访问权限",
+          "description": "按弹窗提示，在密码输入框粘贴 Access Secret 并完成配置。不要把密钥发到聊天中。"
+        },
+        {
+          "title": "直接说出你的问题",
+          "description": "连接成功后，在对话中描述主题，让 Vetta 整理观点、对比体验并附上来源。不需要学习命令或工具名称。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "使用时请留意",
+      "content": "查询会消耗你的知乎额度，重要结论请回看来源核实。除查询外，这项连接还支持部分账号相关操作与内容生成；仅在你明确提出相应需求时使用。"
+    },
+    {
+      "type": "links",
+      "title": "需要帮助？",
+      "items": [
+        {
+          "label": "获取知乎访问密钥",
+          "href": "https://developer.zhihu.com/"
+        },
+        {
+          "label": "首次准备：安装辅助工具 uv",
+          "href": "https://docs.astral.sh/uv/getting-started/installation/"
+        },
+        {
+          "label": "高级设置与问题排查",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/zhihu-research/README.zh.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "让 Vetta 更有条理地调研",
+      "title": "不止找到链接，也把问题理清楚",
+      "description": "帮助 Vetta 选择合适的检索方式，围绕你的问题整理社区观点、保留来源，并说明资料能支持什么、还有哪些不足。",
+      "badges": [
+        "聚焦问题",
+        "整理观点",
+        "说明依据"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "帮我调研知乎上从坐班转为居家办公的体验，区分共性和个例，并标明来源。",
+        "assistant_reply": "我会围绕这一转变查找资料，按主题整理体验，区分常见观点和个人经历，并说明现有来源的局限。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "让每次查询更贴近目标",
+      "items": [
+        {
+          "title": "选对检索方式",
+          "description": "根据问题选择查找来源、了解解释或查看当前讨论，减少无关结果。",
+          "icon": "solar:magnifer-linear"
+        },
+        {
+          "title": "把资料整理清楚",
+          "description": "围绕问题归纳内容，让结论与来源对应，资料不足时明确说明。",
+          "icon": "solar:document-text-linear"
+        },
+        {
+          "title": "保持任务聚焦",
+          "description": "需要外部资料时再查询，不给本地任务额外增加无关搜索。",
+          "icon": "solar:target-linear"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "建议搭配“知乎搜索”",
+      "content": "指南本身不提供知乎连接。在 Vetta 中使用时，建议同时安装并连接“知乎搜索”；指南无需额外填写密钥。只安装指南的高级用法可查看下方接入说明。"
+    },
+    {
+      "type": "steps",
+      "title": "从问题到有依据的总结",
+      "items": [
+        {
+          "title": "在“知乎调研”中选择两个成员",
+          "description": "一起安装“知乎检索指南”和“知乎搜索”，按提示完成搜索连接的一次性准备。"
+        },
+        {
+          "title": "告诉 Vetta 你想得到什么",
+          "description": "说明主题与关注点，例如常见问题、不同人的体验，或最近的讨论。"
+        },
+        {
+          "title": "查看来源，继续追问",
+          "description": "让结果附上来源链接，核查重要观点，再针对不清楚的地方继续提问。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "总结之后，也要核查",
+      "content": "社区观点的总结不代表事实已被证实，也不等于完整调查。请结合原文和上下文判断；通过配套连接发起查询会消耗你的知乎额度。"
+    },
+    {
+      "type": "links",
+      "title": "需要帮助？",
+      "items": [
+        {
+          "label": "高级设置与问题排查",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/skills/zhihu-search/README.zh.md"
+        }
+      ]
+    }
+  ]
+}

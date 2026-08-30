@@ -1,4 +1,7 @@
-# Zhihu Research Guide
+# Zhihu Research Guide — integration notes
+
+This document is for advanced setup, troubleshooting and maintainers. The Vetta detail page uses
+[the product introduction](detail.json), with [a Chinese version](detail.zh.json), instead of displaying these technical notes.
 
 Choose the right query for Chinese-community research: search for inspectable sources, direct
 answers for synthesis, or trending topics for current discussions. Return useful attribution

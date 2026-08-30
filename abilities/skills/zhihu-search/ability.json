@@ -5,8 +5,8 @@
   "version": "2.0.0",
   "icon": "assets/icon.png",
   "detail": {
-    "format": "markdown",
-    "path": "README.md",
+    "format": "blocks",
+    "path": "detail.json",
     "meta": [
       {
         "key": "repository",
@@ -14,7 +14,7 @@
       },
       {
         "key": "docs",
-        "value": "https://github.com/klarkxy/zhihu-search#readme"
+        "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/skills/zhihu-search/README.md"
       },
       {
         "key": "license",
@@ -23,9 +23,9 @@
     ],
     "i18n": {
       "zh": {
-        "path": "README.zh.md",
+        "path": "detail.zh.json",
         "name": "知乎检索指南",
-        "description": "按任务选择中文社区检索方式，复用可见的知乎工具，附上来源并避免重复请求。",
+        "description": "让 Vetta 围绕你的问题查找社区观点、整理依据，并说明资料的局限。",
         "tags": [
           "知乎",
           "检索",
@@ -37,7 +37,7 @@
     }
   },
   "name": "Zhihu Research Guide",
-  "description": "Choose a focused Chinese-community query, reuse visible Zhihu tools, and return attributable sources without duplicate requests.",
+  "description": "Help Vetta focus your research, organize community viewpoints and explain the limits of the evidence.",
   "configVersion": 1,
   "license": "SATA-2.0",
   "author": "Klarkxy",

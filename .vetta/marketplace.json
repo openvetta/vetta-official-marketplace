@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.30-8",
+  "marketplaceVersion": "2026.08.30-9",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -136,7 +136,7 @@
       "type": "bundle",
       "slug": "zhihu-research",
       "name": "Zhihu Research",
-      "description": "Combine a research guide with Zhihu search, answers and trending topics. Select either member or install both.",
+      "description": "Ask Vetta to research Zhihu experiences and current discussions, compare viewpoints and return source links.",
       "version": "1.0.0",
       "configVersion": 1,
       "author": "Vetta / Klarkxy",
@@ -147,7 +147,7 @@
         "i18n": {
           "zh": {
             "name": "知乎调研",
-            "description": "将检索指南与知乎搜索、直答和热榜组合使用，成员可单独选择或一起安装。",
+            "description": "让 Vetta 帮你调研知乎口碑与热点讨论，整理不同观点，并附上可核查的来源链接。",
             "tags": ["知乎", "调研", "搜索", "中文社区"]
           }
         }

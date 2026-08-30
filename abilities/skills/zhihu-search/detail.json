@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "MORE FOCUSED RESEARCH IN VETTA",
+      "title": "Get a useful answer, not just a list of links",
+      "description": "Help Vetta choose a suitable way to research your question, organize community viewpoints and explain what the evidence does and does not support.",
+      "badges": [
+        "Focused questions",
+        "Clearer summaries",
+        "Source awareness"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Research Zhihu discussions about moving from office work to working from home. Separate common experiences from individual cases and include sources.",
+        "assistant_reply": "I’ll focus the search on that transition, group the experiences by theme and explain where the available sources are limited."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Make each query more useful",
+      "items": [
+        {
+          "title": "Choose a focused approach",
+          "description": "Match the question to source research, an explanation or current discussions.",
+          "icon": "solar:magnifer-linear"
+        },
+        {
+          "title": "Organize the answer",
+          "description": "Group relevant findings, keep sources close to claims and make uncertainty visible.",
+          "icon": "solar:document-text-linear"
+        },
+        {
+          "title": "Stay on topic",
+          "description": "Use external research when the task needs it, without adding unrelated searches to local work.",
+          "icon": "solar:target-linear"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Use with Zhihu Search",
+      "content": "This guide does not provide access to Zhihu by itself. For the Vetta workflow, install and connect Zhihu Search alongside it. The guide needs no separate access key. Independent advanced use is covered in the integration notes below."
+    },
+    {
+      "type": "steps",
+      "title": "From a question to a source-backed summary",
+      "items": [
+        {
+          "title": "Choose both members in Zhihu Research",
+          "description": "Install Zhihu Research Guide together with Zhihu Search, then complete the search connection’s one-time setup."
+        },
+        {
+          "title": "Describe the result you want",
+          "description": "Give Vetta a topic and a focus, such as common complaints, differing experiences or current discussions."
+        },
+        {
+          "title": "Review and follow up",
+          "description": "Ask for source links, check the claims that matter to you and follow up on any gaps."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Research is still something to review",
+      "content": "A summary of community views is not proof or a complete survey. Review the linked sources and their context. Queries through the companion connection use your Zhihu quota."
+    },
+    {
+      "type": "links",
+      "title": "Need help?",
+      "items": [
+        {
+          "label": "Advanced setup and troubleshooting",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/skills/zhihu-search/README.md"
+        }
+      ]
+    }
+  ]
+}

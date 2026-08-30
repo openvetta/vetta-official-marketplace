@@ -86,6 +86,14 @@ These tests cover package identities, referenced presentation files, bilingual c
 display names, bundle membership and the Zhihu command/credential contract. They do not replace
 the Desktop's full schema and archive validation or make real upstream API calls.
 
+## Writing for Vetta users
+
+Detail pages explain the outcome, show a conversation example and describe a short Vetta workflow.
+Keep command lines and integration internals in linked technical notes, not in the primary detail
+page. Disclose real prerequisites, credential requirements and important limits before the user
+starts; do not promise automatic setup the client does not provide. The bilingual Zhihu detail
+files demonstrate this separation, with content regression tests for the user-facing contract.
+
 ## Third-party licenses
 
 The root license does not replace third-party package licenses. The adapted Zhihu guide retains

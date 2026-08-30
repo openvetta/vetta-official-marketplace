@@ -5,8 +5,8 @@
   "version": "2.0.0",
   "icon": "assets/icon.png",
   "detail": {
-    "format": "markdown",
-    "path": "README.md",
+    "format": "blocks",
+    "path": "detail.json",
     "meta": [
       {
         "key": "repository",
@@ -14,7 +14,7 @@
       },
       {
         "key": "docs",
-        "value": "https://github.com/klarkxy/zhihu-search#readme"
+        "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/zhihu-search-mcp/README.md"
       },
       {
         "key": "license",
@@ -23,9 +23,9 @@
     ],
     "i18n": {
       "zh": {
-        "path": "README.zh.md",
+        "path": "detail.zh.json",
         "name": "知乎搜索",
-        "description": "通过社区维护的 zhihu-search 客户端调用知乎搜索、直答与热榜；需要 uv 和知乎 Access Secret。",
+        "description": "在 Vetta 对话中搜索知乎内容、获取问题解答和查看当前热榜。",
         "tags": [
           "知乎",
           "搜索",
@@ -36,7 +36,7 @@
     }
   },
   "name": "Zhihu Search",
-  "description": "Connect to Zhihu search, direct answers and trending topics using the community-maintained zhihu-search client. Requires uv and a Zhihu Access Secret.",
+  "description": "Search Zhihu, ask questions and explore current trending topics in your Vetta conversation.",
   "configVersion": 1,
   "license": "SATA-2.0",
   "author": "Klarkxy",

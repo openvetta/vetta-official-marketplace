@@ -176,3 +176,33 @@ test("Zhihu guide pins CLI fallback, references local setup and preserves upstre
   for (const path of Object.keys(provenance.files)) packageFile(directory, path);
   assert.ok(dirname(directory).endsWith("skills"));
 });
+
+for (const slug of ["zhihu-research", "zhihu-search", "zhihu-search-mcp"]) {
+  test(`${slug}: Vetta product details separate the user journey from integration instructions in both languages`, () => {
+    const ability = bySlug.get(slug);
+    const directory = packageFile(root, ability.source.path);
+    const presentation = readJson(packageFile(directory, "ability.json"));
+    const detail = presentation.detail;
+    for (const source of [detail, detail.i18n.zh]) {
+      assert.equal(source.format ?? detail.format, "blocks");
+      assert.doesNotMatch(source.path, /README/iu);
+      assert.equal(source.fallback, undefined, "Do not silently fall back to the technical README");
+      const { blocks } = readJson(packageFile(directory, source.path));
+      assert.ok(blocks.some((block) => block.type === "hero"));
+      assert.ok(blocks.some((block) => block.type === "showcase"));
+      const steps = blocks.find((block) => block.type === "steps");
+      assert.ok(steps?.items.length > 0 && steps.items.length <= 3);
+      const text = JSON.stringify(blocks);
+      assert.match(text, /Vetta/u);
+      assert.doesNotMatch(text, /uvx|--from|stdio|ZHIHU_ACCESS_SECRET|PyPI|SHA-256|configVersion/u);
+      const links = blocks.filter((block) => block.type === "links").flatMap((block) => block.items);
+      assert.ok(links.some((link) => link.href.includes("vetta-official-marketplace") && link.href.includes("README")));
+      if (slug !== "zhihu-search") {
+        assert.match(text, /\buv\b/u, "Do not hide the current runtime prerequisite");
+        assert.match(text, /Access Secret/u, "Name the credential the installation dialog asks for");
+        assert.ok(links.some((link) => link.href === "https://developer.zhihu.com/"));
+        assert.ok(links.some((link) => link.href === "https://docs.astral.sh/uv/getting-started/installation/"));
+      }
+    }
+  });
+}
