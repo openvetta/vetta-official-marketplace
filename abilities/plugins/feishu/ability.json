@@ -3,7 +3,7 @@
   "type": "plugin",
   "slug": "feishu",
   "version": "1.0.0",
-  "icon": "solar:chat-round-line-bold",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "detail.json",

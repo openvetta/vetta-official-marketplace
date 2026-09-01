@@ -250,6 +250,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - `detail.fallback`：主 detail 解析失败时的兜底文件，通常写 `README.md`。**注意它会掩盖错误** —— 详情页看起来正常但内容退化成了 README，本地自检时要留意
 - `meta[].key` 只能是 `homepage` / `repository` / `docs` / `license`；也可以不给 key 而给 `label` 自定义标题
 - 图标 `icon` 三选一：`solar:` 开头的 Iconify 名、`https://` 链接、包内相对图片路径。包内图片扩展名限 `.avif .gif .ico .jpeg .jpg .png .svg .webp`
+- **卡片图标不得随意设置。** 这是目录页的产品识别，不是装饰。有官方品牌或应用图标的能力必须用官方位图（通常提交为 `assets/icon.png`），来源应是官网、应用商店或官方品牌资源；禁止拿 Solar / Iconify 里「看起来有点像」的图形凑数，也不要自行绘制或生成近似商标。没有独立品牌标识的工具型能力才选用 Solar，且图形必须能代表该能力本身。飞书、小红书、知乎、X 等条目是前者的案例。
 
 `detail.json`（`format: "blocks"` 时）：
 
@@ -341,6 +342,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] mcp 条目在 manifest 里没有 `config` 键
 - [ ] `schemaVersion: 2` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
+- [ ] 卡片 `icon` 不是随手挑的：有官方品牌/应用图标则用包内官方位图，否则才用贴切的 Solar 名
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持
 - [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里
 - [ ] `categoryI18n` 已补齐 `zh` / `en`，同分类译名一致，`category` 保持稳定
