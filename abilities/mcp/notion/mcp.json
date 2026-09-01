@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "slug": "notion",
+  "version": "1.0.0",
+  "server": {
+    "type": "http",
+    "url": "https://mcp.notion.com/mcp"
+  },
+  "parameters": [],
+  "browserAuth": true
+}

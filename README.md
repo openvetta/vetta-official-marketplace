@@ -2,7 +2,7 @@
 
 Official ability marketplace for the Vetta desktop application's GitHub ability source.
 
-The catalog includes document skills, Xiaohongshu, X API and
+The catalog includes document skills, Notion, Xiaohongshu, X API and
 [Zhihu Research](abilities/bundles/zhihu-research/README.md). Zhihu Research combines a research
 guide with a separately installable search connection, using `klarkxy/zhihu-search` without
 modifying its Python implementation. Its MCP requires uv on PATH and a Zhihu Access Secret;
@@ -12,6 +12,10 @@ The Feishu ability is a CLI Provider plugin. Enabling it asks Desktop to probe a
 install the official `@larksuite/cli`; its detail-page slot shows the real lifecycle and turns the
 official CLI's opaque setup URL into a QR code. Agent work still goes through the existing shell and
 the CLI's bundled skills—there is no Vetta Action, MCP server or replacement Agent tool in between.
+
+The Notion ability connects directly to Notion's official hosted MCP endpoint. Users install it and
+complete browser authorization for their own workspace; no developer application, integration
+secret or local runtime is required.
 
 ## Repository layout
 

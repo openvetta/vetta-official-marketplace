@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.01-4",
+  "marketplaceVersion": "2026.09.01-5",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -28,6 +28,28 @@
         }
       },
       "source": { "path": "abilities/plugins/feishu" }
+    },
+    {
+      "type": "mcp",
+      "slug": "notion",
+      "name": "Notion",
+      "description": "Connect a Notion workspace with browser authorization, then search, read, create and update pages directly from Vetta.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "author": "Notion",
+      "category": "Productivity",
+      "categoryI18n": { "zh": "效率", "en": "Productivity" },
+      "tags": ["notion", "notes", "wiki", "knowledge-base", "oauth"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Notion",
+            "description": "通过浏览器授权连接 Notion 工作区，之后可直接让 Vetta 搜索、读取、新建和更新页面。",
+            "tags": ["Notion", "笔记", "知识库", "工作区", "授权"]
+          }
+        }
+      },
+      "source": { "path": "abilities/mcp/notion" }
     },
     {
       "type": "skill",

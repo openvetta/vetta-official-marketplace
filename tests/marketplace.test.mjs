@@ -152,6 +152,31 @@ test("Feishu provides the official CLI lifecycle without adding an Action, MCP s
   }
 });
 
+test("Notion uses the official hosted endpoint with user browser authorization only", () => {
+  const ability = bySlug.get("notion");
+  assert.equal(ability?.type, "mcp");
+  assert.equal(ability.author, "Notion");
+  const directory = packageFile(root, ability.source.path);
+  const presentation = readJson(packageFile(directory, "ability.json"));
+  assert.equal(presentation.icon, "https://www.notion.so/images/favicon.ico");
+
+  const mcp = readJson(packageFile(directory, "mcp.json"));
+  assert.deepEqual(mcp.server, {
+    type: "http",
+    url: "https://mcp.notion.com/mcp",
+  });
+  assert.deepEqual(mcp.parameters, []);
+  assert.equal(mcp.browserAuth, true);
+  assert.equal("runtime" in mcp, false);
+
+  for (const detailPath of ["detail.json", "detail.zh.json"]) {
+    const text = JSON.stringify(readJson(packageFile(directory, detailPath)));
+    assert.match(text, /browser|浏览器/u);
+    assert.match(text, /no developer token|无需开发者 Token/u);
+    assert.match(text, /workspace|工作区/u);
+  }
+});
+
 test("Zhihu research combines its guide with a pinned, credential-parameterized search server", () => {
   const bundle = bySlug.get("zhihu-research");
   assert.equal(bundle?.type, "bundle");
