@@ -10,6 +10,7 @@ import {
   Spin
 } from "@vetta/ui";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { readFeishuUserIdentity, type FeishuUserIdentity } from "./auth-status";
 
 const PROVIDER_ID = "lark-cli";
 const URL_PATTERN = /https:\/\/[^\s\u001b]+/u;
@@ -100,7 +101,10 @@ function FeishuSetupSlot(): JSX.Element {
   const [setupUrl, setSetupUrl] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
+  const [userIdentity, setUserIdentity] = useState<FeishuUserIdentity | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecking, setAuthChecking] = useState(false);
+  const [authStatusError, setAuthStatusError] = useState<string | null>(null);
   const autoStarted = useRef(false);
   const flowHandleRef = useRef<PluginCommandSpawnHandle | null>(null);
 
@@ -110,6 +114,35 @@ function FeishuSetupSlot(): JSX.Element {
     setAppConfig(config);
     setConfigChecked(true);
     return config;
+  }, []);
+
+  const checkAuth = useCallback(async (): Promise<FeishuUserIdentity | null> => {
+    setAuthChecking(true);
+    setAuthStatusError(null);
+    try {
+      const result = await pluginContext.cliProviders.run(PROVIDER_ID, ["auth", "status", "--json", "--verify"], {
+        timeoutMs: 20000,
+        env: {
+          LARKSUITE_CLI_NO_UPDATE_NOTIFIER: "1",
+          LARKSUITE_CLI_NO_SKILLS_NOTIFIER: "1"
+        }
+      });
+      if (result.exitCode !== 0) {
+        setUserIdentity(null);
+        setAuthStatusError(result.stderr.trim() || result.stdout.trim());
+        return null;
+      }
+      const identity = readFeishuUserIdentity(result.stdout);
+      setUserIdentity(identity);
+      return identity;
+    } catch (error) {
+      setUserIdentity(null);
+      setAuthStatusError(error instanceof Error ? error.message : String(error));
+      return null;
+    } finally {
+      setAuthChecked(true);
+      setAuthChecking(false);
+    }
   }, []);
 
   const startFlow = useCallback(async (kind: FlowKind): Promise<void> => {
@@ -156,6 +189,11 @@ function FeishuSetupSlot(): JSX.Element {
   }, [checkConfig, configChecked, provider.phase, startFlow]);
 
   useEffect(() => {
+    if (provider.phase !== "ready" || !appConfig || authChecked || authChecking) return;
+    void checkAuth();
+  }, [appConfig, authChecked, authChecking, checkAuth, provider.phase]);
+
+  useEffect(() => {
     if (!flowHandle) return;
     let active = true;
     const poll = window.setInterval(() => {
@@ -179,8 +217,9 @@ function FeishuSetupSlot(): JSX.Element {
           if (config) setDialogOpen(false);
           else setFlowError(t("setup.flowFailed"));
         } else {
-          setAuthReady(true);
-          setDialogOpen(false);
+          const identity = await checkAuth();
+          if (identity) setDialogOpen(false);
+          else setFlowError(t("setup.authVerifyFailed"));
         }
       }).catch((error: unknown) => {
         if (active) setFlowError(error instanceof Error ? error.message : String(error));
@@ -190,7 +229,7 @@ function FeishuSetupSlot(): JSX.Element {
       active = false;
       window.clearInterval(poll);
     };
-  }, [checkConfig, flow, flowHandle, setupUrl, t]);
+  }, [checkAuth, checkConfig, flow, flowHandle, setupUrl, t]);
 
   const providerBusy = provider.phase === "checking" || provider.phase === "installing" || provider.phase === "verifying";
   const cliStep: StepState = provider.phase === "failed" ? "error" : providerBusy ? "active" : provider.phase === "ready" ? "complete" : "idle";
@@ -236,13 +275,40 @@ function FeishuSetupSlot(): JSX.Element {
         />
       </ol>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {provider.phase === "ready" && appConfig && !authReady ? (
-          <Button size="sm" variant="outline" onClick={() => void startFlow("auth")}>{t("setup.userAuth")}</Button>
-        ) : null}
-        {authReady ? <span className="text-xs text-emerald-400">{t("setup.authReady")}</span> : null}
-        {!providerBusy && !appConfig ? <span className="text-xs text-muted-foreground">{t("setup.authOptional")}</span> : null}
-      </div>
+      {appConfig ? (
+        <div className="mt-3 rounded-lg border border-border/50 bg-background/20 px-3 py-2.5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground">{t("setup.identityTitle")}</p>
+              {authChecking ? (
+                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Spin size="sm" className="text-primary" />
+                  <span>{t("setup.identityChecking")}</span>
+                </div>
+              ) : userIdentity ? (
+                <>
+                  <p className="mt-1 text-sm font-medium text-emerald-400">{userIdentity.userName || t("setup.identityUnnamed")}</p>
+                  <p className="mt-0.5 break-all font-mono text-[11px] text-muted-foreground">{userIdentity.openId}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{t("setup.identityMeta", { scopeCount: userIdentity.scopeCount })}</p>
+                </>
+              ) : (
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{authStatusError ? t("setup.identityCheckFailed") : t("setup.authOptional")}</p>
+              )}
+            </div>
+            {!authChecking ? (
+              <Button size="xs" variant="outline" onClick={() => void startFlow("auth")}>
+                {userIdentity ? t("setup.changeIdentity") : t("setup.userAuth")}
+              </Button>
+            ) : null}
+          </div>
+          {authStatusError ? (
+            <details className="mt-2 text-xs text-muted-foreground">
+              <summary className="cursor-pointer select-none">{t("setup.identityErrorDetails")}</summary>
+              <pre className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/60 p-2 font-mono text-[11px]">{authStatusError}</pre>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
 
       {provider.recentOutput ? (
         <details className="mt-3 text-xs text-muted-foreground">
