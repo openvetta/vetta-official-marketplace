@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "workers-best-practices",
+  "name": "Workers Best Practices",
+  "description": "Write and review Cloudflare Workers against production practices for streaming, async work, bindings, secrets and observability.",
+  "version": "1.0.0",
+  "configVersion": 1,
+  "license": "Apache-2.0",
+  "author": "Cloudflare",
+  "category": "Development",
+  "categoryI18n": { "zh": "开发", "en": "Development" },
+  "tags": ["cloudflare", "workers", "review", "performance", "security"],
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/cloudflare/skills" },
+      { "key": "docs", "value": "https://developers.cloudflare.com/workers/" },
+      { "key": "license", "value": "https://github.com/cloudflare/skills/blob/f96bff754e428838818017f75817f0f9428acd48/LICENSE" }
+    ],
+    "i18n": {
+      "zh": {
+        "name": "Workers 最佳实践",
+        "description": "依据生产实践编写和审查 Cloudflare Workers，覆盖流式处理、异步任务、Bindings、Secrets 与可观测性。",
+        "tags": ["Cloudflare", "Workers", "代码审查", "性能", "安全"],
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "实时 CLOUDFLARE 参考资料",
+      "title": "不离开当前任务也能核对最新文档",
+      "description": "让 Vetta 通过 Cloudflare 托管的文档服务，搜索当前 API、配置、限制和迁移指南。",
+      "badges": ["最新参考", "配置", "限制", "迁移"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "设计迁移方案前，核对一下 D1 当前支持的备份和恢复方式。",
+        "assistant_reply": "我会搜索当前 Cloudflare 文档，区分已支持流程和推测，并附上相关官方参考链接。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "在时效性重要时使用实时参考",
+      "items": [
+        { "title": "核对变化中的合同", "description": "查询当前配置字段、API、兼容性指南和产品限制。", "icon": "solar:document-text-linear" },
+        { "title": "辅助实施", "description": "在架构、编码、审查和排障中引入相关 Cloudflare 参考资料。", "icon": "solar:code-square-linear" },
+        { "title": "保留来源", "description": "要求返回文档链接，便于对重要结论进行官方来源核验。", "icon": "solar:link-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中开始",
+      "items": [
+        { "title": "安装连接", "description": "在 Cloudflare 开发平台中选择 Cloudflare 文档。" },
+        { "title": "提出准确问题", "description": "说明产品，以及要核对的 API、限制、配置或迁移细节。" },
+        { "title": "审阅来源", "description": "在依赖易变化的信息前，查看返回的官方参考。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "只查询文档",
+      "content": "这个公开连接只搜索 Cloudflare 参考资料，不会获得你的 Cloudflare 账号访问权。账号资源操作请安装独立的 Cloudflare API 连接。"
+    },
+    {
+      "type": "links",
+      "title": "官方资源",
+      "items": [
+        { "label": "Cloudflare MCP 服务目录", "href": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/" },
+        { "label": "Cloudflare 开发者文档", "href": "https://developers.cloudflare.com/" },
+        { "label": "技术接入说明", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/cloudflare-docs/README.md" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "CLOUDFLARE ACCOUNT OPERATIONS",
+      "title": "Inspect and manage Cloudflare resources from Vetta",
+      "description": "Connect through Cloudflare's browser authorization, choose the permissions to grant, and work across the Cloudflare API without sharing an API token in chat.",
+      "badges": ["Browser authorization", "DNS", "Workers", "R2 and D1"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "List the Workers in my selected account and explain which ones have recent deployment failures. Do not change anything.",
+        "assistant_reply": "I’ll use only the permissions you granted, inspect the relevant resources, and keep this request read-only. I’ll ask separately before any change."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Broad API coverage with a small tool surface",
+      "items": [
+        { "title": "Find the right API", "description": "Search Cloudflare's broad API surface instead of loading thousands of endpoint definitions into the conversation.", "icon": "solar:magnifer-linear" },
+        { "title": "Read account state", "description": "Inspect zones, DNS, Workers, storage, security and other resources covered by the permissions you grant.", "icon": "solar:eye-linear" },
+        { "title": "Make explicit changes", "description": "Create or update resources when requested, while keeping the granted Cloudflare scope and Vetta confirmations in control.", "icon": "solar:pen-new-square-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Connect in Vetta",
+      "items": [
+        { "title": "Install and continue", "description": "Choose Cloudflare API in the Cloudflare Developer Platform package, then continue to browser authorization." },
+        { "title": "Select permissions", "description": "Sign in to Cloudflare and grant only the accounts, resources and actions needed for your work." },
+        { "title": "State the boundary", "description": "Tell Vetta whether the request is read-only or may change resources, and review important operations before they run." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "This connection can change real resources",
+      "content": "Depending on the permissions you grant, operations can modify DNS, deployments, storage, security settings and other account resources, and some services can incur charges. Start with a test account or least-privilege scope and verify important results."
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "How Code Mode works",
+      "content": "Cloudflare exposes a compact search-and-execute interface. Generated API orchestration code runs in an isolated Cloudflare Worker with outbound access restricted by the service; it does not run as a local installation in Vetta."
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Cloudflare API connection guide", "href": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/" },
+        { "label": "Cloudflare API server source", "href": "https://github.com/cloudflare/mcp" },
+        { "label": "Technical setup and security notes", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/cloudflare-api/README.md" }
+      ]
+    }
+  ]
+}

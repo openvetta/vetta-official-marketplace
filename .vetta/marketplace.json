@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.01-5",
+  "marketplaceVersion": "2026.09.01-6",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
@@ -50,6 +50,38 @@
         }
       },
       "source": { "path": "abilities/mcp/notion" }
+    },
+    {
+      "type": "bundle",
+      "slug": "cloudflare-developer-platform",
+      "name": "Cloudflare Developer Platform",
+      "description": "Build, review, deploy and operate Cloudflare projects with official guidance, live documentation and optional account access.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "Apache-2.0",
+      "author": "Cloudflare / Vetta",
+      "category": "Development",
+      "categoryI18n": { "zh": "开发", "en": "Development" },
+      "tags": ["cloudflare", "workers", "wrangler", "documentation", "api"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Cloudflare 开发平台",
+            "description": "把官方平台知识、Wrangler 实践、Workers 审查、实时文档和可选账号授权组合起来，用 Vetta 开发并运维 Cloudflare 项目。",
+            "tags": ["Cloudflare", "Workers", "Wrangler", "开发文档", "账号操作"]
+          }
+        }
+      },
+      "source": { "path": "abilities/bundles/cloudflare-developer-platform" },
+      "config": {
+        "members": [
+          { "type": "skill", "slug": "cloudflare", "source": { "path": "abilities/skills/cloudflare" } },
+          { "type": "skill", "slug": "wrangler", "source": { "path": "abilities/skills/wrangler" } },
+          { "type": "skill", "slug": "workers-best-practices", "source": { "path": "abilities/skills/workers-best-practices" } },
+          { "type": "mcp", "slug": "cloudflare-docs", "source": { "path": "abilities/mcp/cloudflare-docs" } },
+          { "type": "mcp", "slug": "cloudflare-api", "source": { "path": "abilities/mcp/cloudflare-api" } }
+        ]
+      }
     },
     {
       "type": "skill",

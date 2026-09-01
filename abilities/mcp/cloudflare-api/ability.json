@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "cloudflare-api",
+  "name": "Cloudflare API",
+  "description": "Authorize selected Cloudflare permissions, then inspect and manage account resources across the Cloudflare API from Vetta.",
+  "version": "1.0.0",
+  "configVersion": 1,
+  "license": "Apache-2.0",
+  "author": "Cloudflare",
+  "category": "Development",
+  "categoryI18n": { "zh": "开发", "en": "Development" },
+  "tags": ["cloudflare", "api", "dns", "workers", "oauth"],
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "homepage", "value": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/" },
+      { "key": "repository", "value": "https://github.com/cloudflare/mcp" },
+      { "key": "license", "value": "https://github.com/cloudflare/mcp/blob/main/LICENSE" }
+    ],
+    "i18n": {
+      "zh": {
+        "name": "Cloudflare API",
+        "description": "授权选定的 Cloudflare 权限后，直接在 Vetta 中检查和管理覆盖 Cloudflare API 的账号资源。",
+        "tags": ["Cloudflare", "API", "DNS", "Workers", "授权"],
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

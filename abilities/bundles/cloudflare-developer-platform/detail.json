@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "CLOUDFLARE IN VETTA",
+      "title": "Build and operate on Cloudflare with current, official guidance",
+      "description": "Give Vetta Cloudflare's platform knowledge, project-aware Wrangler practices, live documentation and optional account access in one selectable package.",
+      "badges": ["Workers", "Wrangler", "Live documentation", "Optional account access"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Review this Worker, add the right storage binding, test it locally and prepare a safe deployment plan.",
+        "assistant_reply": "I’ll inspect the project, check current Cloudflare guidance, apply Workers best practices, and keep deployment or account changes behind your approval."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Choose only the Cloudflare capabilities you need",
+      "items": [
+        {
+          "title": "Design with platform context",
+          "description": "Cover Workers, Pages, storage, AI, networking and security with retrieval-first official guidance.",
+          "icon": "solar:cloud-linear"
+        },
+        {
+          "title": "Develop and review projects",
+          "description": "Use project-local Wrangler conventions and review Workers code for production risks before deployment.",
+          "icon": "solar:code-square-linear"
+        },
+        {
+          "title": "Look up or operate live services",
+          "description": "Search public documentation without signing in, or separately authorize account operations when needed.",
+          "icon": "solar:server-square-cloud-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Start in three steps",
+      "items": [
+        {
+          "title": "Select package members",
+          "description": "Install the platform guide, Wrangler guidance, Workers review, public documentation or account connection in any combination."
+        },
+        {
+          "title": "Authorize only if needed",
+          "description": "The documentation connection is public. The account connection opens Cloudflare's browser authorization and should receive the smallest useful scope."
+        },
+        {
+          "title": "Describe the outcome and boundary",
+          "description": "Open your project and say what to build, review or inspect. State whether live changes are allowed before Vetta acts."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Live operations need deliberate approval",
+      "content": "Wrangler and the authorized account connection can deploy or modify real Cloudflare resources, and some services may incur charges. Review the target account, environment, permissions and commands; prefer test resources and least privilege."
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "No hidden local MCP runtime",
+      "content": "Both connections use Cloudflare-hosted services. Public documentation needs no login; account operations use browser authorization rather than a token pasted into chat. Wrangler remains a project-local dependency and is not globally installed by this package."
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Cloudflare developer documentation", "href": "https://developers.cloudflare.com/" },
+        { "label": "Cloudflare official skills", "href": "https://github.com/cloudflare/skills" },
+        { "label": "Integration and security notes", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/cloudflare-developer-platform/README.md" }
+      ]
+    }
+  ]
+}

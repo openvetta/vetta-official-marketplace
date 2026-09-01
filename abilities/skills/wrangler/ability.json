@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "wrangler",
+  "name": "Wrangler",
+  "description": "Develop, configure, deploy and operate Cloudflare projects with the official project-local command line workflow.",
+  "version": "1.0.0",
+  "configVersion": 1,
+  "license": "Apache-2.0",
+  "author": "Cloudflare",
+  "category": "Development",
+  "categoryI18n": { "zh": "开发", "en": "Development" },
+  "tags": ["cloudflare", "wrangler", "workers", "deployment", "cli"],
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/cloudflare/skills" },
+      { "key": "docs", "value": "https://developers.cloudflare.com/workers/wrangler/" },
+      { "key": "license", "value": "https://github.com/cloudflare/skills/blob/f96bff754e428838818017f75817f0f9428acd48/LICENSE" }
+    ],
+    "i18n": {
+      "zh": {
+        "name": "Wrangler",
+        "description": "使用官方的项目本地命令行工作流开发、配置、部署和运维 Cloudflare 项目。",
+        "tags": ["Cloudflare", "Wrangler", "Workers", "部署", "命令行"],
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

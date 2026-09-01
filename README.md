@@ -2,7 +2,7 @@
 
 Official ability marketplace for the Vetta desktop application's GitHub ability source.
 
-The catalog includes document skills, Notion, Xiaohongshu, X API and
+The catalog includes document skills, Notion, Cloudflare, Xiaohongshu, X API and
 [Zhihu Research](abilities/bundles/zhihu-research/README.md). Zhihu Research combines a research
 guide with a separately installable search connection, using `klarkxy/zhihu-search` without
 modifying its Python implementation. Its MCP requires uv on PATH and a Zhihu Access Secret;
@@ -16,6 +16,12 @@ the CLI's bundled skills—there is no Vetta Action, MCP server or replacement A
 The Notion ability connects directly to Notion's official hosted MCP endpoint. Users install it and
 complete browser authorization for their own workspace; no developer application, integration
 secret or local runtime is required.
+
+[Cloudflare Developer Platform](abilities/bundles/cloudflare-developer-platform/README.md) is a
+selectable bundle of three pinned official Cloudflare skills plus two Cloudflare-hosted MCP services.
+It combines platform and Wrangler guidance, Workers review rules, public documentation search and
+optional browser-authorized account operations. The bundle installs no local MCP runtime and does
+not globally install Wrangler; account operations should use least privilege and explicit approval.
 
 ## Repository layout
 
@@ -92,7 +98,8 @@ node --test tests/marketplace.test.mjs
 ```
 
 These tests cover package identities, referenced presentation files, bilingual categories,
-display names, bundle membership and the Zhihu command/credential contract. They do not replace
+display names, bundle membership, Cloudflare source/authentication contracts and the Zhihu
+command/credential contract. They do not replace
 the Desktop's full schema and archive validation or make real upstream API calls.
 
 ## Writing for Vetta users
@@ -109,3 +116,9 @@ The root license does not replace third-party package licenses. The adapted Zhih
 the upstream [SATA 2.0 license](abilities/skills/zhihu-search/LICENSE) and
 [provenance](abilities/skills/zhihu-search/upstream.json). Review its star/thank-author condition
 before redistribution. Thanks to Klarkxy; this repository does not act on a user's GitHub account.
+
+The Cloudflare skills retain the upstream Apache-2.0 license and record their exact source paths and
+pinned revision in package-level `upstream.json` files, beginning with
+[Cloudflare Platform provenance](abilities/skills/cloudflare/upstream.json). The brand assets and
+skill content come from Cloudflare's official repository; marketplace metadata and bilingual detail
+pages are Vetta adaptations.

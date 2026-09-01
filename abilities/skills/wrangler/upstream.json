@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/cloudflare/skills",
+  "revision": "f96bff754e428838818017f75817f0f9428acd48",
+  "sourcePath": "skills/wrangler",
+  "license": "Apache-2.0",
+  "licenseSha256": "49bbe9114e49214df2ccc324cb3ac8d1d1aa1c3a0947f94c286765e86647b32e",
+  "adaptations": [
+    "Add Vetta-required version 1.0.0 to SKILL.md frontmatter.",
+    "Add bilingual Vetta catalog metadata and product details.",
+    "Copy the official Cloudflare logo and repository Apache-2.0 license into the package."
+  ]
+}

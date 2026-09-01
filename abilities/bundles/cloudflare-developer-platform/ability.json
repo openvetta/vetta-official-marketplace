@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "type": "bundle",
+  "slug": "cloudflare-developer-platform",
+  "version": "1.0.0",
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/cloudflare/skills" },
+      { "key": "docs", "value": "https://developers.cloudflare.com/" },
+      { "key": "license", "value": "https://github.com/cloudflare/skills/blob/f96bff754e428838818017f75817f0f9428acd48/LICENSE" }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "CLOUDFLARE 账号操作",
+      "title": "直接在 Vetta 中检查和管理 Cloudflare 资源",
+      "description": "通过 Cloudflare 浏览器授权连接并选择授予的权限，无需在对话中分享 API Token，即可使用 Cloudflare API。",
+      "badges": ["浏览器授权", "DNS", "Workers", "R2 与 D1"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "列出所选账号里的 Workers，并说明哪些最近部署失败。不要做任何修改。",
+        "assistant_reply": "我只会使用你授予的权限检查相关资源，并保持本次请求只读；任何修改都会另行向你确认。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "以精简工具覆盖广泛 API",
+      "items": [
+        { "title": "找到合适 API", "description": "搜索 Cloudflare 的广泛 API，而不是把数千个 Endpoint 定义全部塞进对话。", "icon": "solar:magnifer-linear" },
+        { "title": "读取账号状态", "description": "在授权范围内检查 Zones、DNS、Workers、存储、安全和其他资源。", "icon": "solar:eye-linear" },
+        { "title": "执行明确变更", "description": "仅在请求时创建或更新资源，并由 Cloudflare 授权范围和 Vetta 确认共同约束。", "icon": "solar:pen-new-square-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中连接",
+      "items": [
+        { "title": "安装并继续", "description": "在 Cloudflare 开发平台中选择 Cloudflare API，然后继续浏览器授权。" },
+        { "title": "选择权限", "description": "登录 Cloudflare，只授予工作所需的账号、资源和操作权限。" },
+        { "title": "说明操作边界", "description": "告诉 Vetta 本次请求是只读还是允许修改，并在运行前审阅重要操作。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "这个连接可以修改真实资源",
+      "content": "根据你授予的权限，操作可能修改 DNS、部署、存储、安全设置和其他账号资源，部分服务也可能产生费用。建议先用测试账号或最小权限，并核对重要结果。"
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Code Mode 如何工作",
+      "content": "Cloudflare 提供精简的搜索与执行接口。生成的 API 编排代码在隔离的 Cloudflare Worker 中运行，出站访问由服务限制；它不会作为本地程序安装到 Vetta 中。"
+    },
+    {
+      "type": "links",
+      "title": "官方资源",
+      "items": [
+        { "label": "Cloudflare API 连接指南", "href": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/" },
+        { "label": "Cloudflare API 服务源码", "href": "https://github.com/cloudflare/mcp" },
+        { "label": "技术接入与安全说明", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/cloudflare-api/README.md" }
+      ]
+    }
+  ]
+}

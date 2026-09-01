@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "VETTA 中的 WRANGLER",
+      "title": "在项目中使用 Cloudflare 官方工作流",
+      "description": "让 Vetta 选择当前有效的 Wrangler 命令、配置和安全部署步骤，避免依赖过时语法。",
+      "badges": ["本地开发", "Bindings", "部署", "运维"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "给这个 Worker 添加 R2 Binding，更新类型，在本地测试并准备部署。",
+        "assistant_reply": "我会检查项目及其包管理器，更新现有配置并在本地验证；任何线上部署都会先向你确认。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "理解项目上下文的命令指导",
+      "items": [
+        { "title": "遵循项目约定", "description": "使用仓库已有的包管理器和项目本地 Wrangler 版本，不强制全局安装。", "icon": "solar:folder-with-files-linear" },
+        { "title": "管理开发资源", "description": "处理 Workers、KV、R2、D1、Queues、Workflows 等开发者服务。", "icon": "solar:server-square-cloud-linear" },
+        { "title": "不在对话中暴露密钥", "description": "使用 Wrangler 的受保护 Secret 流程，避免记录或硬编码凭据。", "icon": "solar:shield-keyhole-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中使用",
+      "items": [
+        { "title": "打开 Cloudflare 项目", "description": "从项目根目录开始，让 Vetta 检查包和 Wrangler 配置。" },
+        { "title": "描述操作", "description": "提出本地开发、配置 Binding、检查日志或准备部署等需求。" },
+        { "title": "确认线上变更", "description": "在影响 Cloudflare 账号的操作前，审阅命令和部署目标。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Wrangler 按项目安装",
+      "content": "这个包不会安装全局 CLI。缺少 Wrangler 时，Vetta 会遵循项目包管理器约定和 Cloudflare 的项目本地安装建议；可能需要 Node.js 和网络访问。"
+    },
+    {
+      "type": "links",
+      "title": "官方资源",
+      "items": [
+        { "label": "Wrangler 文档", "href": "https://developers.cloudflare.com/workers/wrangler/" },
+        { "label": "安装或更新 Wrangler", "href": "https://developers.cloudflare.com/workers/wrangler/install-and-update/" }
+      ]
+    }
+  ]
+}
