@@ -1,25 +1,27 @@
 {
-  "__virtual_mf___mfe_internal__feishu__loadShare__react__loadShare__.js-CSZ7bzA8.js": {
-    "file": "assets/_virtual_mf___mfe_internal__feishu__loadShare__react__loadShare__.js-CSZ7bzA8.js",
-    "name": "_virtual_mf___mfe_internal__feishu__loadShare__react__loadShare__.js"
+  "__virtual_mf___mfe_internal__feishu__mf_owner__1__loadShare__react__loadShare__.js-B_jNwV_3.js": {
+    "file": "assets/_virtual_mf___mfe_internal__feishu__mf_owner__1__loadShare__react__loadShare__.js-B_jNwV_3.js",
+    "name": "_virtual_mf___mfe_internal__feishu__mf_owner__1__loadShare__react__loadShare__.js"
   },
-  "__virtual_mf___mfe_internal__feishu__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-CwAi2Uz8.js": {
-    "file": "assets/_virtual_mf___mfe_internal__feishu__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-CwAi2Uz8.js",
-    "name": "_virtual_mf___mfe_internal__feishu__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js"
+  "_index-0xf-q3zY.js": {
+    "file": "assets/index-0xf-q3zY.js",
+    "name": "index"
   },
-  "_preload-helper-Cv0Rp_bM.js": {
-    "file": "assets/preload-helper-Cv0Rp_bM.js",
-    "name": "preload-helper"
+  "_vite-preload-helper-BXl3LOEh.js": {
+    "file": "assets/vite-preload-helper-BXl3LOEh.js",
+    "name": "vite-preload-helper"
   },
   "src/index.tsx": {
-    "file": "assets/index-DF5V-jtg.js",
+    "file": "assets/index-BShuLRQE.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__feishu__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-CwAi2Uz8.js",
-      "__virtual_mf___mfe_internal__feishu__loadShare__react__loadShare__.js-CSZ7bzA8.js"
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
+      "__virtual_mf___mfe_internal__feishu__mf_owner__1__loadShare__react__loadShare__.js-B_jNwV_3.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js": {
@@ -28,44 +30,45 @@
     "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_preload-helper-Cv0Rp_bM.js"
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
     ],
     "dynamicImports": [
-      "virtual:mf-localSharedImportMap:__mfe_internal__feishu",
+      "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1",
       "virtual:mf-exposes:__mfe_internal__feishu__remoteEntry_js"
     ]
   },
   "virtual:mf-exposes:__mfe_internal__feishu__remoteEntry_js": {
-    "file": "assets/virtualExposes-Cc1Vw_5t.js",
+    "file": "assets/virtualExposes-DH2fnmuN.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__feishu__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_preload-helper-Cv0Rp_bM.js"
+      "_vite-preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
       "src/index.tsx"
     ]
   },
-  "virtual:mf-localSharedImportMap:__mfe_internal__feishu": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__feishu-CgdXuXLe.js",
-    "name": "_virtual_mf-localSharedImportMap___mfe_internal__feishu",
-    "src": "virtual:mf-localSharedImportMap:__mfe_internal__feishu",
+  "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__feishu__mf_owner__1-BzEBPDo7.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__feishu__mf_owner__1",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1",
     "isDynamicEntry": true,
     "imports": [
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
-      "_preload-helper-Cv0Rp_bM.js"
+      "_index-0xf-q3zY.js"
     ]
   },
-  "virtual:mf:__mfe_internal__feishu__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-CtWLOS5i.js",
+  "virtual:mf:__mfe_internal__feishu__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-4buVy1gb.js",
     "name": "hostInit",
-    "src": "virtual:mf:__mfe_internal__feishu__H_A_I__hostAutoInit__H_A_I__.js",
+    "src": "virtual:mf:__mfe_internal__feishu__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
-      "_preload-helper-Cv0Rp_bM.js"
+      "_vite-preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js"
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1"
     ]
   }
 }
