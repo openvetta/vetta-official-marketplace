@@ -116,6 +116,42 @@ test("bundles resolve distinct, separately installable packages without requirin
   }
 });
 
+test("Feishu provides the official CLI lifecycle without adding an Action, MCP server or Agent tool", () => {
+  const ability = bySlug.get("feishu");
+  assert.equal(ability?.type, "plugin");
+  const directory = packageFile(root, ability.source.path);
+  const plugin = readJson(packageFile(directory, "plugin.json"));
+  assert.deepEqual(plugin.providers, {
+    cli: [{
+      id: "lark-cli",
+      command: "lark-cli",
+      probe: { args: ["--version"], timeoutMs: 10000 },
+      install: {
+        command: "npx",
+        args: ["-y", "@larksuite/cli@latest", "install"],
+        timeoutMs: 600000,
+      },
+    }],
+  });
+  assert.equal("commands" in plugin, false);
+  assert.equal("mcpServers" in plugin, false);
+  assert.equal("tools" in plugin.agent, false);
+  assert.ok(plugin.permissions.includes("ui.slot.ability-detail"));
+
+  const skill = readFileSync(packageFile(directory, "agent/skills/feishu/SKILL.md"), "utf8");
+  assert.match(skill, /lark-cli skills list/u);
+  assert.match(skill, /lark-cli skills read <skill-name>/u);
+  assert.match(skill, /existing shell/u);
+  assert.match(skill, /Do not invent a Vetta tool or MCP layer/u);
+
+  for (const detailPath of ["detail.json", "detail.zh.json"]) {
+    const text = JSON.stringify(readJson(packageFile(directory, detailPath)));
+    assert.match(text, /lark-cli/u);
+    assert.match(text, /QR|二维码/u);
+    assert.match(text, /Secret/u);
+  }
+});
+
 test("Zhihu research combines its guide with a pinned, credential-parameterized search server", () => {
   const bundle = bySlug.get("zhihu-research");
   assert.equal(bundle?.type, "bundle");

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Official CLI provider",
+      "title": "Work with Feishu from a Vetta conversation",
+      "description": "Give the agent the official lark-cli command surface for documents, messages, calendars, Base, tasks and other supported Feishu domains.",
+      "badges": ["Official lark-cli", "26 built-in skills", "Shell-native"]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "Enabling this ability installs the latest official @larksuite/cli package. After installation, Vetta opens a QR setup flow so you can create or connect a Feishu app. The App Secret is saved by lark-cli and is not displayed by Vetta."
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "Summarize the Feishu document I linked and turn the action items into tasks.",
+        "assistant_reply": "I’ll inspect the relevant official lark-cli skill, read the document through the CLI, then create the requested tasks and report what changed."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:command-bold",
+          "title": "Direct CLI access",
+          "description": "The agent uses lark-cli through its existing shell. There is no extra Vetta Action, MCP server or custom agent tool."
+        },
+        {
+          "icon": "solar:book-2-bold",
+          "title": "Upstream skills stay current",
+          "description": "A thin Vetta skill tells the agent to discover and read the skills embedded in the installed official CLI instead of copying them into this plugin."
+        },
+        {
+          "icon": "solar:qr-code-bold",
+          "title": "Guided app setup",
+          "description": "Installation stages and the exact opaque setup URL are surfaced on this page, including a scannable QR code and browser fallback."
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Install and enable",
+          "description": "Confirm this ability’s permissions. Vetta then checks for lark-cli and runs the official installer only when it is missing."
+        },
+        {
+          "title": "Scan the setup QR code",
+          "description": "Create or connect a Feishu app in the official flow. Keep the dialog open until lark-cli confirms completion."
+        },
+        {
+          "title": "Ask Vetta to work in Feishu",
+          "description": "The agent discovers the matching official CLI skill and runs the relevant lark-cli commands from its shell."
+        }
+      ]
+    }
+  ]
+}

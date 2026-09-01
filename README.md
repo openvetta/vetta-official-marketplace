@@ -8,6 +8,11 @@ guide with a separately installable search connection, using `klarkxy/zhihu-sear
 modifying its Python implementation. Its MCP requires uv on PATH and a Zhihu Access Secret;
 Vetta collects the secret during installation. This is not a zero-runtime-dependency integration.
 
+The Feishu ability is a CLI Provider plugin. Enabling it asks Desktop to probe and, when needed,
+install the official `@larksuite/cli`; its detail-page slot shows the real lifecycle and turns the
+official CLI's opaque setup URL into a QR code. Agent work still goes through the existing shell and
+the CLI's bundled skills—there is no Vetta Action, MCP server or replacement Agent tool in between.
+
 ## Repository layout
 
 ```text

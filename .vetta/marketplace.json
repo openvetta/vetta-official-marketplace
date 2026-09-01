@@ -2,10 +2,33 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.08.30-9",
+  "marketplaceVersion": "2026.09.01-1",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.49",
   "abilities": [
+    {
+      "type": "plugin",
+      "slug": "feishu",
+      "name": "Feishu",
+      "description": "Use the official lark-cli and its built-in skills for Feishu documents, messages, calendars, Base, tasks and more.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta / Lark Suite",
+      "category": "Productivity",
+      "categoryI18n": { "zh": "效率", "en": "Productivity" },
+      "tags": ["feishu", "lark", "documents", "calendar", "base", "tasks"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "飞书",
+            "description": "使用官方 lark-cli 及其内置 Skills 处理飞书文档、消息、日历、多维表格、任务等内容。",
+            "tags": ["飞书", "文档", "日历", "多维表格", "任务"]
+          }
+        }
+      },
+      "source": { "path": "abilities/plugins/feishu" }
+    },
     {
       "type": "skill",
       "slug": "xlsx",

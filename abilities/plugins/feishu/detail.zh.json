@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "官方 CLI Provider",
+      "title": "在 Vetta 对话中使用飞书",
+      "description": "让 Agent 通过飞书官方 lark-cli 处理文档、消息、日历、多维表格、任务及其他已支持的飞书领域。",
+      "badges": ["官方 lark-cli", "26 个内置 Skills", "直接使用 Shell"]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "启用后，Vetta 会安装最新版官方 @larksuite/cli。安装完成会自动打开二维码配置流程，帮助你创建或连接飞书应用。App Secret 由 lark-cli 保存，Vetta 不会展示它。"
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "总结我发的飞书文档，并把行动项创建成任务。",
+        "assistant_reply": "我会先读取对应的官方 lark-cli Skill，通过 CLI 获取文档内容，再创建任务并说明实际变更。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:command-bold",
+          "title": "直接使用 CLI",
+          "description": "Agent 通过已有 Shell 使用 lark-cli，不额外引入 Vetta Action、MCP 服务或自定义 Agent Tool。"
+        },
+        {
+          "icon": "solar:book-2-bold",
+          "title": "官方 Skills 持续更新",
+          "description": "插件只提供一层轻量指引，让 Agent 动态发现并读取 CLI 自带的官方 Skills，不复制其内容。"
+        },
+        {
+          "icon": "solar:qr-code-bold",
+          "title": "引导式应用配置",
+          "description": "详情页展示真实安装阶段，并将 CLI 输出的原始配置链接生成二维码，同时保留浏览器打开入口。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "安装并启用",
+          "description": "确认能力权限后，Vetta 会检查 lark-cli；只有本机缺失时才运行官方安装程序。"
+        },
+        {
+          "title": "扫描配置二维码",
+          "description": "在官方流程中创建或连接飞书应用，并保持弹窗打开，直到 lark-cli 确认完成。"
+        },
+        {
+          "title": "直接向 Vetta 提需求",
+          "description": "Agent 会找到匹配的官方 CLI Skill，并通过 Shell 执行相应的 lark-cli 命令。"
+        }
+      ]
+    }
+  ]
+}
