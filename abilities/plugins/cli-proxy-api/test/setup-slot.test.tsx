@@ -18,6 +18,15 @@ describe("CLIProxyAPI setup", () => {
 
     const providerIcons = Array.from(container.querySelectorAll("[data-provider-icon]"), (element) => element.getAttribute("data-provider-icon"));
     expect(providerIcons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"]);
+    const iconSources = Array.from(container.querySelectorAll("[data-provider-icon] img"), (element) => (element as HTMLImageElement).getAttribute("src"));
+    expect(iconSources).toEqual([
+      "/assets/providers/gemini-cli.png",
+      "/assets/providers/codex.svg",
+      "/assets/providers/claude.svg",
+      "/assets/providers/antigravity.png",
+      "/assets/providers/kimi.png",
+      "/assets/providers/xai.png"
+    ]);
   });
 
   it("requires an explicit click to start OAuth, shows device code and publishes models after success", async () => {

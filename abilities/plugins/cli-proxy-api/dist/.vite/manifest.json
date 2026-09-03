@@ -11,8 +11,24 @@
     "file": "assets/vite-preload-helper-BXl3LOEh.js",
     "name": "vite-preload-helper"
   },
+  "assets/providers/antigravity.png": {
+    "file": "assets/antigravity-DFJ2Kqel.png",
+    "src": "assets/providers/antigravity.png"
+  },
+  "assets/providers/gemini-cli.png": {
+    "file": "assets/gemini-cli-C8b_xt1q.png",
+    "src": "assets/providers/gemini-cli.png"
+  },
+  "assets/providers/kimi.png": {
+    "file": "assets/kimi-CdYTbkkA.png",
+    "src": "assets/providers/kimi.png"
+  },
+  "assets/providers/xai.png": {
+    "file": "assets/xai-B9KddlG2.png",
+    "src": "assets/providers/xai.png"
+  },
   "src/index.tsx": {
-    "file": "assets/index-CYs3F-DX.js",
+    "file": "assets/index-C_1y7kuH.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -25,6 +41,12 @@
     ],
     "css": [
       "style.css"
+    ],
+    "assets": [
+      "assets/gemini-cli-C8b_xt1q.png",
+      "assets/antigravity-DFJ2Kqel.png",
+      "assets/kimi-CdYTbkkA.png",
+      "assets/xai-B9KddlG2.png"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js": {
@@ -42,7 +64,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
-    "file": "assets/virtualExposes-DHRrQGAZ.js",
+    "file": "assets/virtualExposes-CRD4yZrt.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
     "isDynamicEntry": true,

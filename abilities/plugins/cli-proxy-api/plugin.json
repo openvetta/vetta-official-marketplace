@@ -1,7 +1,7 @@
 {
   "id": "cli-proxy-api",
   "name": "%name%",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "pluginApiVersion": "^1.5.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
