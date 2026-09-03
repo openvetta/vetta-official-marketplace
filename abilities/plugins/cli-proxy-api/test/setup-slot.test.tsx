@@ -54,4 +54,45 @@ describe("CLIProxyAPI setup", () => {
     expect(alert.textContent).not.toContain("Error invoking remote method");
     expect(alert.textContent).not.toContain("CapabilityError");
   });
+
+  it("keeps connected accounts manageable and removes the old account before replacement", async () => {
+    const f = fixture();
+    let removed = false;
+    f.handle.mockImplementation(async (request) => {
+      if (request.path === "/v1/models") return { data: [{ id: "codex-test", owned_by: "codex" }] };
+      if (request.method === "DELETE" && request.path.includes("/v0/management/auth-files?name=")) {
+        removed = true;
+        return { status: "ok" };
+      }
+      if (request.path === "/v0/management/auth-files") {
+        return { files: removed ? [] : [{
+          auth_index: "codex-old",
+          name: "codex-old@example.com.json",
+          provider: "codex",
+          email: "old@example.com",
+          status: "ready",
+          disabled: false,
+          unavailable: false,
+          runtime_only: false,
+          source: "file"
+        }] };
+      }
+      return { status: "wait" };
+    });
+
+    render(<ProxySetupSlot context={f.context} />);
+
+    await screen.findByText("old@example.com");
+    expect(screen.getByRole("button", { name: "setup.addOrReplace provider.codex" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "setup.removeAccount old@example.com" }));
+    expect(screen.getByText("setup.removeAccountConfirm")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "setup.confirmRemove old@example.com" }));
+
+    await waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
+      method: "DELETE",
+      path: "/v0/management/auth-files?name=codex-old%40example.com.json"
+    })));
+    await waitFor(() => expect(screen.queryByText("old@example.com")).toBeNull());
+    expect(screen.getByRole("button", { name: "setup.connect provider.codex" })).toBeTruthy();
+  });
 });

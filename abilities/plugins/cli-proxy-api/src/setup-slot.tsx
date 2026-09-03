@@ -5,7 +5,7 @@ import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
 import { toDisplayErrorMessage } from "./error-message";
 
-import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyModel, type AccountSummary } from "./proxy-client";
+import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyAccount, type ProxyModel } from "./proxy-client";
 
 type OAuthFlow = {
   provider: OAuthProviderId;
@@ -37,6 +37,13 @@ function statusLabelKey(phase: ServiceStatus["phase"]): string {
   return "setup.serviceWorking";
 }
 
+function accountMatchesProvider(account: ProxyAccount, provider: OAuthProviderId): boolean {
+  const value = account.provider.trim().toLowerCase();
+  if (provider === "claude") return value === "claude" || value === "anthropic";
+  if (provider === "gemini-cli") return value === "gemini-cli" || value === "gemini";
+  return value === provider;
+}
+
 export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPluginContext }): ReactElement {
   const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
   const { serviceRequest, readModels, readAccounts, publishModels } = client;
@@ -49,12 +56,15 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
     recentOutput: ""
   });
   const [models, setModels] = useState<ProxyModel[]>([]);
-  const [accounts, setAccounts] = useState<AccountSummary[]>([]);
+  const [accounts, setAccounts] = useState<ProxyAccount[]>([]);
   const [flow, setFlow] = useState<OAuthFlow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [startingOAuth, setStartingOAuth] = useState(false);
+  const [removalCandidate, setRemovalCandidate] = useState<string | null>(null);
+  const [removingAccount, setRemovingAccount] = useState<string | null>(null);
   const startingRef = useRef(false);
+  const removingAccountRef = useRef(false);
   const oauthGeneration = useRef(0);
   const flowRef = useRef<OAuthFlow | null>(null);
 
@@ -81,6 +91,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
     if (startingRef.current || flowRef.current?.phase === "waiting") return;
     startingRef.current = true;
     setStartingOAuth(true);
+    setRemovalCandidate(null);
     const generation = ++oauthGeneration.current;
     setError(null);
     try {
@@ -126,6 +137,26 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       setError(toDisplayErrorMessage(reason));
     }
   }, []);
+
+  const removeAccount = useCallback(async (account: ProxyAccount): Promise<void> => {
+    if (!account.removable || !account.deleteName || removingAccountRef.current) return;
+    removingAccountRef.current = true;
+    setRemovingAccount(account.key);
+    setError(null);
+    try {
+      await serviceRequest(`/v0/management/auth-files?name=${encodeURIComponent(account.deleteName)}`, {
+        credentialId: MANAGER_CREDENTIAL,
+        method: "DELETE"
+      });
+      setRemovalCandidate(null);
+      await refresh(true);
+    } catch (reason) {
+      setError(t("setup.removeFailed", { details: toDisplayErrorMessage(reason) }));
+    } finally {
+      removingAccountRef.current = false;
+      setRemovingAccount(null);
+    }
+  }, [refresh, serviceRequest, t]);
 
   useEffect(() => {
     let active = true;
@@ -193,7 +224,9 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
     return () => window.clearInterval(timer);
   }, [flow?.phase, flow?.state, refresh, t]);
 
-  const accountCounts = useMemo(() => new Map(accounts.map((item) => [item.provider, item])), [accounts]);
+  const accountsByProvider = useMemo(() => new Map(
+    OAUTH_PROVIDERS.map((provider) => [provider.id, accounts.filter((account) => accountMatchesProvider(account, provider.id))])
+  ), [accounts]);
   const busy = status.phase === "installing" || status.phase === "starting" || status.phase === "stopping";
 
   return (
@@ -229,7 +262,10 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
         <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {OAUTH_PROVIDERS.map((provider) => {
             const providerName = t(`provider.${provider.id}`);
-            const account = accountCounts.get(provider.id) ?? (provider.id === "claude" ? accountCounts.get("anthropic") : undefined);
+            const providerAccounts = accountsByProvider.get(provider.id) ?? [];
+            const activeCount = providerAccounts.filter((account) => account.active).length;
+            const unavailableCount = providerAccounts.length - activeCount;
+            const actionKey = providerAccounts.length > 0 ? "setup.addOrReplace" : "setup.connect";
             return (
               <div key={provider.id} className="rounded-lg border border-border/50 bg-background/25 p-3">
                 <div className="flex items-start justify-between gap-2">
@@ -237,11 +273,11 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
                     <p className="text-sm font-medium text-foreground">{providerName}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {provider.deviceFlow ? t("setup.deviceFlow") : t("setup.browserFlow")}
-                      {account ? ` · ${t("setup.accountCount", { count: account.active })}` : ""}
+                      {providerAccounts.length > 0 ? ` · ${t("setup.accountStatus", { active: activeCount, unavailable: unavailableCount })}` : ""}
                     </p>
                   </div>
-                  <Button aria-label={`${t("setup.connect")} ${providerName}`} disabled={status.phase !== "ready" || startingOAuth || flow?.phase === "waiting"} onClick={() => void startOAuth(provider)}>
-                    {t("setup.connect")}
+                  <Button aria-label={`${t(actionKey)} ${providerName}`} disabled={status.phase !== "ready" || startingOAuth || flow?.phase === "waiting" || removingAccount !== null} onClick={() => void startOAuth(provider)}>
+                    {t(actionKey)}
                   </Button>
                 </div>
               </div>
@@ -271,14 +307,51 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       ) : null}
 
       {accounts.length > 0 ? (
-        <details className="mt-4 text-xs text-muted-foreground">
-          <summary className="cursor-pointer select-none">{t("setup.accountsTitle")}</summary>
-          <ul className="mt-2 space-y-1">
-            {accounts.map((account) => (
-              <li key={account.provider}>{account.provider}: {t("setup.accountStatus", account)}</li>
-            ))}
+        <div className="mt-4 rounded-lg border border-border/50 bg-background/20 p-3 text-xs text-muted-foreground">
+          <p className="font-semibold text-foreground">{t("setup.accountsTitle")}</p>
+          <p className="mt-1 leading-relaxed">{t("setup.replaceHint")}</p>
+          <ul className="mt-3 space-y-2">
+            {accounts.map((account) => {
+              const confirming = removalCandidate === account.key;
+              const removing = removingAccount === account.key;
+              return (
+                <li key={account.key} className="rounded-md border border-border/40 bg-background/30 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{account.displayName}</p>
+                      <p className="mt-0.5">{account.provider} · {t(account.active ? "setup.accountActive" : "setup.accountUnavailable")}</p>
+                    </div>
+                    {account.removable ? (
+                      confirming ? (
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Button
+                            className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                            aria-label={`${t("setup.confirmRemove")} ${account.displayName}`}
+                            disabled={removing}
+                            onClick={() => void removeAccount(account)}
+                          >
+                            {removing ? <Spin /> : null}{t("setup.confirmRemove")}
+                          </Button>
+                          <Button className="border-transparent bg-transparent" disabled={removing} onClick={() => setRemovalCandidate(null)}>{t("setup.cancel")}</Button>
+                        </div>
+                      ) : (
+                        <Button
+                          aria-label={`${t("setup.removeAccount")} ${account.displayName}`}
+                          disabled={removingAccount !== null || flow?.phase === "waiting"}
+                          onClick={() => setRemovalCandidate(account.key)}
+                        >
+                          {t("setup.removeAccount")}
+                        </Button>
+                      )
+                    ) : <span>{t("setup.runtimeManagedAccount")}</span>}
+                  </div>
+                  {confirming ? <p className="mt-2 text-destructive">{t("setup.removeAccountConfirm", { account: account.displayName })}</p> : null}
+                </li>
+              );
+            })}
           </ul>
-        </details>
+          <p className="mt-3 leading-relaxed">{t("setup.removeLocalOnly")}</p>
+        </div>
       ) : null}
 
       {status.recentOutput ? (

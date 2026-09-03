@@ -36,8 +36,8 @@
     {
       "type": "steps",
       "items": [
-        { "title": "Install and enable", "description": "Vetta downloads the two pinned assets for your OS and architecture, verifies SHA-256, then starts the service on a dynamic loopback port." },
-        { "title": "Connect provider accounts", "description": "Start an OAuth flow from the setup panel. Tokens remain in CLIProxyAPI's stable auth directory and survive runtime upgrades." },
+        { "title": "Install and enable", "description": "The plugin downloads the two pinned assets for your OS and architecture; Vetta verifies SHA-256 again and starts the service on a dynamic loopback port." },
+        { "title": "Connect and manage accounts", "description": "The setup panel remains available after OAuth. Add another account at any time, or remove the old local credential before authorizing its replacement. Runtime upgrades retain connected accounts." },
         { "title": "Sync models", "description": "Fetch the live /v1/models catalog and publish each protocol group into the plugin-owned Vetta model namespace." }
       ]
     },

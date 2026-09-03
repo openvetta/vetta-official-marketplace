@@ -36,8 +36,8 @@
     {
       "type": "steps",
       "items": [
-        { "title": "安装并启用", "description": "Vetta 为当前系统和架构下载两份锁定制品，校验 SHA-256，再使用动态回环端口启动服务。" },
-        { "title": "连接服务商账号", "description": "从设置面板主动发起 OAuth。Token 保存在 CLIProxyAPI 的稳定认证目录中，升级运行时不会覆盖。" },
+        { "title": "安装并启用", "description": "插件为当前系统和架构下载两份锁定制品；Vetta 再次校验 SHA-256，并使用动态回环端口启动服务。" },
+        { "title": "连接与管理账号", "description": "OAuth 成功后设置面板仍会保留。你可以随时添加账号；需要彻底更换时，先移除旧的本地凭据，再授权新账号。升级运行时不会覆盖已连接账号。" },
         { "title": "同步模型", "description": "读取实时 `/v1/models` 目录，并把不同协议组发布到本插件拥有的 Vetta 模型命名空间。" }
       ]
     },

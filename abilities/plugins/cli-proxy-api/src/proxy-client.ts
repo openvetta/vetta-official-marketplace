@@ -6,7 +6,14 @@ export const MANAGER_CREDENTIAL = "management-key";
 export const API_CREDENTIAL = "api-key";
 export type JsonRecord = Record<string, unknown>;
 export type ProxyModel = { id: string; ownedBy: string };
-export type AccountSummary = { provider: string; active: number; unavailable: number };
+export type ProxyAccount = {
+  key: string;
+  provider: string;
+  displayName: string;
+  deleteName?: string;
+  active: boolean;
+  removable: boolean;
+};
 
 export function record(value: unknown): JsonRecord | undefined {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : undefined;
@@ -62,19 +69,28 @@ function readModels(value: unknown): ProxyModel[] {
   return models.sort((left, right) => left.id.localeCompare(right.id));
 }
 
-function readAccounts(value: unknown): AccountSummary[] {
+function readAccounts(value: unknown): ProxyAccount[] {
   const files = record(value)?.files;
   if (!Array.isArray(files)) return [];
-  const grouped = new Map<string, AccountSummary>();
-  for (const item of files) {
+  const accounts: ProxyAccount[] = [];
+  for (const [index, item] of files.entries()) {
     const entry = record(item);
-    const provider = textField(entry, "provider", "type") ?? "unknown";
-    const current = grouped.get(provider) ?? { provider, active: 0, unavailable: 0 };
-    if (entry?.disabled === true || entry?.unavailable === true) current.unavailable += 1;
-    else current.active += 1;
-    grouped.set(provider, current);
+    if (!entry) continue;
+    const provider = textField(entry, "provider", "type", "account_type") ?? "unknown";
+    const deleteName = textField(entry, "name");
+    const stableId = textField(entry, "auth_index", "id", "name") ?? provider;
+    const displayName = textField(entry, "email", "label", "account", "id", "name") ?? provider;
+    const runtimeOnly = entry.runtime_only === true || textField(entry, "source") === "memory";
+    accounts.push({
+      key: `${stableId}:${index}`,
+      provider,
+      displayName,
+      ...(deleteName ? { deleteName } : {}),
+      active: entry.disabled !== true && entry.unavailable !== true,
+      removable: !runtimeOnly && Boolean(deleteName)
+    });
   }
-  return [...grouped.values()].sort((left, right) => left.provider.localeCompare(right.provider));
+  return accounts.sort((left, right) => left.provider.localeCompare(right.provider) || left.displayName.localeCompare(right.displayName));
 }
 
 const PROVIDER_CONFIG: Record<ProtocolGroup, { basePath: string; api: string; title: string }> = {

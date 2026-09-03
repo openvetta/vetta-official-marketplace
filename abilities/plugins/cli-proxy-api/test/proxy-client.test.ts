@@ -34,6 +34,48 @@ describe("CLIProxyAPI contracts", () => {
     ]);
     expect(f.context.services.connection).toHaveBeenCalledWith("proxy", "api-key");
   });
+  it("keeps account identity and removal capability without exposing upstream paths", () => {
+    const client = createProxyClient(fixture().context);
+    expect(client.readAccounts({ files: [
+      {
+        auth_index: "codex-1",
+        name: "codex-user@example.com.json",
+        provider: "codex",
+        email: "user@example.com",
+        path: "C:/private/auths/codex-user@example.com.json",
+        disabled: false,
+        unavailable: false,
+        runtime_only: false,
+        source: "file"
+      },
+      {
+        auth_index: "memory-1",
+        name: "virtual-account",
+        provider: "xai",
+        label: "Runtime account",
+        runtime_only: true,
+        source: "memory"
+      },
+      null
+    ] })).toEqual([
+      {
+        key: "codex-1:0",
+        provider: "codex",
+        displayName: "user@example.com",
+        deleteName: "codex-user@example.com.json",
+        active: true,
+        removable: true
+      },
+      {
+        key: "memory-1:1",
+        provider: "xai",
+        displayName: "Runtime account",
+        deleteName: "virtual-account",
+        active: true,
+        removable: false
+      }
+    ]);
+  });
   it("updates the endpoint on restart without mounting the UI and ignores repeated ready log events", async () => {
     const f = fixture();
     const connection = maintainModelConnection(f.context);
