@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProxySetupSlot } from "../src/setup-slot";
 import { fixture } from "./helpers";
 
-vi.mock("@vetta-org/plugin-sdk", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock("@vetta-org/plugin-sdk", () => ({
+  useTranslation: () => ({ t: (key: string, values?: { details?: string }) => values?.details ? `${key} ${values.details}` : key }),
+}));
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("CLIProxyAPI setup", () => {
@@ -35,5 +37,21 @@ describe("CLIProxyAPI setup", () => {
     expect(screen.queryByText("setup.oauthSuccess")).toBeNull();
     expect(f.upsertProvider).not.toHaveBeenCalled();
     expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ method: "DELETE", path: "/v0/management/oauth-session?state=state-1" }));
+  });
+
+  it("shows a concise start failure without Electron IPC plumbing", async () => {
+    const f = fixture();
+    f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase: "stopped", installed: false }));
+    f.context.network.request = vi.fn(async () => {
+      throw new Error("Error invoking remote method 'vetta:plugins:network:request': CapabilityError: Plugin network request failed (ERR_CONNECTION_RESET)");
+    });
+
+    render(<ProxySetupSlot context={f.context} />);
+    fireEvent.click(await screen.findByRole("button", { name: "setup.start" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toBe("setup.startFailed Plugin network request failed (ERR_CONNECTION_RESET)");
+    expect(alert.textContent).not.toContain("Error invoking remote method");
+    expect(alert.textContent).not.toContain("CapabilityError");
   });
 });

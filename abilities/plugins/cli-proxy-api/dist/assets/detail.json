@@ -43,7 +43,7 @@
     },
     {
       "type": "markdown",
-      "content": "### Supported configuration channels\n\nCLIProxyAPI also supports Gemini, Gemini Interactions, Claude, Codex, xAI and Vertex API-key configuration, Vertex service-account import, and explicit OpenAI-compatible upstreams. Version 1.0.0 deliberately exposes the six OAuth paths first; it does not proxy the unrestricted management `/api-call` endpoint or the upstream plugin store. API-key forms require provider-specific secret-handling UX and will be added in a later plugin release without changing Desktop.\n\n### Runtime boundary\n\nDesktop only supplies the generic managed-service lifecycle and plugin-owned model registry. Every CLIProxyAPI endpoint, provider name, OAuth state transition and protocol mapping lives in this marketplace package."
+      "content": "### Supported configuration channels\n\nCLIProxyAPI also supports Gemini, Gemini Interactions, Claude, Codex, xAI and Vertex API-key configuration, Vertex service-account import, and explicit OpenAI-compatible upstreams. The initial plugin release deliberately exposes the six OAuth paths first; it does not proxy the unrestricted management `/api-call` endpoint or the upstream plugin store. API-key forms require provider-specific secret-handling UX and will be added in a later plugin release without changing Desktop.\n\n### Runtime boundary\n\nDesktop only supplies the generic managed-service lifecycle and plugin-owned model registry. Every CLIProxyAPI endpoint, provider name, OAuth state transition and protocol mapping lives in this marketplace package."
     }
   ]
 }

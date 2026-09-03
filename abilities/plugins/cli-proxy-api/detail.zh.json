@@ -43,7 +43,7 @@
     },
     {
       "type": "markdown",
-      "content": "### 其它受支持配置通道\n\nCLIProxyAPI 还支持 Gemini、Gemini Interactions、Claude、Codex、xAI、Vertex API Key，Vertex Service Account 导入，以及显式 OpenAI-compatible 上游。1.0.0 首先开放六条 OAuth 主路径；不会代理无限制的 management `/api-call`，也不会开放上游插件商店。API Key 表单需要逐服务商设计秘密处理交互，后续只升级市场插件即可加入，不需要修改 Desktop。\n\n### 运行时边界\n\nDesktop 只提供通用的受管服务生命周期和插件自有模型注册表。所有 CLIProxyAPI endpoint、服务商名称、OAuth 状态转换和协议映射都在本市场包中。"
+      "content": "### 其它受支持配置通道\n\nCLIProxyAPI 还支持 Gemini、Gemini Interactions、Claude、Codex、xAI、Vertex API Key，Vertex Service Account 导入，以及显式 OpenAI-compatible 上游。插件首个版本首先开放六条 OAuth 主路径；不会代理无限制的 management `/api-call`，也不会开放上游插件商店。API Key 表单需要逐服务商设计秘密处理交互，后续只升级市场插件即可加入，不需要修改 Desktop。\n\n### 运行时边界\n\nDesktop 只提供通用的受管服务生命周期和插件自有模型注册表。所有 CLIProxyAPI endpoint、服务商名称、OAuth 状态转换和协议映射都在本市场包中。"
     }
   ]
 }

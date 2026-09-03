@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ButtonHTMLAttri
 import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
+import { toDisplayErrorMessage } from "./error-message";
 
 import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyModel, type AccountSummary } from "./proxy-client";
 
@@ -70,7 +71,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       setAccounts(readAccounts(accountPayload));
       if (publish) await publishModels(nextModels);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
+      setError(toDisplayErrorMessage(reason));
     } finally {
       setRefreshing(false);
     }
@@ -104,7 +105,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       setFlow(next);
       await pluginContext.ui.openExternal(next.url);
     } catch (reason) {
-      if (generation === oauthGeneration.current) setError(reason instanceof Error ? reason.message : String(reason));
+      if (generation === oauthGeneration.current) setError(toDisplayErrorMessage(reason));
     } finally {
       startingRef.current = false;
       if (generation === oauthGeneration.current) setStartingOAuth(false);
@@ -122,7 +123,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
         credentialId: MANAGER_CREDENTIAL, method: "DELETE"
       });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
+      setError(toDisplayErrorMessage(reason));
     }
   }, []);
 
@@ -134,7 +135,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       setStatus(next);
       previousPhase = next.phase;
       if (next.phase === "ready") void refresh(false);
-    }).catch((reason: unknown) => { if (active) setError(String(reason)); });
+    }).catch((reason: unknown) => { if (active) setError(toDisplayErrorMessage(reason)); });
     const subscription = pluginContext.services.onStatusChange((next) => {
       if (!active || next.serviceId !== SERVICE_ID) return;
       setStatus(next);
@@ -183,7 +184,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
         window.clearInterval(timer);
       }).catch((reason: unknown) => {
         if (flowRef.current !== current) return;
-        const next = { ...current, phase: "error" as const, error: reason instanceof Error ? reason.message : String(reason) };
+        const next = { ...current, phase: "error" as const, error: toDisplayErrorMessage(reason) };
         flowRef.current = next;
         setFlow(next);
         window.clearInterval(timer);
@@ -210,12 +211,12 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
 
       <div className="mt-4 flex flex-wrap gap-2">
         {status.phase === "failed" || status.phase === "stopped" ? (
-          <Button onClick={() => void ensureServiceStarted(pluginContext).catch((reason: unknown) => setError(String(reason)))}>{t("setup.start")}</Button>
+          <Button onClick={() => void ensureServiceStarted(pluginContext).catch((reason: unknown) => setError(t("setup.startFailed", { details: toDisplayErrorMessage(reason) })))}>{t("setup.start")}</Button>
         ) : null}
         {status.phase === "ready" ? (
           <>
             <Button onClick={() => void refresh(true)} disabled={refreshing}>{t("setup.syncModels")}</Button>
-            <Button onClick={() => void pluginContext.services.restart(SERVICE_ID).catch((reason: unknown) => setError(String(reason)))}>{t("setup.restart")}</Button>
+            <Button onClick={() => void pluginContext.services.restart(SERVICE_ID).catch((reason: unknown) => setError(t("setup.restartFailed", { details: toDisplayErrorMessage(reason) })))}>{t("setup.restart")}</Button>
           </>
         ) : null}
         <span className="self-center text-xs text-muted-foreground">{t("setup.runtime", { version: status.version, count: models.length })}</span>
