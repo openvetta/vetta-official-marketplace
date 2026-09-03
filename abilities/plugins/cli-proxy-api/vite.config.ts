@@ -11,7 +11,15 @@ export default defineConfig({
     {
       name: "cli-proxy-api-runtime-resources",
       generateBundle() {
-        for (const source of ["assets/config.yaml.tpl", "detail.json", "detail.zh.json", "LICENSE", "upstream.json"]) {
+        for (const source of [
+          "assets/config.yaml.tpl",
+          "assets/providers/lobe-icons.json",
+          "assets/providers/LOBE-ICONS-LICENSE",
+          "detail.json",
+          "detail.zh.json",
+          "LICENSE",
+          "upstream.json"
+        ]) {
           this.emitFile({
             type: "asset",
             fileName: source.startsWith("assets/") ? source : `assets/${source}`,

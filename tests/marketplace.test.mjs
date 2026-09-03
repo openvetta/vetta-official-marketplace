@@ -219,14 +219,19 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
   assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
   const providerIconFiles = Array.from(
-    productionCode.matchAll(/new URL\("((?:gemini-cli|codex|claude|antigravity|kimi|xai)-[^"]+\.png)",\s*import\.meta\.url\)/gu),
+    productionCode.matchAll(/new URL\("((?:gemini-cli|codex|claude|antigravity|kimi|xai)-[^"]+\.svg)",\s*import\.meta\.url\)/gu),
     (match) => match[1],
   );
   assert.equal(new Set(providerIconFiles).size, 6);
   for (const iconFile of providerIconFiles) {
-    const icon = readFileSync(packageFile(directory, `dist/assets/${iconFile}`));
-    assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+    const icon = readFileSync(packageFile(directory, `dist/assets/${iconFile}`), "utf8");
+    assert.match(icon, /^<svg[^>]+viewBox="0 0 24 24"/u);
   }
+  const iconProvenance = readJson(packageFile(directory, "dist/assets/providers/lobe-icons.json"));
+  assert.equal(iconProvenance.package, "@lobehub/icons-static-svg");
+  assert.equal(iconProvenance.version, "1.94.0");
+  assert.equal(Object.keys(iconProvenance.icons).length, 6);
+  assert.match(readFileSync(packageFile(directory, "dist/assets/providers/LOBE-ICONS-LICENSE"), "utf8"), /MIT License/u);
   for (const detail of ["detail.json", "detail.zh.json"]) {
     assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
   }

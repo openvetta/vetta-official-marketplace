@@ -6,7 +6,7 @@ function stubProviderAssets(): Plugin {
     enforce: "pre",
     load(id) {
       const filePath = id.split("?")[0] ?? "";
-      if (!/\.png$/u.test(filePath)) return;
+      if (!/\.svg$/u.test(filePath)) return;
       const fileName = filePath.replaceAll("\\", "/").split("/").pop() ?? "icon";
       return `export default ${JSON.stringify(`/assets/providers/${fileName}`)};`;
     }

@@ -20,13 +20,17 @@ describe("CLIProxyAPI setup", () => {
     expect(providerIcons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"]);
     const iconSources = Array.from(container.querySelectorAll("[data-provider-icon] img"), (element) => (element as HTMLImageElement).getAttribute("src"));
     expect(iconSources).toEqual([
-      "/assets/providers/gemini-cli.png",
-      "/assets/providers/codex.png",
-      "/assets/providers/claude.png",
-      "/assets/providers/antigravity.png",
-      "/assets/providers/kimi.png",
-      "/assets/providers/xai.png"
+      "/assets/providers/gemini-cli.svg",
+      "/assets/providers/codex.svg",
+      "/assets/providers/claude.svg",
+      "/assets/providers/antigravity.svg",
+      "/assets/providers/kimi.svg",
+      "/assets/providers/xai.svg"
     ]);
+    for (const image of container.querySelectorAll("[data-provider-icon] img")) {
+      expect(image.className).toContain("object-contain");
+      expect(image.className).not.toContain("object-cover");
+    }
   });
 
   it("requires an explicit click to start OAuth, shows device code and publishes models after success", async () => {

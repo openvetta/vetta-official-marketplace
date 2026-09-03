@@ -11,32 +11,32 @@
     "file": "assets/vite-preload-helper-PPVm8Dsz.js",
     "name": "vite-preload-helper"
   },
-  "assets/providers/antigravity.png": {
-    "file": "assets/antigravity-DFJ2Kqel.png",
-    "src": "assets/providers/antigravity.png"
+  "assets/providers/antigravity.svg": {
+    "file": "assets/antigravity-Cm1Tvp5c.svg",
+    "src": "assets/providers/antigravity.svg"
   },
-  "assets/providers/claude.png": {
-    "file": "assets/claude-DnejcAiC.png",
-    "src": "assets/providers/claude.png"
+  "assets/providers/claude.svg": {
+    "file": "assets/claude-CBNYEA1u.svg",
+    "src": "assets/providers/claude.svg"
   },
-  "assets/providers/codex.png": {
-    "file": "assets/codex-C8GrgDZO.png",
-    "src": "assets/providers/codex.png"
+  "assets/providers/codex.svg": {
+    "file": "assets/codex-DXuoGGqS.svg",
+    "src": "assets/providers/codex.svg"
   },
-  "assets/providers/gemini-cli.png": {
-    "file": "assets/gemini-cli-C8b_xt1q.png",
-    "src": "assets/providers/gemini-cli.png"
+  "assets/providers/gemini-cli.svg": {
+    "file": "assets/gemini-cli-CeBtOXoo.svg",
+    "src": "assets/providers/gemini-cli.svg"
   },
-  "assets/providers/kimi.png": {
-    "file": "assets/kimi-CdYTbkkA.png",
-    "src": "assets/providers/kimi.png"
+  "assets/providers/kimi.svg": {
+    "file": "assets/kimi-BlLwMwTl.svg",
+    "src": "assets/providers/kimi.svg"
   },
-  "assets/providers/xai.png": {
-    "file": "assets/xai-B9KddlG2.png",
-    "src": "assets/providers/xai.png"
+  "assets/providers/xai.svg": {
+    "file": "assets/xai-ClWuMoQY.svg",
+    "src": "assets/providers/xai.svg"
   },
   "src/index.tsx": {
-    "file": "assets/index-CZVeY1Ln.js",
+    "file": "assets/index-C4kLKBhb.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -51,12 +51,12 @@
       "style.css"
     ],
     "assets": [
-      "assets/gemini-cli-C8b_xt1q.png",
-      "assets/codex-C8GrgDZO.png",
-      "assets/claude-DnejcAiC.png",
-      "assets/antigravity-DFJ2Kqel.png",
-      "assets/kimi-CdYTbkkA.png",
-      "assets/xai-B9KddlG2.png"
+      "assets/gemini-cli-CeBtOXoo.svg",
+      "assets/codex-DXuoGGqS.svg",
+      "assets/claude-CBNYEA1u.svg",
+      "assets/antigravity-Cm1Tvp5c.svg",
+      "assets/kimi-BlLwMwTl.svg",
+      "assets/xai-ClWuMoQY.svg"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js": {
@@ -74,7 +74,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
-    "file": "assets/virtualExposes-KqU40We-.js",
+    "file": "assets/virtualExposes-B02jrpKL.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
     "isDynamicEntry": true,
