@@ -9,6 +9,17 @@ vi.mock("@vetta-org/plugin-sdk", () => ({
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe("CLIProxyAPI setup", () => {
+  it("groups authorization choices and renders a distinct icon for every supported provider", async () => {
+    const f = fixture();
+    const { container } = render(<ProxySetupSlot context={f.context} />);
+
+    await screen.findByRole("region", { name: "setup.oauthTitle" });
+    await waitFor(() => expect((screen.getByRole("button", { name: "setup.connect provider.gemini-cli" }) as HTMLButtonElement).disabled).toBe(false));
+
+    const providerIcons = Array.from(container.querySelectorAll("[data-provider-icon]"), (element) => element.getAttribute("data-provider-icon"));
+    expect(providerIcons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"]);
+  });
+
   it("requires an explicit click to start OAuth, shows device code and publishes models after success", async () => {
     const f = fixture();
     render(<ProxySetupSlot context={f.context} />);
