@@ -23,6 +23,11 @@ export default defineConfig({
       entry: "./src/index.tsx"
     })
   ],
+  build: {
+    // Keep provider icons as real asset URLs. Inlined data: images trip Electron/Chromium
+    // site_info origin checks (opaque origins have no valid precursor tuple).
+    assetsInlineLimit: 0
+  },
   esbuild: {
     jsx: "automatic",
     jsxImportSource: "react"

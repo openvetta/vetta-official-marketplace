@@ -21,8 +21,8 @@ describe("CLIProxyAPI setup", () => {
     const iconSources = Array.from(container.querySelectorAll("[data-provider-icon] img"), (element) => (element as HTMLImageElement).getAttribute("src"));
     expect(iconSources).toEqual([
       "/assets/providers/gemini-cli.png",
-      "/assets/providers/codex.svg",
-      "/assets/providers/claude.svg",
+      "/assets/providers/codex.png",
+      "/assets/providers/claude.png",
       "/assets/providers/antigravity.png",
       "/assets/providers/kimi.png",
       "/assets/providers/xai.png"

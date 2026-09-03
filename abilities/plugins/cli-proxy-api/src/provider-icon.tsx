@@ -4,8 +4,8 @@ import type { OAuthProviderId } from "./provider-contract";
 // Anthropic starburst, antigravity.google apple-touch icon, Moonshot branding app icon,
 // and the grok.com favicon for xAI.
 import geminiCliIcon from "../assets/providers/gemini-cli.png";
-import codexIcon from "../assets/providers/codex.svg";
-import claudeIcon from "../assets/providers/claude.svg";
+import codexIcon from "../assets/providers/codex.png";
+import claudeIcon from "../assets/providers/claude.png";
 import antigravityIcon from "../assets/providers/antigravity.png";
 import kimiIcon from "../assets/providers/kimi.png";
 import xaiIcon from "../assets/providers/xai.png";
