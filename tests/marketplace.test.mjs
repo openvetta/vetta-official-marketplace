@@ -210,6 +210,23 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(federation.name, plugin.moduleFederation.remoteName);
   assert.deepEqual(plugin.styles, ["dist/style.css"]);
   packageFile(directory, "dist/style.css");
+  const productionModules = federation.metaData.remoteEntry.path
+    ? [packageFile(directory, `${federation.metaData.remoteEntry.path}/${federation.metaData.remoteEntry.name}`)]
+    : [];
+  for (const asset of federation.exposes.flatMap((entry) => entry.assets.js.sync)) {
+    productionModules.push(packageFile(directory, `dist/${asset}`));
+  }
+  const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
+  assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
+  const providerIconFiles = Array.from(
+    productionCode.matchAll(/new URL\("((?:gemini-cli|codex|claude|antigravity|kimi|xai)-[^"]+\.png)",\s*import\.meta\.url\)/gu),
+    (match) => match[1],
+  );
+  assert.equal(new Set(providerIconFiles).size, 6);
+  for (const iconFile of providerIconFiles) {
+    const icon = readFileSync(packageFile(directory, `dist/assets/${iconFile}`));
+    assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  }
   for (const detail of ["detail.json", "detail.zh.json"]) {
     assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
   }

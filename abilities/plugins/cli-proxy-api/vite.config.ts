@@ -4,6 +4,9 @@ import { vettaPluginFederation } from "@vetta-org/plugin-vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  // This remote is served from the plugin-specific dist directory. A relative base
+  // keeps emitted image URLs on that plugin origin instead of the host /assets root.
+  base: "./",
   plugins: [
     {
       name: "cli-proxy-api-runtime-resources",
@@ -25,7 +28,8 @@ export default defineConfig({
   ],
   build: {
     // Keep provider icons as real asset URLs. Inlined data: images trip Electron/Chromium
-    // site_info origin checks (opaque origins have no valid precursor tuple).
+    // site_info origin checks (opaque origins have no valid precursor tuple). Combined with
+    // the relative base above, Vite resolves them against import.meta.url at runtime.
     assetsInlineLimit: 0
   },
   esbuild: {
