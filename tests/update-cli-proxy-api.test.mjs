@@ -17,7 +17,7 @@ test("upstream updater verifies a mocked release and synchronizes all source ver
     await mkdir(join(root, relativePlugin), { recursive: true });
     await mkdir(join(root, "scripts"));
     await mkdir(join(root, ".vetta"));
-    for (const path of ["scripts/update-cli-proxy-api.mjs", ".vetta/marketplace.json", ...["plugin.json", "package.json", "ability.json", "upstream.json", "detail.json", "detail.zh.json"].map((file) => `${relativePlugin}/${file}`)]) {
+    for (const path of ["scripts/update-cli-proxy-api.mjs", ".vetta/marketplace.json", ...["plugin.json", "runtime-lock.json", "package.json", "ability.json", "upstream.json", "detail.json", "detail.zh.json"].map((file) => `${relativePlugin}/${file}`)]) {
       await copyFile(join(repository, path), join(root, path));
     }
     const upstream = JSON.parse(await readFile(join(root, relativePlugin, "upstream.json"), "utf8"));
@@ -52,6 +52,10 @@ test("upstream updater verifies a mocked release and synchronizes all source ver
     assert.match(result.stdout, /Updated plugin/u);
     const updatedPlugin = JSON.parse(await readFile(join(root, relativePlugin, "plugin.json"), "utf8"));
     assert.equal(updatedPlugin.providers.services[0].runtime.version, `${core}+gemini.${gemini}`);
+    const runtimeLock = JSON.parse(await readFile(join(root, relativePlugin, "runtime-lock.json"), "utf8"));
+    assert.equal(runtimeLock.version, `${core}+gemini.${gemini}`);
+    assert.match(runtimeLock.platforms["win32-x64"][0].url, /^https:\/\/github\.com\//u);
+    assert.equal(updatedPlugin.providers.services[0].runtime.platforms["win32-x64"].artifacts[0].url, undefined);
     const catalog = JSON.parse(await readFile(join(root, ".vetta/marketplace.json"), "utf8"));
     assert.equal(catalog.abilities.find((ability) => ability.slug === "cli-proxy-api").version, updatedPlugin.version);
     for (const file of ["detail.json", "detail.zh.json"]) {

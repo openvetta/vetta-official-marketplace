@@ -8,7 +8,8 @@ The first release supports OAuth for Gemini CLI, OpenAI Codex, Claude Code, Goog
 discovers live routes from `/v1/models` and publishes Google, Anthropic, Responses and compatible Completions model
 providers in the plugin-owned namespace.
 
-Runtime updates are made by changing the fixed release URLs and SHA-256 values in `plugin.json`, rebuilding `dist/`,
+Runtime updates are made by changing the fixed release URLs in `runtime-lock.json` and matching SHA-256 values in both
+the lock and `plugin.json`, rebuilding `dist/`,
 and releasing a new plugin patch after the six-platform combined canary passes. Runtime installation never follows
 `latest`, and no upstream binaries are stored in this marketplace repository.
 
@@ -29,3 +30,8 @@ The host must implement Plugin API 1.5.0 (planned minimum Desktop 0.5.50). Until
 Runtime configuration is regenerated in the cache directory for each launch; credentials and OAuth accounts remain
 in the data directory. API-key configuration forms are not part of this first release. Disabling the plugin stops
 the service but retains model settings; re-enabling refreshes their endpoint, without changing the default model.
+
+The plugin, not Desktop, owns runtime downloads: it selects the current platform via `ctx.services.getPlatform()`,
+fetches each pinned URL through its declared `ctx.network` hosts, verifies SHA-256, and submits the archive bytes to
+`ctx.services.install()`. Desktop never reads a release URL; it only applies generic archive limits, verifies the
+manifest digest again, atomically installs the version, and supervises the process.

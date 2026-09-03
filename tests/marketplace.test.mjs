@@ -158,16 +158,23 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(ability?.type, "plugin");
   assert.equal(catalog.minAppVersion, "0.5.50");
   const directory = packageFile(root, ability.source.path);
+  const presentation = readJson(packageFile(directory, "ability.json"));
+  assert.equal(presentation.icon, "assets/icon.png");
+  const icon = readFileSync(packageFile(directory, presentation.icon));
+  assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.equal(plugin.pluginApiVersion, "^1.5.0");
-  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "shell.openExternal", "ui.slot.ability-detail"]);
+  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "ui.slot.ability-detail"]);
+  assert.deepEqual(plugin.network.allowedHosts.sort(), ["github.com", "release-assets.githubusercontent.com"]);
 
   const services = plugin.providers?.services;
   assert.equal(services?.length, 1);
   const service = services[0];
   assert.equal(service.id, "proxy");
   const upstream = readJson(packageFile(directory, "upstream.json"));
+  const runtimeLock = readJson(packageFile(directory, "runtime-lock.json"));
   assert.equal(service.runtime.version, `${upstream.core.version}+gemini.${upstream.providerPlugins["gemini-cli"].version}`);
+  assert.equal(runtimeLock.version, service.runtime.version);
   assert.equal(service.templates[0].mode, "render");
   assert.ok(service.process.args.includes("${VETTA_SERVICE_CACHE_DIR}/config.yaml"));
   assert.deepEqual(Object.keys(service.runtime.platforms).sort(), [
@@ -181,11 +188,16 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   for (const [platform, definition] of Object.entries(service.runtime.platforms)) {
     assert.equal(definition.artifacts.length, 2, platform);
     assert.equal(new Set(definition.artifacts.map((artifact) => artifact.destination)).size, 2, platform);
-    for (const artifact of definition.artifacts) {
-      assert.match(artifact.url, /^https:\/\/github\.com\/router-for-me\//u, platform);
-      assert.doesNotMatch(artifact.url, /latest|no-plugin/u, platform);
+    assert.equal(runtimeLock.platforms[platform].length, 2, platform);
+    for (const [index, artifact] of definition.artifacts.entries()) {
+      assert.equal("url" in artifact, false, platform);
       assert.match(artifact.sha256, /^[a-f0-9]{64}$/u, platform);
       assert.ok(["zip", "tar.gz"].includes(artifact.archive), platform);
+      const source = runtimeLock.platforms[platform][index];
+      assert.equal(source.destination, artifact.destination, platform);
+      assert.equal(source.sha256, artifact.sha256, platform);
+      assert.match(source.url, /^https:\/\/github\.com\/router-for-me\//u, platform);
+      assert.doesNotMatch(source.url, /latest|no-plugin/u, platform);
     }
   }
   assert.deepEqual(service.credentials.map((item) => item.id).sort(), ["api-key", "management-key"]);
@@ -223,7 +235,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     "openai-compatibility",
   ]) assert.match(providerContract, new RegExp(route, "u"));
 
-  const integration = ["src/setup-slot.tsx", "src/proxy-client.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  const integration = ["src/setup-slot.tsx", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
   assert.match(integration, /\/v0\/management\/get-auth-status/u);
   assert.match(integration, /\/v0\/management\/oauth-session/u);
   assert.match(integration, /\/v0\/management\/auth-files/u);
@@ -231,6 +243,8 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(integration, /anthropic-messages/u);
   assert.match(integration, /openai-responses/u);
   assert.match(integration, /openai-completions/u);
+  assert.match(integration, /network\.request/u);
+  assert.match(integration, /services\.install/u);
 
   packageFile(directory, plugin.entry);
   packageFile(directory, "upstream.json");

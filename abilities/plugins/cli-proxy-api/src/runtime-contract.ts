@@ -6,6 +6,7 @@ export interface ServiceStatus {
   serviceId: string;
   phase: ServicePhase;
   version: string;
+  installed: boolean;
   message?: string;
   recentOutput: string;
 }
@@ -18,7 +19,9 @@ export interface ServiceResponse<T> {
 }
 
 export interface ManagedServiceApi {
+  getPlatform(): Promise<{ tag: "win32-x64" | "win32-arm64" | "darwin-x64" | "darwin-arm64" | "linux-x64" | "linux-arm64" }>;
   getStatus(serviceId: string): Promise<ServiceStatus>;
+  install(serviceId: string, artifacts: Array<{ destination: string; data: string }>): Promise<ServiceStatus>;
   start(serviceId: string): Promise<ServiceStatus>;
   stop(serviceId: string): Promise<ServiceStatus>;
   restart(serviceId: string): Promise<ServiceStatus>;

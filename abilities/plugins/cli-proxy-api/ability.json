@@ -3,7 +3,7 @@
   "type": "plugin",
   "slug": "cli-proxy-api",
   "version": "1.0.0",
-  "icon": "solar:server-square-cloud-bold",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "dist/assets/detail.json",

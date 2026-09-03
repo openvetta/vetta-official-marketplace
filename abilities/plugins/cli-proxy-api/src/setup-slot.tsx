@@ -2,6 +2,7 @@ import { useTranslation } from "@vetta-org/plugin-sdk";
 import { useCallback, useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactElement } from "react";
 import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
+import { ensureServiceStarted } from "./runtime-provisioner";
 
 import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyModel, type AccountSummary } from "./proxy-client";
 
@@ -43,6 +44,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
     serviceId: SERVICE_ID,
     phase: "stopped",
     version: "…",
+    installed: false,
     recentOutput: ""
   });
   const [models, setModels] = useState<ProxyModel[]>([]);
@@ -208,7 +210,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
 
       <div className="mt-4 flex flex-wrap gap-2">
         {status.phase === "failed" || status.phase === "stopped" ? (
-          <Button onClick={() => void pluginContext.services.start(SERVICE_ID).catch((reason: unknown) => setError(String(reason)))}>{t("setup.start")}</Button>
+          <Button onClick={() => void ensureServiceStarted(pluginContext).catch((reason: unknown) => setError(String(reason)))}>{t("setup.start")}</Button>
         ) : null}
         {status.phase === "ready" ? (
           <>

@@ -96,6 +96,14 @@ function nextMarketplaceVersion(current) {
   return `${prefix}-${match ? Number(match[1]) + 1 : 1}`;
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
@@ -113,16 +121,19 @@ const geminiVersion = versionFromTag(geminiRelease.tag_name);
 const pluginPath = resolve(pluginDirectory, "plugin.json");
 const plugin = await readJson(pluginPath);
 const service = plugin.providers.services[0];
+const runtimeLockPath = resolve(pluginDirectory, "runtime-lock.json");
+const runtimeLock = await readJson(runtimeLockPath);
 const currentRuntimeVersion = service.runtime.version;
-const currentPlatforms = JSON.stringify(service.runtime.platforms);
+const currentPlatforms = stableJson(runtimeLock.platforms);
 const nextRuntimeVersion = `${coreVersion}+gemini.${geminiVersion}`;
 
 const selectedAssets = [];
+const nextPlatforms = {};
 for (const [platform, names] of Object.entries(platforms)) {
   const core = assetBySuffix(coreRelease, "CLIProxyAPI", names.core);
   const gemini = assetBySuffix(geminiRelease, "gemini-cli", names.gemini);
   selectedAssets.push(core, gemini);
-  service.runtime.platforms[platform].artifacts = [
+  nextPlatforms[platform] = [
     {
       url: core.browser_download_url,
       sha256: core.digest.slice("sha256:".length),
@@ -136,11 +147,12 @@ for (const [platform, names] of Object.entries(platforms)) {
       destination: "plugins",
     },
   ];
+  service.runtime.platforms[platform].artifacts = nextPlatforms[platform].map(({ url: _url, ...artifact }) => artifact);
 }
 
 console.log(`CLIProxyAPI: ${currentRuntimeVersion} -> ${nextRuntimeVersion}`);
 if (currentRuntimeVersion === nextRuntimeVersion) {
-  if (currentPlatforms !== JSON.stringify(service.runtime.platforms)) throw new Error("Release assets changed without a version change; review the supply chain before changing the lock.");
+  if (currentPlatforms !== stableJson(nextPlatforms)) throw new Error("Release assets changed without a version change; review the supply chain before changing the lock.");
   console.log("The marketplace lock already points at the latest stable runtime set.");
   process.exit(0);
 }
@@ -163,6 +175,9 @@ const nextPluginVersion = bumpPatch(plugin.version);
 service.runtime.version = nextRuntimeVersion;
 plugin.version = nextPluginVersion;
 await writeJson(pluginPath, plugin);
+runtimeLock.version = nextRuntimeVersion;
+runtimeLock.platforms = nextPlatforms;
+await writeJson(runtimeLockPath, runtimeLock);
 
 const packageJsonPath = resolve(pluginDirectory, "package.json");
 const packageJson = await readJson(packageJsonPath);

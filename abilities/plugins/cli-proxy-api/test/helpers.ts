@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import type { ManagedPluginContext, ServiceStatus } from "../src/runtime-contract";
 
 export function fixture() {
-  const ready: ServiceStatus = { serviceId: "proxy", phase: "ready", version: "test", recentOutput: "" };
+  const ready: ServiceStatus = { serviceId: "proxy", phase: "ready", version: "test", installed: true, recentOutput: "" };
   const listeners = new Set<(status: ServiceStatus) => void>();
   let baseUrl = "http://127.0.0.1:12345";
   const handle = vi.fn(async (request: { path: string; method?: string }): Promise<unknown> => {
@@ -17,7 +17,8 @@ export function fixture() {
   const openExternal = vi.fn(async () => undefined);
   const context = {
     services: {
-      getStatus: vi.fn(async () => ready), start: vi.fn(async () => ready), stop: vi.fn(), restart: vi.fn(async () => ready),
+      getPlatform: vi.fn(async () => ({ tag: "win32-x64" })),
+      getStatus: vi.fn(async () => ready), install: vi.fn(async () => ready), start: vi.fn(async () => ready), stop: vi.fn(), restart: vi.fn(async () => ready),
       connection: vi.fn(async () => ({ baseUrl, credential: "local-api-key" })),
       request: vi.fn(async (_id: string, request: { path: string; method?: string }) => ({
         ok: true, status: 200, statusText: "OK", body: await handle(request)
@@ -27,6 +28,7 @@ export function fixture() {
       }
     },
     models: { upsertProvider, removeProvider },
+    network: { request: vi.fn() },
     ui: { openExternal }
   } as unknown as ManagedPluginContext;
   return { context, ready, handle, upsertProvider, removeProvider, openExternal,
