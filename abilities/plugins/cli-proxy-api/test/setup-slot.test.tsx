@@ -3,10 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProxySetupSlot } from "../src/setup-slot";
 import { fixture } from "./helpers";
 
-vi.mock("@vetta-org/plugin-sdk", () => ({
-  useTranslation: () => ({ t: (key: string, values?: { details?: string }) => values?.details ? `${key} ${values.details}` : key }),
-}));
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+vi.mock("@vetta-org/plugin-sdk", () => {
+  const t = (key: string, values?: { details?: string }) => values?.details ? `${key} ${values.details}` : key;
+  return { useTranslation: () => ({ t }) };
+});
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe("CLIProxyAPI setup", () => {
   it("groups authorization choices and renders a distinct icon for every supported provider", async () => {
@@ -45,6 +46,42 @@ describe("CLIProxyAPI setup", () => {
     f.handle.mockImplementation(async (request) => request.path.includes("get-auth-status") ? { status: "ok" } : request.path === "/v1/models" ? { data: [{ id: "codex-test", owned_by: "codex" }] } : { files: [] });
     await screen.findByText("setup.oauthSuccess", {}, { timeout: 2500 });
     await waitFor(() => expect(f.upsertProvider).toHaveBeenCalledWith("responses", expect.objectContaining({ api: "openai-responses" })));
+  });
+
+  it("shows progress and completion feedback when the user manually syncs models", async () => {
+    const f = fixture();
+    let finishPublish!: () => void;
+    f.upsertProvider.mockImplementation(async () => await new Promise<void>((resolve) => { finishPublish = resolve; }));
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    render(<ProxySetupSlot context={f.context} />);
+    const button = await screen.findByRole("button", { name: "setup.syncModels" });
+    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+
+    fireEvent.click(button);
+
+    const syncingButton = await screen.findByRole("button", { name: "setup.syncingModels" });
+    expect((syncingButton as HTMLButtonElement).disabled).toBe(true);
+    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalled());
+    expect(info).toHaveBeenCalledWith("[cli-proxy-api] Model sync started.");
+
+    await act(async () => { finishPublish(); });
+
+    expect((await screen.findByRole("status")).textContent).toBe("setup.syncSuccess");
+    expect(info).toHaveBeenCalledWith("[cli-proxy-api] Model sync completed: 1 model(s).");
+  });
+
+  it("shows and logs the operation context when manual model sync fails", async () => {
+    const f = fixture();
+    f.upsertProvider.mockRejectedValue(new Error("provider write failed"));
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(<ProxySetupSlot context={f.context} />);
+    const button = await screen.findByRole("button", { name: "setup.syncModels" });
+    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+
+    fireEvent.click(button);
+
+    expect((await screen.findByRole("alert")).textContent).toBe("setup.syncFailed provider write failed");
+    expect(error).toHaveBeenCalledWith("[cli-proxy-api] Model sync failed: provider write failed");
   });
   it("does not accept an in-flight success response after cancellation", async () => {
     const f = fixture();

@@ -86,6 +86,8 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
   const [flow, setFlow] = useState<OAuthFlow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncedModelCount, setSyncedModelCount] = useState<number | null>(null);
   const [startingOAuth, setStartingOAuth] = useState(false);
   const [removalCandidate, setRemovalCandidate] = useState<string | null>(null);
   const [removingAccount, setRemovingAccount] = useState<string | null>(null);
@@ -97,6 +99,11 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
   const refresh = useCallback(async (publish: boolean): Promise<void> => {
     setRefreshing(true);
     setError(null);
+    if (publish) {
+      setSyncing(true);
+      setSyncedModelCount(null);
+      console.info("[cli-proxy-api] Model sync started.");
+    }
     try {
       const [modelPayload, accountPayload] = await Promise.all([
         serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL }),
@@ -105,13 +112,24 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       const nextModels = readModels(modelPayload);
       setModels(nextModels);
       setAccounts(readAccounts(accountPayload));
-      if (publish) await publishModels(nextModels);
+      if (publish) {
+        await publishModels(nextModels);
+        setSyncedModelCount(nextModels.length);
+        console.info(`[cli-proxy-api] Model sync completed: ${nextModels.length} model(s).`);
+      }
     } catch (reason) {
-      setError(toDisplayErrorMessage(reason));
+      const details = toDisplayErrorMessage(reason);
+      if (publish) {
+        setError(t("setup.syncFailed", { details }));
+        console.error(`[cli-proxy-api] Model sync failed: ${details}`);
+      } else {
+        setError(details);
+      }
     } finally {
       setRefreshing(false);
+      if (publish) setSyncing(false);
     }
-  }, []);
+  }, [publishModels, readAccounts, readModels, serviceRequest, t]);
 
   const startOAuth = useCallback(async (provider: OAuthProviderDefinition): Promise<void> => {
     if (startingRef.current || flowRef.current?.phase === "waiting") return;
@@ -275,13 +293,22 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/50 pt-3">
           <span className="rounded-md bg-background/50 px-2 py-1 text-[11px] text-muted-foreground">{t("setup.runtimeVersion", { version: status.version })}</span>
           <span className="rounded-md bg-background/50 px-2 py-1 text-[11px] text-muted-foreground">{t("setup.routesDiscovered", { count: models.length })}</span>
+          {syncedModelCount !== null ? (
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-400" role="status">
+              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+              {t("setup.syncSuccess", { count: syncedModelCount })}
+            </span>
+          ) : null}
           <div className="ml-auto flex flex-wrap gap-2">
             {status.phase === "failed" || status.phase === "stopped" ? (
               <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" onClick={() => void ensureServiceStarted(pluginContext).catch((reason: unknown) => setError(t("setup.startFailed", { details: toDisplayErrorMessage(reason) })))}>{t("setup.start")}</Button>
             ) : null}
             {status.phase === "ready" ? (
               <>
-                <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" onClick={() => void refresh(true)} disabled={refreshing}><ActionIcon name="sync" />{t("setup.syncModels")}</Button>
+                <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" onClick={() => void refresh(true)} disabled={refreshing}>
+                  {syncing ? <Spin /> : <ActionIcon name="sync" />}
+                  {t(syncing ? "setup.syncingModels" : "setup.syncModels")}
+                </Button>
                 <Button onClick={() => void pluginContext.services.restart(SERVICE_ID).catch((reason: unknown) => setError(t("setup.restartFailed", { details: toDisplayErrorMessage(reason) })))}><ActionIcon name="restart" />{t("setup.restart")}</Button>
               </>
             ) : null}
