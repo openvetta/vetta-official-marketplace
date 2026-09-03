@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "受管本地模型网关",
+      "title": "用一个本地入口调用订阅账号模型",
+      "description": "通过 CLIProxyAPI 连接受支持的服务商账号，动态发现可路由模型，并按协议加入 Vetta；不复制上游源码，也不维护长期 Fork。",
+      "badges": ["固定版本制品", "仅回环监听", "OAuth 服务商"]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "这是第三方集成，仍需遵守各服务商条款、地区规则和账号政策。每次 OAuth 都必须由你主动发起；Vetta 不导入浏览器 Cookie，也不扫描其它 CLI 的凭据。"
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:shield-check-bold",
+          "title": "不 Fork 也能持续升级",
+          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 7.2.147 与 Gemini Provider 1.0.5。组合验证后只发布插件补丁即可推进版本，无需修改 Desktop。"
+        },
+        {
+          "icon": "solar:login-3-bold",
+          "title": "六条 OAuth 账号通道",
+          "description": "浏览器 OAuth：Gemini CLI、Codex、Claude Code、Antigravity；设备码 OAuth：Kimi、xAI。Gemini CLI 来自单独锁定的原生 Provider 插件。"
+        },
+        {
+          "icon": "solar:server-minimalistic-bold",
+          "title": "按协议注册 Vetta 模型",
+          "description": "动态路由会分为 Google Generative AI、Anthropic Messages、OpenAI Responses 和兼容 Chat Completions；来源未知时保守回退到 Chat Completions。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "安装并启用", "description": "Vetta 为当前系统和架构下载两份锁定制品，校验 SHA-256，再使用动态回环端口启动服务。" },
+        { "title": "连接服务商账号", "description": "从设置面板主动发起 OAuth。Token 保存在 CLIProxyAPI 的稳定认证目录中，升级运行时不会覆盖。" },
+        { "title": "同步模型", "description": "读取实时 `/v1/models` 目录，并把不同协议组发布到本插件拥有的 Vetta 模型命名空间。" }
+      ]
+    },
+    {
+      "type": "markdown",
+      "content": "### 其它受支持配置通道\n\nCLIProxyAPI 还支持 Gemini、Gemini Interactions、Claude、Codex、xAI、Vertex API Key，Vertex Service Account 导入，以及显式 OpenAI-compatible 上游。1.0.0 首先开放六条 OAuth 主路径；不会代理无限制的 management `/api-call`，也不会开放上游插件商店。API Key 表单需要逐服务商设计秘密处理交互，后续只升级市场插件即可加入，不需要修改 Desktop。\n\n### 运行时边界\n\nDesktop 只提供通用的受管服务生命周期和插件自有模型注册表。所有 CLIProxyAPI endpoint、服务商名称、OAuth 状态转换和协议映射都在本市场包中。"
+    }
+  ]
+}

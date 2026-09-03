@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Managed local model gateway",
+      "title": "Use subscription-backed models through one local endpoint",
+      "description": "Connect supported provider accounts with CLIProxyAPI, discover their routable models and add protocol-aware providers to Vetta without copying or forking the upstream project.",
+      "badges": ["Pinned releases", "Loopback only", "OAuth providers"]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "This is a third-party integration. Provider terms, regional rules and account policies still apply. You explicitly start each OAuth flow; Vetta does not import browser cookies or credentials from other CLIs."
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:shield-check-bold",
+          "title": "Upgradeable without a fork",
+          "description": "The marketplace pins CLIProxyAPI 7.2.147 and Gemini provider 1.0.5 by release URL and SHA-256. A plugin patch can move both locks after review, without a Desktop code change."
+        },
+        {
+          "icon": "solar:login-3-bold",
+          "title": "Six OAuth account routes",
+          "description": "Browser OAuth: Gemini CLI, Codex, Claude Code and Antigravity. Device-code OAuth: Kimi and xAI. Gemini CLI comes from the separately pinned native provider plugin."
+        },
+        {
+          "icon": "solar:server-minimalistic-bold",
+          "title": "Protocol-aware Vetta models",
+          "description": "Discovered routes are grouped into Google Generative AI, Anthropic Messages, OpenAI Responses and compatible Chat Completions providers. Unknown ownership falls back conservatively to Chat Completions."
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "Install and enable", "description": "Vetta downloads the two pinned assets for your OS and architecture, verifies SHA-256, then starts the service on a dynamic loopback port." },
+        { "title": "Connect provider accounts", "description": "Start an OAuth flow from the setup panel. Tokens remain in CLIProxyAPI's stable auth directory and survive runtime upgrades." },
+        { "title": "Sync models", "description": "Fetch the live /v1/models catalog and publish each protocol group into the plugin-owned Vetta model namespace." }
+      ]
+    },
+    {
+      "type": "markdown",
+      "content": "### Supported configuration channels\n\nCLIProxyAPI also supports Gemini, Gemini Interactions, Claude, Codex, xAI and Vertex API-key configuration, Vertex service-account import, and explicit OpenAI-compatible upstreams. Version 1.0.0 deliberately exposes the six OAuth paths first; it does not proxy the unrestricted management `/api-call` endpoint or the upstream plugin store. API-key forms require provider-specific secret-handling UX and will be added in a later plugin release without changing Desktop.\n\n### Runtime boundary\n\nDesktop only supplies the generic managed-service lifecycle and plugin-owned model registry. Every CLIProxyAPI endpoint, provider name, OAuth state transition and protocol mapping lives in this marketplace package."
+    }
+  ]
+}

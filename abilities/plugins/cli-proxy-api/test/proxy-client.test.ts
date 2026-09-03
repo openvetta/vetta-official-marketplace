@@ -1,0 +1,52 @@
+import { describe, expect, it, vi } from "vitest";
+import { createProxyClient, safeExternalUrl } from "../src/proxy-client";
+import { OAUTH_PROVIDERS, protocolGroupFor } from "../src/provider-contract";
+import { maintainModelConnection } from "../src/model-connection";
+import { fixture } from "./helpers";
+
+describe("CLIProxyAPI contracts", () => {
+  it("selects known native protocols and keeps unknown owners on compatible Completions", () => {
+    expect(protocolGroupFor("google", "alias")).toBe("google");
+    expect(protocolGroupFor("antigravity", "claude-sonnet")).toBe("anthropic");
+    expect(protocolGroupFor("kimi", "alias")).toBe("anthropic");
+    expect(protocolGroupFor("openai", "alias")).toBe("responses");
+    expect(protocolGroupFor("openrouter", "gpt-or-claude-or-gemini")).toBe("completions");
+    expect(protocolGroupFor("", "gemini")).toBe("completions");
+  });
+  it("uses callback forwarders for desktop browser flows and device flows for Kimi/xAI", () => {
+    for (const id of ["claude", "codex", "antigravity"]) expect(OAUTH_PROVIDERS.find((p) => p.id === id)?.authPath).toContain("is_webui=true");
+    expect(OAUTH_PROVIDERS.filter((p) => p.deviceFlow).map((p) => p.id)).toEqual(["kimi", "xai"]);
+    for (const url of ["javascript:alert(1)", "http://localhost", "https://name:secret@example.com"]) expect(() => safeExternalUrl(url)).toThrow();
+  });
+  it("registers discovered models without leaking the management key and rejects malformed catalogs", async () => {
+    const f = fixture();
+    const client = createProxyClient(f.context);
+    expect(() => client.readModels({ unexpected: [] })).toThrow("model catalog");
+    await client.publishModels(client.readModels({ data: [
+      { id: "g", owned_by: "google" }, { id: "g", owned_by: "google" },
+      { id: "c", owned_by: "claude" }, { id: "o", owned_by: "codex" }, { id: "x", owned_by: "unknown" }
+    ] }));
+    expect(f.upsertProvider.mock.calls).toEqual([
+      ["google", expect.objectContaining({ baseUrl: "http://127.0.0.1:12345/v1beta", apiKey: "local-api-key", api: "google-generative-ai", models: [{ id: "g", api: "google-generative-ai" }] })],
+      ["anthropic", expect.objectContaining({ baseUrl: "http://127.0.0.1:12345", api: "anthropic-messages" })],
+      ["responses", expect.objectContaining({ api: "openai-responses" })],
+      ["completions", expect.objectContaining({ api: "openai-completions" })]
+    ]);
+    expect(f.context.services.connection).toHaveBeenCalledWith("proxy", "api-key");
+  });
+  it("updates the endpoint on restart without mounting the UI and ignores repeated ready log events", async () => {
+    const f = fixture();
+    const connection = maintainModelConnection(f.context);
+    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(1));
+    f.emit({ ...f.ready, recentOutput: "log" });
+    f.emit({ ...f.ready, phase: "stopped" });
+    f.setBaseUrl("http://127.0.0.1:23456");
+    f.emit(f.ready);
+    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(2));
+    expect(f.upsertProvider).toHaveBeenLastCalledWith("google", expect.objectContaining({ baseUrl: "http://127.0.0.1:23456/v1beta" }));
+    await connection.dispose();
+    f.emit({ ...f.ready, phase: "stopped" });
+    f.emit(f.ready);
+    expect(f.upsertProvider).toHaveBeenCalledTimes(2);
+  });
+});

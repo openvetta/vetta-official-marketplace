@@ -1,0 +1,77 @@
+{
+  "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__1__loadShare__react__loadShare__.js-DEWoaCp8.js": {
+    "file": "assets/_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__1__loadShare__react__loadShare__.js-DEWoaCp8.js",
+    "name": "_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__1__loadShare__react__loadShare__.js"
+  },
+  "_index-0xf-q3zY.js": {
+    "file": "assets/index-0xf-q3zY.js",
+    "name": "index"
+  },
+  "_vite-preload-helper-BXl3LOEh.js": {
+    "file": "assets/vite-preload-helper-BXl3LOEh.js",
+    "name": "vite-preload-helper"
+  },
+  "src/index.tsx": {
+    "file": "assets/index-DWGVjQMN.js",
+    "name": "index",
+    "src": "src/index.tsx",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js",
+      "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__1__loadShare__react__loadShare__.js-DEWoaCp8.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
+    ],
+    "css": [
+      "style.css"
+    ]
+  },
+  "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js": {
+    "file": "remoteEntry.js",
+    "name": "remoteEntry",
+    "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1",
+      "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js"
+    ]
+  },
+  "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
+    "file": "assets/virtualExposes-Bb5HssUE.js",
+    "name": "virtualExposes",
+    "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
+      "src/index.tsx"
+    ]
+  },
+  "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__cli_proxy_api__mf_owner__1-Cinr5qiF.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__cli_proxy_api__mf_owner__1",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1",
+    "isDynamicEntry": true,
+    "imports": [
+      "_index-0xf-q3zY.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__cli_proxy_api__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-CI-M6Yo_.js",
+    "name": "hostInit",
+    "src": "virtual:mf:__mfe_internal__cli_proxy_api__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1"
+    ]
+  }
+}

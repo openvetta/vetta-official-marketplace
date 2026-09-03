@@ -1,0 +1,76 @@
+name: Update CLIProxyAPI runtime lock
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Discover and verify stable upstream releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/update-cli-proxy-api.mjs --write
+
+      - name: Detect an update
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the plugin
+        if: steps.changes.outputs.changed == 'true'
+        working-directory: abilities/plugins/cli-proxy-api
+        env:
+          NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+        run: |
+          bun install
+          bun run check
+          bun run test
+          bun run build
+
+      - name: Validate the marketplace
+        if: steps.changes.outputs.changed == 'true'
+        run: node --test tests/marketplace.test.mjs tests/update-cli-proxy-api.test.mjs
+
+      - name: Open the reviewed update PR
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          runtime_version="$(node -p "require('./abilities/plugins/cli-proxy-api/plugin.json').providers.services[0].runtime.version")"
+          branch="automation/cli-proxy-api-${runtime_version//+/-}"
+          if [[ "$(gh pr list --head "$branch" --state open --json number --jq 'length')" != "0" ]]; then
+            echo "An update PR already exists for this runtime set."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add .vetta/marketplace.json abilities/plugins/cli-proxy-api
+          git commit -m "chore: 更新 CLIProxyAPI 运行时锁"
+          git push origin "HEAD:$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: update CLIProxyAPI to ${runtime_version}" \
+            --body "Automated fixed-digest runtime lock update. All twelve release assets were downloaded and SHA-256 verified; the plugin was rebuilt and marketplace tests passed. Manual cross-platform runtime and protocol canaries remain required before merge."

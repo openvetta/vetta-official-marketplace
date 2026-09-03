@@ -153,6 +153,90 @@ test("Feishu provides the official CLI lifecycle without adding an Action, MCP s
   }
 });
 
+test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and pins a six-platform runtime set", () => {
+  const ability = bySlug.get("cli-proxy-api");
+  assert.equal(ability?.type, "plugin");
+  assert.equal(catalog.minAppVersion, "0.5.50");
+  const directory = packageFile(root, ability.source.path);
+  const plugin = readJson(packageFile(directory, "plugin.json"));
+  assert.equal(plugin.pluginApiVersion, "^1.5.0");
+  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "shell.openExternal", "ui.slot.ability-detail"]);
+
+  const services = plugin.providers?.services;
+  assert.equal(services?.length, 1);
+  const service = services[0];
+  assert.equal(service.id, "proxy");
+  const upstream = readJson(packageFile(directory, "upstream.json"));
+  assert.equal(service.runtime.version, `${upstream.core.version}+gemini.${upstream.providerPlugins["gemini-cli"].version}`);
+  assert.equal(service.templates[0].mode, "render");
+  assert.ok(service.process.args.includes("${VETTA_SERVICE_CACHE_DIR}/config.yaml"));
+  assert.deepEqual(Object.keys(service.runtime.platforms).sort(), [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-arm64",
+    "linux-x64",
+    "win32-arm64",
+    "win32-x64",
+  ]);
+  for (const [platform, definition] of Object.entries(service.runtime.platforms)) {
+    assert.equal(definition.artifacts.length, 2, platform);
+    assert.equal(new Set(definition.artifacts.map((artifact) => artifact.destination)).size, 2, platform);
+    for (const artifact of definition.artifacts) {
+      assert.match(artifact.url, /^https:\/\/github\.com\/router-for-me\//u, platform);
+      assert.doesNotMatch(artifact.url, /latest|no-plugin/u, platform);
+      assert.match(artifact.sha256, /^[a-f0-9]{64}$/u, platform);
+      assert.ok(["zip", "tar.gz"].includes(artifact.archive), platform);
+    }
+  }
+  assert.deepEqual(service.credentials.map((item) => item.id).sort(), ["api-key", "management-key"]);
+  assert.equal(service.health.path, "/v1/models");
+  assert.equal(service.health.credentialId, "api-key");
+
+  const template = readFileSync(packageFile(directory, "assets/config.yaml.tpl"), "utf8");
+  assert.equal(readFileSync(packageFile(directory, service.templates[0].source), "utf8"), template);
+  const federation = readJson(packageFile(directory, plugin.entry));
+  assert.equal(federation.name, plugin.moduleFederation.remoteName);
+  assert.deepEqual(plugin.styles, ["dist/style.css"]);
+  packageFile(directory, "dist/style.css");
+  for (const detail of ["detail.json", "detail.zh.json"]) {
+    assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
+  }
+  assert.match(template, /host: "127\.0\.0\.1"/u);
+  assert.match(template, /allow-remote: false/u);
+  assert.match(template, /disable-control-panel: true/u);
+  assert.match(template, /plugins:[\s\S]*gemini-cli:/u);
+  assert.doesNotMatch(template, /0\.0\.0\.0/u);
+
+  const providerContract = readFileSync(packageFile(directory, "src/provider-contract.ts"), "utf8");
+  for (const route of [
+    "gemini-cli-auth-url",
+    "codex-auth-url",
+    "anthropic-auth-url",
+    "antigravity-auth-url",
+    "kimi-auth-url",
+    "xai-auth-url",
+    "gemini-api-key",
+    "claude-api-key",
+    "codex-api-key",
+    "xai-api-key",
+    "vertex-api-key",
+    "openai-compatibility",
+  ]) assert.match(providerContract, new RegExp(route, "u"));
+
+  const integration = ["src/setup-slot.tsx", "src/proxy-client.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  assert.match(integration, /\/v0\/management\/get-auth-status/u);
+  assert.match(integration, /\/v0\/management\/oauth-session/u);
+  assert.match(integration, /\/v0\/management\/auth-files/u);
+  assert.match(integration, /google-generative-ai/u);
+  assert.match(integration, /anthropic-messages/u);
+  assert.match(integration, /openai-responses/u);
+  assert.match(integration, /openai-completions/u);
+
+  packageFile(directory, plugin.entry);
+  packageFile(directory, "upstream.json");
+  packageFile(directory, "LICENSE");
+});
+
 test("Notion uses the official hosted endpoint with user browser authorization only", () => {
   const ability = bySlug.get("notion");
   assert.equal(ability?.type, "mcp");

@@ -2,9 +2,9 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.01-6",
+  "marketplaceVersion": "2026.09.03-1",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
-  "minAppVersion": "0.5.49",
+  "minAppVersion": "0.5.50",
   "abilities": [
     {
       "type": "plugin",
@@ -28,6 +28,29 @@
         }
       },
       "source": { "path": "abilities/plugins/feishu" }
+    },
+    {
+      "type": "plugin",
+      "slug": "cli-proxy-api",
+      "name": "CLIProxyAPI",
+      "description": "Run a managed local gateway for Gemini CLI, Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta / Router For Me",
+      "category": "Development",
+      "categoryI18n": { "zh": "开发", "en": "Development" },
+      "tags": ["models", "oauth", "gateway", "gemini", "codex", "claude"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "CLIProxyAPI",
+            "description": "运行受管的本地模型网关，连接 Gemini CLI、Codex、Claude、Antigravity、Kimi 与 xAI 账号，并在 Vetta 中使用动态发现的模型。",
+            "tags": ["模型", "OAuth", "网关", "Gemini", "Codex", "Claude"]
+          }
+        }
+      },
+      "source": { "path": "abilities/plugins/cli-proxy-api" }
     },
     {
       "type": "mcp",
