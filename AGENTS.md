@@ -156,6 +156,22 @@ version: 1.0.0           # 必须 === 条目的 version
 - `server.command` 必须精确为 `${VETTA_MCP_EXECUTABLE}`。参数、环境变量和工作目录可以使用 `${VETTA_MCP_RUNTIME_DIR}`、`${VETTA_MCP_DATA_DIR}`、`${VETTA_MCP_CACHE_DIR}`。
 - 只有已发布并可验证的 Release 产物才能注册；示例 URL 和 SHA-256 不能直接用于市场条目。
 
+安装完还需要用户做一次动作（扫码登录等）的受管 MCP，用 `schemaVersion: 2` 的可选 `setup` 声明：
+
+```json
+{
+  "setup": {
+    "kind": "agent-tool",
+    "tool": "get_login_qrcode",
+    "completedWhen": { "dataFile": "cookies.json" }
+  }
+}
+```
+
+- `setup` 只允许受管运行时（有 `runtime` 的 `schemaVersion: 2`）使用，没有数据目录就无从判断是否完成。
+- `kind` 当前只能是 `agent-tool`；`tool` 是要让 Agent 在对话里调用的 MCP 工具名，桌面端会把它直接显示给用户。
+- `completedWhen.dataFile` 是相对 `${VETTA_MCP_DATA_DIR}` 的安全相对路径（不得逃逸目录）。该文件存在即视为完成；在此之前条目显示「需要配置」。
+
 ### plugin
 
 包内必须有 `plugin.json`：
@@ -341,6 +357,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] 仅 bundle 成员没有重复注册到顶层，除非确实需要独立展示；包内默认名称、语言覆盖和分类齐全
 - [ ] mcp 条目在 manifest 里没有 `config` 键
 - [ ] `schemaVersion: 2` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
+- [ ] 声明了 `setup` 的 MCP 确认 `completedWhen.dataFile` 与服务实际写出的登录态文件一致
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
 - [ ] 卡片 `icon` 不是随手挑的：有官方品牌/应用图标则用包内官方位图，否则才用贴切的 Solar 名
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持

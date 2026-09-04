@@ -42,5 +42,10 @@
       "placeholder": "http://127.0.0.1:7890"
     }
   ],
-  "browserAuth": false
+  "browserAuth": false,
+  "setup": {
+    "kind": "agent-tool",
+    "tool": "get_login_qrcode",
+    "completedWhen": { "dataFile": "cookies.json" }
+  }
 }

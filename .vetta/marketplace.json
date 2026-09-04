@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.04-19",
+  "marketplaceVersion": "2026.09.04-20",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -195,7 +195,7 @@
       "name": "Xiaohongshu",
       "description": "Search, read, publish and interact with Xiaohongshu through an official MCP server.",
       "version": "2.5.0",
-      "configVersion": 1,
+      "configVersion": 2,
       "license": "Apache-2.0",
       "author": "xpzouying",
       "category": "Social",
