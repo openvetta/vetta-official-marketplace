@@ -21,6 +21,11 @@ export function fixture() {
   const openExternal = vi.fn(async () => undefined);
   const setWorkspaceViewHeader = vi.fn();
   const openWorkspaceView = vi.fn();
+  const writeJson = vi.fn(async () => undefined);
+  const readJson = vi.fn(async () => null);
+  const reload = vi.fn();
+  // jsdom refuses navigation; the apply flow ends in a reload we need to observe.
+  Object.defineProperty(window, "location", { configurable: true, value: { ...window.location, reload } });
   const context = {
     services: {
       getPlatform: vi.fn(async () => ({ tag: "win32-x64" })),
@@ -35,9 +40,10 @@ export function fixture() {
     },
     models: { upsertProvider, removeProvider },
     network: { request: vi.fn() },
-    ui: { openExternal, setWorkspaceViewHeader, openWorkspaceView, openWorkspaceView }
+    storage: { readJson, writeJson },
+    ui: { openExternal, setWorkspaceViewHeader, openWorkspaceView }
   } as unknown as ManagedPluginContext;
-  return { context, ready, handle, upsertProvider, removeProvider, openExternal, setWorkspaceViewHeader, openWorkspaceView,
+  return { context, ready, handle, upsertProvider, removeProvider, openExternal, setWorkspaceViewHeader, openWorkspaceView, writeJson, readJson, reload,
     emit: (status: ServiceStatus) => { for (const listener of listeners) listener(status); },
     setBaseUrl: (url: string) => { baseUrl = url; }
   };

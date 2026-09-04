@@ -164,7 +164,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.equal(plugin.pluginApiVersion, "^1.5.0");
-  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
+  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "storage.read", "storage.write", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
   assert.deepEqual(plugin.network.allowedHosts.sort(), ["github.com", "release-assets.githubusercontent.com"]);
 
   const services = plugin.providers?.services;
@@ -257,7 +257,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     "openai-compatibility",
   ]) assert.match(providerContract, new RegExp(route, "u"));
 
-  const integration = ["src/index.tsx", "src/setup-slot.tsx", "src/use-proxy-console.ts", "src/workspace-view.tsx", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  const integration = ["src/index.tsx", "src/setup-slot.tsx", "src/use-proxy-console.ts", "src/workspace-view.tsx", "src/model-selection.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
   assert.match(integration, /\/v0\/management\/get-auth-status/u);
   assert.match(integration, /\/v0\/management\/oauth-session/u);
   assert.match(integration, /\/v0\/management\/auth-files/u);
@@ -272,6 +272,9 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(integration, /\/v0\/management\/model-definitions/u);
   assert.match(integration, /contextWindow/u);
   assert.match(integration, /registerWorkspaceView/u);
+  // The published set is chosen by the user and must survive a restart, or the
+  // service's own sync would put the unticked models back on the next start.
+  assert.match(integration, /published-models/u);
 
   packageFile(directory, plugin.entry);
   packageFile(directory, "upstream.json");

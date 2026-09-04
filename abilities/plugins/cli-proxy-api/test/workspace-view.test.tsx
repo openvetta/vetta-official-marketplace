@@ -88,8 +88,8 @@ describe("CLIProxyAPI console", () => {
     render(<ProxyWorkspaceView context={f.context} />);
 
     const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
-    // The grid itself never lists models.
-    expect(screen.queryByText("gemini-test")).toBeNull();
+    // A credential card stays about health; its models live behind the button.
+    expect(within(card).queryByText("gemini-test")).toBeNull();
 
     fireEvent.click(within(card).getByRole("button", { name: "console.models" }));
     const dialog = await screen.findByRole("dialog");
@@ -198,8 +198,58 @@ describe("CLIProxyAPI console", () => {
     // The gateway syncs by itself when the service comes up, so the gap between
     // "synced" and "visible in the picker" has to be stated without being asked.
     await screen.findByText("console.reloadNotice");
-    const notice = screen.getByText("console.reloadNotice").closest("div") as HTMLElement;
-    expect(within(notice).getByRole("button", { name: "console.reloadApp" })).toBeTruthy();
+  });
+
+
+  it("publishes exactly the ticked models and remembers the choice", async () => {
+    const f = fixture();
+    withAccounts(f);
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    // Nothing chosen yet means the gateway's previous behaviour: publish everything.
+    const group = (await screen.findByRole("region", { name: "user@example.com" })) as HTMLElement;
+    fireEvent.click(within(group).getByRole("checkbox", { name: "gemini-test" }));
+
+    await waitFor(() => expect((screen.getByRole("button", { name: "console.apply" }) as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByRole("button", { name: "console.apply" }));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByRole("button", { name: "console.applyAndReload" }));
+
+    // The applied set is the whole truth: an unticked model leaves the picker.
+    await waitFor(() => expect(f.writeJson).toHaveBeenCalledWith(
+      "published-models",
+      { schemaVersion: 1, models: [] },
+    ));
+    await waitFor(() => expect(f.removeProvider).toHaveBeenCalledWith("google"));
+  });
+
+  it("applies nothing until the reload is confirmed", async () => {
+    const f = fixture();
+    withAccounts(f);
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    await screen.findByRole("region", { name: "user@example.com" });
+    await waitFor(() => expect((screen.getByRole("button", { name: "console.apply" }) as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByRole("button", { name: "console.apply" }));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByRole("button", { name: "setup.cancel" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(f.writeJson).not.toHaveBeenCalled();
+    expect(f.reload).not.toHaveBeenCalled();
+  });
+
+  it("selects and clears every model at once", async () => {
+    const f = fixture();
+    withAccounts(f);
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    const group = await screen.findByRole("region", { name: "user@example.com" });
+    fireEvent.click(screen.getByRole("button", { name: "console.clearAll" }));
+    expect((within(group).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "console.selectAll" }));
+    expect((within(group).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(true);
   });
 
   it("takes over the host header and clears it on unmount", async () => {

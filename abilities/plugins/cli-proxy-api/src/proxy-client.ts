@@ -1,4 +1,5 @@
 import { MODEL_DEFINITION_CHANNELS, protocolGroupFor, type ProtocolGroup } from "./provider-contract";
+import { selectModels, type ModelSelection } from "./model-selection";
 import type { ManagedPluginContext } from "./runtime-contract";
 
 export const SERVICE_ID = "proxy";
@@ -251,11 +252,22 @@ const PROVIDER_CONFIG: Record<ProtocolGroup, { basePath: string; api: string; ti
   completions: { basePath: "/v1", api: "openai-completions", title: "CLIProxyAPI · Compatible" }
 };
 
-async function publishModels(models: ProxyModel[], isCurrent = () => true): Promise<void> {
+/**
+ * Replaces the plugin-owned providers with exactly what is selected.
+ *
+ * The published set is always the whole truth — a group that ends up empty has
+ * its provider removed rather than left behind, so unticking a model actually
+ * takes it out of the picker instead of merely not re-adding it.
+ */
+async function publishModels(
+  models: ProxyModel[],
+  isCurrent = () => true,
+  selection: ModelSelection = null
+): Promise<void> {
   const connection = await pluginContext.services.connection(SERVICE_ID, API_CREDENTIAL);
   if (!connection.credential) throw new Error("The managed API credential is unavailable");
   const groups = new Map<ProtocolGroup, ProxyModel[]>();
-  for (const model of models) {
+  for (const model of selectModels(models, selection)) {
     const group = protocolGroupFor(model.ownedBy, model.id);
     groups.set(group, [...(groups.get(group) ?? []), model]);
   }

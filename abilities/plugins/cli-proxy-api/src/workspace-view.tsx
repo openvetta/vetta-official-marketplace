@@ -5,9 +5,10 @@ import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
 import { toDisplayErrorMessage } from "./error-message";
 import { ProviderIcon } from "./provider-icon";
-import { ActionIcon, Button, ProviderTag, Spin, Toggle } from "./ui-kit";
+import { ActionIcon, Button, Checkbox, ProviderTag, Spin, Toggle } from "./ui-kit";
 import { Dialog } from "./dialog";
 import { providerForAccount, useProxyConsole } from "./use-proxy-console";
+import { readModelSelection, writeModelSelection } from "./model-selection";
 import { SERVICE_ID, createProxyClient, type ChannelModel, type ProxyAccount, type UsageBucket } from "./proxy-client";
 
 export const WORKSPACE_VIEW_ID = "console";
@@ -184,12 +185,6 @@ function ReloadNotice({ syncedModelCount }: { syncedModelCount: number | null })
       <p className={`min-w-0 flex-1 text-xs leading-relaxed ${synced ? "text-emerald-400" : "text-muted-foreground"}`}>
         {synced ? t("console.reloadNoticeSynced", { count: syncedModelCount }) : t("console.reloadNotice")}
       </p>
-      <Button
-        className={`shrink-0 ${synced ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15" : ""}`}
-        onClick={() => window.location.reload()}
-      >
-        <ActionIcon name="app-reload" />{t("console.reloadApp")}
-      </Button>
     </div>
   );
 }
@@ -397,6 +392,148 @@ function ConnectDialog({ onClose, onPick, disabled }: {
   );
 }
 
+/** One credential's models, as tick boxes. */
+function ModelGroup({ account, provider, models, selected, onToggle, onGroup }: {
+  account: ProxyAccount;
+  provider: OAuthProviderId | undefined;
+  models: ChannelModel[];
+  selected: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  onGroup: (ids: string[], next: boolean) => void;
+}): ReactElement {
+  const { t } = useTranslation();
+  const ids = models.map((model) => model.id);
+  const picked = ids.filter((id) => selected.has(id)).length;
+  const all = picked === ids.length && ids.length > 0;
+
+  return (
+    <section className="rounded-xl border border-border/50 bg-card/25" aria-label={account.displayName}>
+      <header className="flex flex-wrap items-center gap-2 border-b border-border/40 px-3 py-2">
+        <Checkbox
+          checked={all}
+          label={t(all ? "console.clearGroup" : "console.selectGroup", { account: account.displayName })}
+          onChange={() => onGroup(ids, !all)}
+        />
+        <ProviderTag>{provider ? t(`provider.short.${provider}`) : account.provider}</ProviderTag>
+        <span className="min-w-0 truncate text-xs text-foreground" title={account.displayName}>{account.displayName}</span>
+        <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">
+          {t("console.groupCount", { picked, total: ids.length })}
+        </span>
+      </header>
+      <div className="grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2 xl:grid-cols-3">
+        {models.map((model) => {
+          const context = formatTokens(model.contextWindow);
+          return (
+            <label key={model.id} className="flex min-w-0 cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40">
+              <Checkbox checked={selected.has(model.id)} label={model.id} onChange={() => onToggle(model.id)} />
+              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground" title={model.displayName ?? model.id}>
+                {model.id}
+              </span>
+              {model.reasoning ? <span className="shrink-0 rounded bg-primary/10 px-1 text-[10px] text-primary">{t("console.reasoning")}</span> : null}
+              {context ? <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">{context}</span> : null}
+            </label>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Chooses what the gateway publishes into Vetta.
+ *
+ * Grouped by credential because that is how the models are actually reached — a
+ * model is only routable while the account behind it is connected and healthy,
+ * so a flat list would hide the thing that decides whether it works.
+ *
+ * Applying replaces the published set outright rather than merging: the ticked
+ * boxes are what the picker will contain, which is the only rule that stays
+ * predictable once accounts come and go.
+ */
+function ModelPicker({
+  accounts, accountModels, loading, selected, setSelected, onApply, applying
+}: {
+  accounts: ProxyAccount[];
+  accountModels: ReadonlyMap<string, ChannelModel[]>;
+  loading: boolean;
+  selected: ReadonlySet<string>;
+  setSelected: (next: ReadonlySet<string>) => void;
+  onApply: () => void;
+  applying: boolean;
+}): ReactElement {
+  const { t } = useTranslation();
+  const everyId = useMemo(() => {
+    const ids = new Set<string>();
+    for (const models of accountModels.values()) for (const model of models) ids.add(model.id);
+    return ids;
+  }, [accountModels]);
+  const pickedCount = [...everyId].filter((id) => selected.has(id)).length;
+
+  const toggle = (id: string): void => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setSelected(next);
+  };
+  const setGroup = (ids: string[], on: boolean): void => {
+    const next = new Set(selected);
+    for (const id of ids) if (on) next.add(id); else next.delete(id);
+    setSelected(next);
+  };
+
+  return (
+    <section className="space-y-3" aria-labelledby="cpa-models-title">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p id="cpa-models-title" className="text-sm font-semibold text-foreground">{t("console.pickerTitle")}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{t("console.pickerSubtitle")}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] tabular-nums text-muted-foreground">
+            {t("console.selectedCount", { picked: pickedCount, total: everyId.size })}
+          </span>
+          <Button disabled={everyId.size === 0} onClick={() => setSelected(new Set(everyId))}>{t("console.selectAll")}</Button>
+          <Button disabled={pickedCount === 0} onClick={() => setSelected(new Set())}>{t("console.clearAll")}</Button>
+          <Button
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+            disabled={applying || loading || everyId.size === 0}
+            onClick={onApply}
+          >
+            {applying ? <Spin /> : <ActionIcon name="app-reload" />}{t("console.apply")}
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="rounded-xl border border-border/50 px-4 py-6 text-center text-xs text-muted-foreground">
+          <Spin /> {t("console.loadingModels")}
+        </p>
+      ) : everyId.size === 0 ? (
+        <p className="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-xs text-muted-foreground">
+          {t("console.noModels")}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {accounts.map((account) => {
+            const models = accountModels.get(account.key) ?? [];
+            if (models.length === 0) return null;
+            return (
+              <ModelGroup
+                key={account.key}
+                account={account}
+                provider={providerForAccount(account)}
+                models={models}
+                selected={selected}
+                onToggle={toggle}
+                onGroup={setGroup}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /**
  * The CLIProxyAPI console: every credential as a card, health first.
  *
@@ -409,7 +546,7 @@ function ConnectDialog({ onClose, onPick, disabled }: {
 export function ProxyWorkspaceView({ context: pluginContext }: { context: ManagedPluginContext }): ReactElement {
   const { t } = useTranslation();
   const {
-    status, accounts, models, catalog, busy, flow, error,
+    status, accounts, models, catalog, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
     removalCandidate, setRemovalCandidate, removingAccount, pendingAccount,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
@@ -421,6 +558,63 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const [accountModels, setAccountModels] = useState<ChannelModel[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsError, setModelsError] = useState<string | null>(null);
+  const [groupedModels, setGroupedModels] = useState<ReadonlyMap<string, ChannelModel[]>>(new Map());
+  const [pickerLoading, setPickerLoading] = useState(true);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [selectionLoaded, setSelectionLoaded] = useState(false);
+  const [confirmApply, setConfirmApply] = useState(false);
+  const [applying, setApplying] = useState(false);
+
+  // One read per credential, refreshed whenever the set of credentials changes.
+  const accountKeys = accounts.map((account) => account.key).join("|");
+  useEffect(() => {
+    let active = true;
+    if (accounts.length === 0) {
+      setGroupedModels(new Map());
+      setPickerLoading(false);
+      return () => { active = false; };
+    }
+    setPickerLoading(true);
+    void Promise.all(accounts.map(async (account) => {
+      try {
+        return [account.key, await client.fetchAccountModels(account, catalog ?? undefined)] as const;
+      } catch {
+        // A credential that will not answer simply contributes no models.
+        return [account.key, [] as ChannelModel[]] as const;
+      }
+    })).then((entries) => {
+      if (!active) return;
+      const next = new Map(entries);
+      setGroupedModels(next);
+      setPickerLoading(false);
+      // Nothing chosen yet means "publish everything", which is what the gateway
+      // did before this picker existed — so start with every box ticked.
+      if (!selectionLoaded) {
+        void readModelSelection(pluginContext).then((stored) => {
+          if (!active) return;
+          const every = new Set([...next.values()].flat().map((model) => model.id));
+          setSelected(stored ?? every);
+          setSelectionLoaded(true);
+        });
+      }
+    });
+    return () => { active = false; };
+  }, [accountKeys, catalog, client]);
+
+  const applySelection = useCallback(async (): Promise<void> => {
+    setConfirmApply(false);
+    setApplying(true);
+    try {
+      await writeModelSelection(pluginContext, selected);
+      await client.publishModels(models, () => true, selected);
+      // The picker is only true once the window re-reads the model settings.
+      window.location.reload();
+    } catch (reason) {
+      setApplying(false);
+      // Surfaced on the page, not in the model dialog: apply is a page-level action.
+      setError(t("console.applyFailed", { details: toDisplayErrorMessage(reason) }));
+    }
+  }, [client, models, pluginContext, selected, setError, t]);
 
   const openModels = useCallback((account: ProxyAccount): void => {
     setModelAccount(account);
@@ -550,6 +744,18 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
           </div>
         )}
 
+        {accounts.length > 0 ? (
+          <ModelPicker
+            accounts={accounts}
+            accountModels={groupedModels}
+            loading={pickerLoading}
+            selected={selected}
+            setSelected={setSelected}
+            applying={applying}
+            onApply={() => setConfirmApply(true)}
+          />
+        ) : null}
+
         <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
           <span className="mt-px" aria-hidden="true">ⓘ</span>{t("setup.removeLocalOnly")}
         </p>
@@ -572,6 +778,25 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
             if (definition) void startOAuth(definition);
           }}
         />
+      ) : null}
+
+      {confirmApply ? (
+        <Dialog
+          title={t("console.applyConfirmTitle")}
+          onClose={() => setConfirmApply(false)}
+          footer={
+            <div className="flex items-center justify-end gap-2">
+              <Button className="border-transparent bg-transparent" onClick={() => setConfirmApply(false)}>{t("setup.cancel")}</Button>
+              <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" onClick={() => void applySelection()}>
+                <ActionIcon name="app-reload" />{t("console.applyAndReload")}
+              </Button>
+            </div>
+          }
+        >
+          <p className="px-4 py-4 text-xs leading-relaxed text-muted-foreground">
+            {t("console.applyConfirmBody", { count: selected.size })}
+          </p>
+        </Dialog>
       ) : null}
 
       {modelAccount ? (

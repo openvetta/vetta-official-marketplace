@@ -48,6 +48,23 @@ export function Toggle({ checked, disabled, label, onChange }: {
   );
 }
 
+/** A model row's tick box. Native input so keyboard and screen readers work as usual. */
+export function Checkbox({ checked, onChange, label }: {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+}): ReactElement {
+  return (
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      aria-label={label}
+      className="h-3.5 w-3.5 shrink-0 cursor-pointer accent-primary"
+    />
+  );
+}
+
 /** The channel name, set as a compact uppercase marker rather than body text. */
 export function ProviderTag({ children }: { children: ReactElement | string }): ReactElement {
   return (

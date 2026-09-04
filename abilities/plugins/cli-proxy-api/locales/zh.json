@@ -89,6 +89,19 @@
   "console.reloadAppHint": "重载 Vetta，让刚同步的模型出现在模型选择器里。",
   "console.openConsole": "打开 CPA 配置",
   "setup.consoleHandoff": "账号在侧边栏的「CPA 配置」页面管理，那里可以看到每个凭据各自的请求健康状况。",
-  "console.reloadNotice": "同步到 Vetta 的模型，需重载应用后才会出现在模型选择器里。",
-  "console.reloadNoticeSynced": "已同步 {{count}} 个模型。重载应用后即可在模型选择器中使用。"
+  "console.reloadNotice": "模型在下方选择并点击「应用」后同步到 Vetta，应用会重载以便模型选择器读到它们。",
+  "console.reloadNoticeSynced": "已同步 {{count}} 个模型。重载应用后即可在模型选择器中使用。",
+  "console.pickerTitle": "同步到 Vetta 的模型",
+  "console.pickerSubtitle": "按路由它们的凭据分组。应用后会覆盖 Vetta 当前持有的模型。",
+  "console.selectedCount": "已选 {{picked}} / {{total}}",
+  "console.groupCount": "{{picked}}/{{total}}",
+  "console.selectAll": "全选",
+  "console.clearAll": "全不选",
+  "console.selectGroup": "全选 {{account}} 的模型",
+  "console.clearGroup": "取消 {{account}} 的全部模型",
+  "console.apply": "应用",
+  "console.applyAndReload": "应用并重载",
+  "console.applyConfirmTitle": "应用并重载应用？",
+  "console.applyConfirmBody": "Vetta 将只保留所选的 {{count}} 个模型，覆盖本网关当前已同步的内容；随后重载应用，模型选择器才会读到它们。进行中的工作不会丢失。",
+  "console.applyFailed": "应用模型选择失败：{{details}}"
 }
