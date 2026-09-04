@@ -121,5 +121,7 @@
   "console.retryAfter": "Parked by the provider until {{time}}.",
   "console.quotaLoading": "Reading remaining quota…",
   "console.quotaRefresh": "Refresh quota",
-  "console.resetCredits": "{{count}} limit resets left"
+  "console.resetCredits": "{{count}} limit resets left",
+  "console.groupEmpty": "This credential advertises no models right now.",
+  "console.groupFailed": "Could not read this credential's models: {{details}}"
 }

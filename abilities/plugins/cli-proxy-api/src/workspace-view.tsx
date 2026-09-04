@@ -560,16 +560,20 @@ function ConnectDialog({ onClose, onPick, disabled }: {
   );
 }
 
+/** What one credential answered when asked for its models. */
+export type ModelGroupState = { models: ChannelModel[]; error?: string };
+
 /** One credential's models, as tick boxes. */
-function ModelGroup({ account, provider, models, selected, onToggle, onGroup }: {
+function ModelGroup({ account, provider, state, selected, onToggle, onGroup }: {
   account: ProxyAccount;
   provider: OAuthProviderId | undefined;
-  models: ChannelModel[];
+  state: ModelGroupState;
   selected: ReadonlySet<string>;
   onToggle: (id: string) => void;
   onGroup: (ids: string[], next: boolean) => void;
 }): ReactElement {
   const { t } = useTranslation();
+  const models = state.models;
   const ids = models.map((model) => model.id);
   const picked = ids.filter((id) => selected.has(id)).length;
   const all = picked === ids.length && ids.length > 0;
@@ -579,6 +583,7 @@ function ModelGroup({ account, provider, models, selected, onToggle, onGroup }: 
       <header className="flex flex-wrap items-center gap-2 border-b border-border/40 px-3 py-2">
         <Checkbox
           checked={all}
+          disabled={ids.length === 0}
           label={t(all ? "console.clearGroup" : "console.selectGroup", { account: account.displayName })}
           onChange={() => onGroup(ids, !all)}
         />
@@ -588,6 +593,13 @@ function ModelGroup({ account, provider, models, selected, onToggle, onGroup }: 
           {t("console.groupCount", { picked, total: ids.length })}
         </span>
       </header>
+      {state.error ? (
+        <p className="px-3 py-2.5 text-[11px] text-destructive" role="alert">
+          {t("console.groupFailed", { details: state.error })}
+        </p>
+      ) : models.length === 0 ? (
+        <p className="px-3 py-2.5 text-[11px] text-muted-foreground">{t("console.groupEmpty")}</p>
+      ) : (
       <div className="grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {models.map((model) => {
           const context = formatTokens(model.contextWindow);
@@ -603,6 +615,7 @@ function ModelGroup({ account, provider, models, selected, onToggle, onGroup }: 
           );
         })}
       </div>
+      )}
     </section>
   );
 }
@@ -622,7 +635,7 @@ function ModelPicker({
   accounts, accountModels, loading, selected, setSelected, onApply, applying
 }: {
   accounts: ProxyAccount[];
-  accountModels: ReadonlyMap<string, ChannelModel[]>;
+  accountModels: ReadonlyMap<string, ModelGroupState>;
   loading: boolean;
   selected: ReadonlySet<string>;
   setSelected: (next: ReadonlySet<string>) => void;
@@ -632,7 +645,7 @@ function ModelPicker({
   const { t } = useTranslation();
   const everyId = useMemo(() => {
     const ids = new Set<string>();
-    for (const models of accountModels.values()) for (const model of models) ids.add(model.id);
+    for (const group of accountModels.values()) for (const model of group.models) ids.add(model.id);
     return ids;
   }, [accountModels]);
   const pickedCount = [...everyId].filter((id) => selected.has(id)).length;
@@ -675,27 +688,19 @@ function ModelPicker({
         <p className="rounded-xl border border-border/50 px-4 py-6 text-center text-xs text-muted-foreground">
           <Spin /> {t("console.loadingModels")}
         </p>
-      ) : everyId.size === 0 ? (
-        <p className="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center text-xs text-muted-foreground">
-          {t("console.noModels")}
-        </p>
       ) : (
         <div className="space-y-3">
-          {accounts.map((account) => {
-            const models = accountModels.get(account.key) ?? [];
-            if (models.length === 0) return null;
-            return (
-              <ModelGroup
-                key={account.key}
-                account={account}
-                provider={providerForAccount(account)}
-                models={models}
-                selected={selected}
-                onToggle={toggle}
-                onGroup={setGroup}
-              />
-            );
-          })}
+          {accounts.map((account) => (
+            <ModelGroup
+              key={account.key}
+              account={account}
+              provider={providerForAccount(account)}
+              state={accountModels.get(account.key) ?? { models: [] }}
+              selected={selected}
+              onToggle={toggle}
+              onGroup={setGroup}
+            />
+          ))}
         </div>
       )}
     </section>
@@ -726,10 +731,17 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const [accountModels, setAccountModels] = useState<ChannelModel[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelsError, setModelsError] = useState<string | null>(null);
-  const [groupedModels, setGroupedModels] = useState<ReadonlyMap<string, ChannelModel[]>>(new Map());
+  const [groupedModels, setGroupedModels] = useState<ReadonlyMap<string, ModelGroupState>>(new Map());
   const [pickerLoading, setPickerLoading] = useState(true);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [selectionLoaded, setSelectionLoaded] = useState(false);
+  /**
+   * Whether the stored selection has been read.
+   *
+   * A ref, not state: the loader effect re-runs whenever the catalog changes,
+   * and a stale `false` in its closure would take the first-load branch again
+   * and re-tick every model — quietly undoing what the user had just cleared.
+   */
+  const selectionLoaded = useRef(false);
   /** Model ids the picker has already offered; anything new is opted in. */
   const knownIds = useRef<ReadonlySet<string>>(new Set());
   const [confirmApply, setConfirmApply] = useState(false);
@@ -745,27 +757,28 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       return () => { active = false; };
     }
     setPickerLoading(true);
-    void Promise.all(accounts.map(async (account) => {
+    void Promise.all(accounts.map(async (account): Promise<readonly [string, ModelGroupState]> => {
       try {
-        return [account.key, await client.fetchAccountModels(account, catalog ?? undefined)] as const;
-      } catch {
-        // A credential that will not answer simply contributes no models.
-        return [account.key, [] as ChannelModel[]] as const;
+        return [account.key, { models: await client.fetchAccountModels(account, catalog ?? undefined) }] as const;
+      } catch (reason) {
+        // Kept as a group with an error rather than dropped: a credential that
+        // will not answer is exactly what the user needs to be told about.
+        return [account.key, { models: [], error: toDisplayErrorMessage(reason) }] as const;
       }
     })).then((entries) => {
       if (!active) return;
       const next = new Map(entries);
-      const every = new Set([...next.values()].flat().map((model) => model.id));
+      const every = new Set([...next.values()].flatMap((group) => group.models).map((model) => model.id));
       setGroupedModels(next);
       setPickerLoading(false);
       // Nothing chosen yet means "publish everything", which is what the gateway
       // did before this picker existed — so start with every box ticked.
-      if (!selectionLoaded) {
+      if (!selectionLoaded.current) {
         void readModelSelection(pluginContext).then((stored) => {
           if (!active) return;
           knownIds.current = every;
           setSelected(stored ?? every);
-          setSelectionLoaded(true);
+          selectionLoaded.current = true;
         });
         return;
       }

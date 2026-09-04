@@ -51,6 +51,17 @@ function withAccounts(f: ReturnType<typeof fixture>): void {
   });
 }
 
+
+/** The account name labels both its card and its picker group; this wants the card. */
+async function cardFor(name: string): Promise<HTMLElement> {
+  await screen.findAllByText(name);
+  const card = screen.getAllByText(name)
+    .map((element) => element.closest("article"))
+    .find((element): element is HTMLElement => element !== null);
+  if (!card) throw new Error(`No credential card for ${name}`);
+  return card;
+}
+
 describe("CLIProxyAPI console", () => {
   it("quotes token limits in the base the vendor published them in", () => {
     // Decimal limits stay decimal; binary limits stay binary. One divisor cannot do both.
@@ -68,7 +79,7 @@ describe("CLIProxyAPI console", () => {
     withAccounts(f);
     render(<ProxyWorkspaceView context={f.context} />);
 
-    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    const card = await cardFor("user@example.com");
     expect(within(card).getByText("console.successCount:605")).toBeTruthy();
     expect(within(card).getByText("console.failedCount:4")).toBeTruthy();
     // Size and timestamp come straight from the credential record.
@@ -78,9 +89,7 @@ describe("CLIProxyAPI console", () => {
 
     // A disabled credential reads as disabled and its switch is off. The name also
     // labels its group in the picker, so this looks specifically at the card.
-    const second = screen.getAllByText("second@example.com")
-      .map((element) => element.closest("article"))
-      .find((element): element is HTMLElement => element !== null) as HTMLElement;
+    const second = await cardFor("second@example.com");
     expect(within(second).getByText("console.disabled")).toBeTruthy();
     expect(within(second).getByRole("switch").getAttribute("aria-checked")).toBe("false");
   });
@@ -90,7 +99,7 @@ describe("CLIProxyAPI console", () => {
     withAccounts(f);
     render(<ProxyWorkspaceView context={f.context} />);
 
-    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    const card = await cardFor("user@example.com");
     // A credential card stays about health; its models live behind the button.
     expect(within(card).queryByText("gemini-test")).toBeNull();
 
@@ -110,7 +119,7 @@ describe("CLIProxyAPI console", () => {
     withAccounts(f);
     render(<ProxyWorkspaceView context={f.context} />);
 
-    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    const card = await cardFor("user@example.com");
     fireEvent.click(within(card).getByRole("switch"));
     await waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
       path: "/v0/management/auth-files/status",
@@ -168,7 +177,7 @@ describe("CLIProxyAPI console", () => {
     withAccounts(f);
     render(<ProxyWorkspaceView context={f.context} />);
 
-    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    const card = await cardFor("user@example.com");
     fireEvent.click(within(card).getByRole("button", { name: "setup.removeAccount user@example.com" }));
     expect(within(card).getByText("setup.removeAccountConfirm")).toBeTruthy();
     fireEvent.click(within(card).getByRole("button", { name: "setup.confirmRemove" }));
@@ -210,8 +219,9 @@ describe("CLIProxyAPI console", () => {
     render(<ProxyWorkspaceView context={f.context} />);
 
     // Nothing chosen yet means the gateway's previous behaviour: publish everything.
-    const group = (await screen.findByRole("region", { name: "user@example.com" })) as HTMLElement;
-    fireEvent.click(within(group).getByRole("checkbox", { name: "gemini-test" }));
+    // The group renders as soon as the credential is known; its models arrive after.
+    const group = await screen.findByRole("region", { name: "user@example.com" });
+    fireEvent.click(await within(group).findByRole("checkbox", { name: "gemini-test" }));
 
     await waitFor(() => expect((screen.getByRole("button", { name: "console.apply" }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByRole("button", { name: "console.apply" }));
@@ -248,6 +258,7 @@ describe("CLIProxyAPI console", () => {
     render(<ProxyWorkspaceView context={f.context} />);
 
     const group = await screen.findByRole("region", { name: "user@example.com" });
+    await within(group).findByRole("checkbox", { name: "gemini-test" });
     fireEvent.click(screen.getByRole("button", { name: "console.clearAll" }));
     expect((within(group).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
 
@@ -280,9 +291,9 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(await screen.findByRole("button", { name: "provider.kimi setup.deviceFlow" }));
 
     // A single refresh would have raced the gateway and shown nothing.
-    await vi.waitFor(() => expect(screen.getByText("late@example.com")).toBeTruthy(), { timeout: 15000 });
+    await vi.waitFor(() => expect(screen.getAllByText("late@example.com").length).toBeGreaterThan(0), { timeout: 15000 });
     vi.useRealTimers();
-  });
+  }, 20000);
 
   it("ticks the models a newly authorized credential brings in", async () => {
     const f = fixture();
@@ -310,8 +321,8 @@ describe("CLIProxyAPI console", () => {
     // Any credential action re-reads the gateway, which is how the new one arrives.
     fireEvent.click(screen.getByRole("button", { name: "console.resetQuota user@example.com" }));
 
-    const group = await screen.findByRole("region", { name: "second@example.com" });
-    await waitFor(() => expect((within(group).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(true));
+    const second = await screen.findByRole("region", { name: "second@example.com" });
+    await waitFor(() => expect((within(second).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(true));
     // The models the user had just cleared stay cleared.
     const first = screen.getByRole("region", { name: "user@example.com" });
     expect((within(first).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
@@ -341,7 +352,7 @@ describe("CLIProxyAPI console", () => {
     });
 
     render(<ProxyWorkspaceView context={f.context} />);
-    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    const card = await cardFor("user@example.com");
 
     expect(within(card).getByText("console.plan")).toBeTruthy();
     // Remaining, not used: 100% consumed is 0% left.
@@ -351,6 +362,49 @@ describe("CLIProxyAPI console", () => {
     // The JSON envelope stays out of the card.
     expect(within(card).getByText("The usage limit has been reached")).toBeTruthy();
     expect(within(card).queryByText(/usage_limit_reached/u)).toBeNull();
+  });
+
+
+  it("keeps a credential in the picker even when it answers with nothing", async () => {
+    const f = fixture();
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [
+          { auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli", email: "first@example.com", disabled: false, success: 0, failed: 0 },
+          { auth_index: "cx-1", name: "codex-user.json", provider: "codex", email: "second@example.com", disabled: false, unavailable: true, success: 0, failed: 0 }
+        ] };
+      }
+      if (request.path.includes("name=gemini-user.json")) return { models: [{ id: "gemini-test" }] };
+      // A rate-limited credential lists nothing; that is not a reason to hide it.
+      if (request.path.includes("name=codex-user.json")) return { models: [] };
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    await screen.findByRole("region", { name: "first@example.com" });
+    const empty = screen.getByRole("region", { name: "second@example.com" });
+    await within(empty).findByText("console.groupEmpty");
+    // Its select-all box has nothing to select, so it must not look actionable.
+    expect((within(empty).getByRole("checkbox") as HTMLInputElement).disabled).toBe(true);
+  });
+
+  it("says which credential could not be read instead of dropping it", async () => {
+    const f = fixture();
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [{ auth_index: "cx-1", name: "codex-user.json", provider: "codex", email: "broken@example.com", disabled: false, success: 0, failed: 0 }] };
+      }
+      if (request.path.includes("/auth-files/models")) throw new Error("upstream refused");
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    const group = await screen.findByRole("region", { name: "broken@example.com" });
+    expect((await within(group).findByRole("alert")).textContent).toContain("console.groupFailed");
   });
 
   it("takes over the host header and clears it on unmount", async () => {
