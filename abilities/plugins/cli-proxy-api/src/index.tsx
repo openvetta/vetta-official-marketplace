@@ -26,10 +26,10 @@ export default definePlugin({
       // own sources, so a plugin-declared one renders as an empty box. Omitting it
       // falls back to this plugin's packaged icon from plugin.json.
       //
-      // That icon is a full-bleed logo with no transparency, and the host's default
-      // is to mask artwork with the theme foreground — which turns every opaque
-      // pixel into one solid block. Opting out of the tint renders it as a plain
-      // image instead, in its own colors.
+      // The host's default is to mask artwork with the theme foreground, which turns
+      // a full-bleed logo into one solid block — so the packaged nav icon carries
+      // rounded, transparent corners and the tint is off: it renders as a plain
+      // image, in its own colors, and still reads as a mark if a theme masks it.
       iconTint: false,
       description: "%console.subtitle%",
       component: () => createElement(ProxyWorkspaceView, { context })
