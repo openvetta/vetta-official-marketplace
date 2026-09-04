@@ -257,7 +257,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     "openai-compatibility",
   ]) assert.match(providerContract, new RegExp(route, "u"));
 
-  const integration = ["src/setup-slot.tsx", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  const integration = ["src/setup-slot.tsx", "src/use-proxy-console.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
   assert.match(integration, /\/v0\/management\/get-auth-status/u);
   assert.match(integration, /\/v0\/management\/oauth-session/u);
   assert.match(integration, /\/v0\/management\/auth-files/u);
