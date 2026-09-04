@@ -36,7 +36,7 @@
     "src": "assets/providers/xai.svg"
   },
   "src/index.tsx": {
-    "file": "assets/index-Nv7S1lOh.js",
+    "file": "assets/index-dRctJGiw.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -74,7 +74,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
-    "file": "assets/virtualExposes-x93oE9od.js",
+    "file": "assets/virtualExposes-CqGEqzT5.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
     "isDynamicEntry": true,

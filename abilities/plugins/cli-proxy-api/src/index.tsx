@@ -26,11 +26,11 @@ export default definePlugin({
       // own sources, so a plugin-declared one renders as an empty box. Omitting it
       // falls back to this plugin's packaged icon from plugin.json.
       //
-      // The host's default is to mask artwork with the theme foreground, which turns
-      // a full-bleed logo into one solid block — so the packaged nav icon carries
-      // rounded, transparent corners and the tint is off: it renders as a plain
-      // image, in its own colors, and still reads as a mark if a theme masks it.
-      iconTint: false,
+      // The host paints that icon as a mask filled with the theme foreground, so the
+      // packaged nav icon is the bare mark on a transparent field — the marketplace
+      // card art is a full-bleed tile, and masking that yields one solid block. Left
+      // tinted on purpose: masking is what keeps the entry legible in every theme,
+      // the way the built-in navigation icons are.
       description: "%console.subtitle%",
       component: () => createElement(ProxyWorkspaceView, { context })
     });
