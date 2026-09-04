@@ -61,8 +61,10 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const removingAccountRef = useRef(false);
   const oauthGeneration = useRef(0);
   const flowRef = useRef<OAuthFlow | null>(null);
+  /** Latest credentials as read, so a retry loop can see past its own closure. */
+  const accountsRef = useRef<ProxyAccount[]>([]);
 
-  const refresh = useCallback(async (publish: boolean): Promise<void> => {
+  const refresh = useCallback(async (publish: boolean): Promise<ProxyAccount[]> => {
     setRefreshing(true);
     setError(null);
     if (publish) {
@@ -75,9 +77,11 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
         loadModels(),
         serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL })
       ]);
+      const nextAccounts = readAccounts(accountPayload);
       setModels(nextModels);
       setCatalog(nextCatalog);
-      setAccounts(readAccounts(accountPayload));
+      setAccounts(nextAccounts);
+      accountsRef.current = nextAccounts;
       if (publish) {
         await publishModels(nextModels);
         setSyncedModelCount(nextModels.length);
@@ -95,7 +99,26 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       setRefreshing(false);
       if (publish) setSyncing(false);
     }
+    return accountsRef.current;
   }, [loadModels, publishModels, readAccounts, serviceRequest, t]);
+
+  /**
+   * Keeps refreshing until the gateway actually reports the new credential.
+   *
+   * `get-auth-status` answers "ok" the moment the handshake completes, but the
+   * credential is only written and its routes rebuilt a beat later. The single
+   * refresh that used to follow raced that and usually lost, so a freshly
+   * authorized account showed no models until the user poked something else.
+   */
+  const settleAfterAuthorization = useCallback(async (generation: number): Promise<void> => {
+    const before = accountsRef.current.length;
+    for (const delay of [0, 600, 1200, 2500, 4000]) {
+      if (delay > 0) await new Promise((resolve) => { window.setTimeout(resolve, delay); });
+      if (generation !== oauthGeneration.current) return;
+      const next = await refresh(true);
+      if (next.length > before) return;
+    }
+  }, [refresh]);
 
   const startOAuth = useCallback(async (provider: OAuthProviderDefinition): Promise<void> => {
     if (startingRef.current || flowRef.current?.phase === "waiting") return;
@@ -248,7 +271,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
           flowRef.current = next;
           setFlow(next);
           window.clearInterval(timer);
-          void refresh(true);
+          void settleAfterAuthorization(oauthGeneration.current);
           return;
         }
         const next = { ...current, phase: "error" as const, error: textField(value, "error") ?? t("setup.oauthFailed") };
@@ -264,7 +287,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       }).finally(() => { inFlight = false; });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [flow?.phase, flow?.state, refresh, t]);
+  }, [flow?.phase, flow?.state, refresh, settleAfterAuthorization, t]);
 
   const accountsByProvider = useMemo(() => new Map(
     OAUTH_PROVIDERS.map((provider) => [provider.id, accounts.filter((account) => accountMatchesProvider(account, provider.id))])

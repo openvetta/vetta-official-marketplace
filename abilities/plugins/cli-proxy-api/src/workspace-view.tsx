@@ -1,5 +1,5 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
-import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { OAUTH_PROVIDERS, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
@@ -562,6 +562,8 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const [pickerLoading, setPickerLoading] = useState(true);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [selectionLoaded, setSelectionLoaded] = useState(false);
+  /** Model ids the picker has already offered; anything new is opted in. */
+  const knownIds = useRef<ReadonlySet<string>>(new Set());
   const [confirmApply, setConfirmApply] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -585,6 +587,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     })).then((entries) => {
       if (!active) return;
       const next = new Map(entries);
+      const every = new Set([...next.values()].flat().map((model) => model.id));
       setGroupedModels(next);
       setPickerLoading(false);
       // Nothing chosen yet means "publish everything", which is what the gateway
@@ -592,11 +595,17 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       if (!selectionLoaded) {
         void readModelSelection(pluginContext).then((stored) => {
           if (!active) return;
-          const every = new Set([...next.values()].flat().map((model) => model.id));
+          knownIds.current = every;
           setSelected(stored ?? every);
           setSelectionLoaded(true);
         });
+        return;
       }
+      // A model the picker has never shown is ticked by default: authorizing an
+      // account is a request for its models, not an invitation to hunt for them.
+      const fresh = [...every].filter((id) => !knownIds.current.has(id));
+      knownIds.current = every;
+      if (fresh.length > 0) setSelected((current) => new Set([...current, ...fresh]));
     });
     return () => { active = false; };
   }, [accountKeys, catalog, client]);

@@ -76,8 +76,11 @@ describe("CLIProxyAPI console", () => {
     // A fixed 20-window axis keeps the strips aligned across cards.
     expect(within(card).getByRole("img", { name: "console.usageChart" }).childElementCount).toBe(20);
 
-    // A disabled credential reads as disabled and its switch is off.
-    const second = (screen.getByText("second@example.com")).closest("article") as HTMLElement;
+    // A disabled credential reads as disabled and its switch is off. The name also
+    // labels its group in the picker, so this looks specifically at the card.
+    const second = screen.getAllByText("second@example.com")
+      .map((element) => element.closest("article"))
+      .find((element): element is HTMLElement => element !== null) as HTMLElement;
     expect(within(second).getByText("console.disabled")).toBeTruthy();
     expect(within(second).getByRole("switch").getAttribute("aria-checked")).toBe("false");
   });
@@ -250,6 +253,68 @@ describe("CLIProxyAPI console", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "console.selectAll" }));
     expect((within(group).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(true);
+  });
+
+
+  it("keeps refreshing after authorization until the gateway reports the credential", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    // The gateway answers "ok" before the credential is registered: the first few
+    // reads still show nothing, exactly as a real handshake does.
+    let reads = 0;
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        reads += 1;
+        return reads < 3 ? { files: [] } : { files: [{
+          auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi",
+          email: "late@example.com", disabled: false, success: 0, failed: 0
+        }] };
+      }
+      if (request.path.includes("get-auth-status")) return { status: "ok" };
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    fireEvent.click(await screen.findByRole("button", { name: "provider.kimi setup.deviceFlow" }));
+
+    // A single refresh would have raced the gateway and shown nothing.
+    await vi.waitFor(() => expect(screen.getByText("late@example.com")).toBeTruthy(), { timeout: 15000 });
+    vi.useRealTimers();
+  });
+
+  it("ticks the models a newly authorized credential brings in", async () => {
+    const f = fixture();
+    let accounts = [{
+      auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli",
+      email: "user@example.com", disabled: false, success: 0, failed: 0
+    }];
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) return { files: accounts };
+      if (request.path.includes("name=gemini-user.json")) return { models: [{ id: "gemini-test" }] };
+      if (request.path.includes("name=kimi-user.json")) return { models: [{ id: "kimi-new" }] };
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    await screen.findByRole("region", { name: "user@example.com" });
+    fireEvent.click(screen.getByRole("button", { name: "console.clearAll" }));
+
+    // A second credential arrives; its models are a request, not a suggestion.
+    accounts = [...accounts, {
+      auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi",
+      email: "second@example.com", disabled: false, success: 0, failed: 0
+    }];
+    // Any credential action re-reads the gateway, which is how the new one arrives.
+    fireEvent.click(screen.getByRole("button", { name: "console.resetQuota user@example.com" }));
+
+    const group = await screen.findByRole("region", { name: "second@example.com" });
+    await waitFor(() => expect((within(group).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(true));
+    // The models the user had just cleared stay cleared.
+    const first = screen.getByRole("region", { name: "user@example.com" });
+    expect((within(first).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
   });
 
   it("takes over the host header and clears it on unmount", async () => {
