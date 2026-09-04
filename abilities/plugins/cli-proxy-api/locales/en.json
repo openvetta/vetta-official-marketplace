@@ -123,5 +123,6 @@
   "console.quotaRefresh": "Refresh quota",
   "console.resetCredits": "{{count}} limit resets left",
   "console.groupEmpty": "This credential advertises no models right now.",
-  "console.groupFailed": "Could not read this credential's models: {{details}}"
+  "console.groupFailed": "Could not read this credential's models: {{details}}",
+  "console.quotaFailed": "Could not read the provider's quota: {{details}}"
 }

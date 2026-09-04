@@ -407,6 +407,67 @@ describe("CLIProxyAPI console", () => {
     expect((await within(group).findByRole("alert")).textContent).toContain("console.groupFailed");
   });
 
+
+  it("retries a quota probe that failed and says why in the meantime", async () => {
+    const f = fixture();
+    let attempts = 0;
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [{ auth_index: "cx-1", name: "codex.json", provider: "codex", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
+      }
+      if (request.path === "/v0/management/api-call") {
+        attempts += 1;
+        // The gateway answers only once the credential is fully registered.
+        if (attempts === 1) throw new Error("credential not ready");
+        return { status_code: 200, body: { plan_type: "plus", rate_limit: { primary_window: { used_percent: 40, limit_window_seconds: 18000 } } } };
+      }
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    const card = await cardFor("user@example.com");
+    // The reason is shown rather than a card that merely looks limit-free.
+    expect((await within(card).findByRole("alert")).textContent).toContain("console.quotaFailed");
+
+    fireEvent.click(within(card).getByRole("button", { name: "console.quotaRefresh" }));
+    // A failed attempt must not be remembered as done, or nothing could retry.
+    await within(card).findByText("console.remaining");
+    expect(attempts).toBe(2);
+  });
+
+
+  it("keeps polling after authorization until the new credential's routes exist", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let reads = 0;
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        reads += 1;
+        return reads < 2 ? { files: [] } : { files: [{
+          auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi", email: "late@example.com",
+          disabled: false, success: 0, failed: 0
+        }] };
+      }
+      // The credential is listed before the gateway finishes wiring its routes.
+      if (request.path === "/v1/models") {
+        return { data: reads < 4 ? [] : [{ id: "kimi-k2", owned_by: "kimi" }] };
+      }
+      if (request.path.includes("get-auth-status")) return { status: "ok" };
+      if (request.path.includes("/auth-files/models")) return { models: reads < 4 ? [] : [{ id: "kimi-k2" }] };
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    fireEvent.click(await screen.findByRole("button", { name: "provider.kimi setup.deviceFlow" }));
+
+    // Stopping at "the credential appeared" would have settled on an empty list.
+    await vi.waitFor(() => expect(screen.getAllByRole("checkbox", { name: "kimi-k2" }).length).toBeGreaterThan(0), { timeout: 20000 });
+    vi.useRealTimers();
+  }, 25000);
+
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();
     const { unmount } = render(<ProxyWorkspaceView context={f.context} />);

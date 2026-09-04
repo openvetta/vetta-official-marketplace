@@ -61,6 +61,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   /** Provider-reported quota, keyed by credential; absent until asked for. */
   const [quotas, setQuotas] = useState<ReadonlyMap<string, AccountQuota>>(new Map());
   const [quotaLoading, setQuotaLoading] = useState<ReadonlySet<string>>(new Set());
+  const [quotaErrors, setQuotaErrors] = useState<ReadonlyMap<string, string>>(new Map());
   const probedRef = useRef<Set<string>>(new Set());
   const startingRef = useRef(false);
   const removingAccountRef = useRef(false);
@@ -68,6 +69,8 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const flowRef = useRef<OAuthFlow | null>(null);
   /** Latest credentials as read, so a retry loop can see past its own closure. */
   const accountsRef = useRef<ProxyAccount[]>([]);
+  /** Routable model count: the signal that a new credential is actually wired up. */
+  const routesRef = useRef(0);
 
   const refresh = useCallback(async (publish: boolean): Promise<ProxyAccount[]> => {
     setRefreshing(true);
@@ -84,10 +87,13 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       ]);
       const nextAccounts = readAccounts(accountPayload);
       setModels(nextModels);
+      routesRef.current = nextModels.length;
       setCatalog(nextCatalog);
       setAccounts(nextAccounts);
       accountsRef.current = nextAccounts;
       if (publish) {
+        // An explicit sync is a request for the current truth, quota included.
+        probedRef.current.clear();
         await publishModels(nextModels);
         setSyncedModelCount(nextModels.length);
         console.info(`[cli-proxy-api] Model sync completed: ${nextModels.length} model(s).`);
@@ -116,12 +122,17 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
    * authorized account showed no models until the user poked something else.
    */
   const settleAfterAuthorization = useCallback(async (generation: number): Promise<void> => {
-    const before = accountsRef.current.length;
-    for (const delay of [0, 600, 1200, 2500, 4000]) {
+    const accountsBefore = accountsRef.current.length;
+    const routesBefore = routesRef.current;
+    let listed = false;
+    for (const delay of [0, 600, 1200, 2500, 4000, 6000]) {
       if (delay > 0) await new Promise((resolve) => { window.setTimeout(resolve, delay); });
       if (generation !== oauthGeneration.current) return;
       const next = await refresh(true);
-      if (next.length > before) return;
+      listed ||= next.length > accountsBefore;
+      // The credential is listed a beat before its routes exist, so stopping at
+      // "it appeared" leaves its models empty. Wait for the routes as well.
+      if (listed && routesRef.current > routesBefore) return;
     }
   }, [refresh]);
 
@@ -237,13 +248,22 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const loadQuota = useCallback(async (account: ProxyAccount, force = false): Promise<void> => {
     if (!hasQuotaProbe(account)) return;
     if (!force && probedRef.current.has(account.key)) return;
-    probedRef.current.add(account.key);
     setQuotaLoading((current) => new Set([...current, account.key]));
+    setQuotaErrors((current) => {
+      const next = new Map(current);
+      next.delete(account.key);
+      return next;
+    });
     try {
       const quota = await probeAccountQuota(serviceRequest, MANAGER_CREDENTIAL, account);
+      // Only a completed attempt counts as done: marking one up front left a
+      // credential the gateway had not finished registering blank for the whole
+      // session, with nothing — not even a manual sync — able to try again.
+      probedRef.current.add(account.key);
       if (quota) setQuotas((current) => new Map(current).set(account.key, quota));
-    } catch {
-      // A provider that will not answer leaves the gateway's own figures in place.
+    } catch (reason) {
+      // Said out loud on the card: a silent failure looks exactly like "no limits".
+      setQuotaErrors((current) => new Map(current).set(account.key, toDisplayErrorMessage(reason)));
     } finally {
       setQuotaLoading((current) => {
         const next = new Set(current);
@@ -331,7 +351,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   return {
     client, status, models, catalog, accounts, accountsByProvider, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, loadQuota,
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, quotaErrors, loadQuota,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   };
 }

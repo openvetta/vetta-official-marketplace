@@ -290,22 +290,34 @@ function useCountdown(): (window: QuotaWindow) => string | undefined {
  * inferred. A provider that has not answered with them yet simply has no panel,
  * which is honest about the difference between "plenty left" and "not known".
  */
-function QuotaPanel({ account, quota, loading, onRefresh }: {
+function QuotaPanel({ account, quota, loading, error, onRefresh }: {
   account: ProxyAccount;
   quota: AccountQuota | undefined;
   loading: boolean;
+  error: string | undefined;
   onRefresh: () => void;
 }): ReactElement | null {
   const { t } = useTranslation();
   const label = useWindowLabel();
   const countdown = useCountdown();
-  if (!quota) {
-    return loading ? (
+  if (loading && !quota) {
+    return (
       <p className="mx-3.5 mb-3 rounded-lg border border-border/40 px-3 py-2 text-[11px] text-muted-foreground">
         <Spin /> {t("console.quotaLoading")}
       </p>
-    ) : null;
+    );
   }
+  if (error && !quota?.windows.length && !quota?.groups?.length) {
+    return (
+      <div className="mx-3.5 mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border/40 px-3 py-2">
+        <p className="min-w-0 flex-1 text-[11px] text-amber-400" role="alert">{t("console.quotaFailed", { details: error })}</p>
+        <button type="button" className="shrink-0 text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline" onClick={onRefresh}>
+          {t("console.quotaRefresh")}
+        </button>
+      </div>
+    );
+  }
+  if (!quota) return null;
   const renewal = formatDay(quota.subscriptionUntil);
   const retry = quota.nextRetryAfter ? formatMoment(quota.nextRetryAfter) : undefined;
 
@@ -355,13 +367,14 @@ function QuotaPanel({ account, quota, loading, onRefresh }: {
 
 /** One credential, laid out as the CLIProxyAPI panel lays it out. */
 function AccountCard({
-  account, provider, pending, confirming, removing, disabled, quota, quotaLoading,
+  account, provider, pending, confirming, removing, disabled, quota, quotaLoading, quotaError,
   onModels, onReset, onToggle, onAskRemove, onCancelRemove, onRemove, onRefreshQuota
 }: {
   account: ProxyAccount;
   provider: OAuthProviderId | undefined;
   quota: AccountQuota | undefined;
   quotaLoading: boolean;
+  quotaError: string | undefined;
   onRefreshQuota: () => void;
   pending: boolean;
   confirming: boolean;
@@ -421,7 +434,7 @@ function AccountCard({
         {status ? <p className="mt-1 truncate text-[11px] text-amber-400" title={status}>{status}</p> : null}
       </div>
 
-      <QuotaPanel account={account} quota={mergeQuota(account.quota, quota)} loading={quotaLoading} onRefresh={onRefreshQuota} />
+      <QuotaPanel account={account} quota={mergeQuota(account.quota, quota)} loading={quotaLoading} error={quotaError} onRefresh={onRefreshQuota} />
 
       <footer className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/40 px-3.5 py-2.5">
         {confirming ? (
@@ -721,7 +734,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const {
     status, accounts, models, catalog, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, loadQuota,
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, quotaErrors, loadQuota,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   } = useProxyConsole(pluginContext);
 
@@ -922,6 +935,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
                 pending={pendingAccount === account.key}
                 quota={quotas.get(account.key)}
                 quotaLoading={quotaLoading.has(account.key)}
+                quotaError={quotaErrors.get(account.key)}
                 onRefreshQuota={() => void loadQuota(account, true)}
                 confirming={removalCandidate === account.key}
                 removing={removingAccount === account.key}

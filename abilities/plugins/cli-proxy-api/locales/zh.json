@@ -123,5 +123,6 @@
   "console.quotaRefresh": "刷新额度",
   "console.resetCredits": "主动重置次数 {{count}}",
   "console.groupEmpty": "该凭据当前没有可用模型。",
-  "console.groupFailed": "读取该凭据的模型失败：{{details}}"
+  "console.groupFailed": "读取该凭据的模型失败：{{details}}",
+  "console.quotaFailed": "读取服务商额度失败：{{details}}"
 }
