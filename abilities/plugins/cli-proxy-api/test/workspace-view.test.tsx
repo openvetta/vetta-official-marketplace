@@ -190,6 +190,18 @@ describe("CLIProxyAPI console", () => {
     });
   });
 
+
+  it("says up front that synced models need an app reload", async () => {
+    const f = fixture();
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    // The gateway syncs by itself when the service comes up, so the gap between
+    // "synced" and "visible in the picker" has to be stated without being asked.
+    await screen.findByText("console.reloadNotice");
+    const notice = screen.getByText("console.reloadNotice").closest("div") as HTMLElement;
+    expect(within(notice).getByRole("button", { name: "console.reloadApp" })).toBeTruthy();
+  });
+
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();
     const { unmount } = render(<ProxyWorkspaceView context={f.context} />);

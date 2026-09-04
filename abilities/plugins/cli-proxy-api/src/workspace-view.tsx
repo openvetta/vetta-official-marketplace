@@ -162,6 +162,38 @@ function HealthOverview({ accounts }: { accounts: ProxyAccount[] }): ReactElemen
   );
 }
 
+/**
+ * Says the part the model picker cannot say for itself.
+ *
+ * Publishing a provider updates the settings on disk, but the running window
+ * keeps the model list it read at startup — so a user who just synced goes
+ * looking for the models and does not find them. The gateway syncs on its own
+ * whenever the service comes up, which is exactly when nobody pressed a button
+ * to explain the gap, so this states it at all times and only sharpens after a
+ * sync the user asked for.
+ */
+function ReloadNotice({ syncedModelCount }: { syncedModelCount: number | null }): ReactElement {
+  const { t } = useTranslation();
+  const synced = syncedModelCount !== null;
+  return (
+    <div
+      role={synced ? "status" : undefined}
+      className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-3 py-2 ${synced ? "border-emerald-500/25 bg-emerald-500/10" : "border-border/50 bg-muted/25"}`}
+    >
+      <span className={`shrink-0 ${synced ? "text-emerald-400" : "text-muted-foreground"}`} aria-hidden="true">ⓘ</span>
+      <p className={`min-w-0 flex-1 text-xs leading-relaxed ${synced ? "text-emerald-400" : "text-muted-foreground"}`}>
+        {synced ? t("console.reloadNoticeSynced", { count: syncedModelCount }) : t("console.reloadNotice")}
+      </p>
+      <Button
+        className={`shrink-0 ${synced ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15" : ""}`}
+        onClick={() => window.location.reload()}
+      >
+        <ActionIcon name="app-reload" />{t("console.reloadApp")}
+      </Button>
+    </div>
+  );
+}
+
 /** One credential, laid out as the CLIProxyAPI panel lays it out. */
 function AccountCard({
   account, provider, pending, confirming, removing, disabled,
@@ -444,13 +476,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
           </span>
           <span className="rounded-md bg-muted/40 px-2 py-1 text-[11px] tabular-nums text-muted-foreground">{t("setup.runtimeVersion", { version: status.version })}</span>
           <span className="rounded-md bg-muted/40 px-2 py-1 text-[11px] tabular-nums text-muted-foreground">{t("setup.routesDiscovered", { count: models.length })}</span>
-          {syncedModelCount !== null ? (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-400" role="status">
-              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-              {t("setup.syncSuccess", { count: syncedModelCount })}
-            </span>
-          ) : null}
         </div>
+
+        <ReloadNotice syncedModelCount={syncedModelCount} />
 
         {error ? <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive" role="alert">{error}</p> : null}
 

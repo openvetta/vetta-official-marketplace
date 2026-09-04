@@ -88,5 +88,7 @@
   "console.reloadApp": "Reload app",
   "console.reloadAppHint": "Reload Vetta so newly synced models appear in the model picker.",
   "console.openConsole": "Open CPA setup",
-  "setup.consoleHandoff": "Accounts are managed on the CPA setup page in the sidebar, where each credential shows its own request health."
+  "setup.consoleHandoff": "Accounts are managed on the CPA setup page in the sidebar, where each credential shows its own request health.",
+  "console.reloadNotice": "Models synced to Vetta appear in the model picker after the app reloads.",
+  "console.reloadNoticeSynced": "{{count}} models synced. Reload the app to use them in the model picker."
 }
