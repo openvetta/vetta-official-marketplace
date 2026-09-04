@@ -875,8 +875,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
                 {refreshing ? <Spin /> : <ActionIcon name="sync" />}
                 {t("console.refresh")}
               </Button>
-              <Button aria-label={t("setup.restart")} title={t("setup.restart")} onClick={() => void pluginContext.services.restart(SERVICE_ID)}>
-                <ActionIcon name="restart" />
+              {/* Labelled, not icon-only: its glyph reads as another refresh. */}
+              <Button onClick={() => void pluginContext.services.restart(SERVICE_ID)}>
+                <ActionIcon name="restart" />{t("console.restartService")}
               </Button>
               <Button aria-label={t("console.reloadApp")} title={t("console.reloadAppHint")} onClick={() => window.location.reload()}>
                 <ActionIcon name="app-reload" />{t("console.reloadApp")}
