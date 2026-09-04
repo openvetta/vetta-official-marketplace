@@ -32,7 +32,8 @@ const ANTIGRAVITY_SUMMARY = {
 
 describe("provider quota probe", () => {
   it("asks the gateway to sign the call and never handles the token itself", async () => {
-    const request = vi.fn(async () => ({ status_code: 200, body: CODEX_USAGE }));
+    // The gateway returns the provider's body as a JSON string, not an object.
+    const request = vi.fn(async () => ({ status_code: 200, body: JSON.stringify(CODEX_USAGE) }));
     const quota = await probeAccountQuota(request as never, "management-key", account());
 
     const [path, options] = request.mock.calls[0] as [string, { credentialId: string; body: Record<string, unknown> }];
@@ -56,7 +57,7 @@ describe("provider quota probe", () => {
   });
 
   it("keeps a provider's model families in separate pools", async () => {
-    const request = vi.fn(async () => ({ status_code: 200, body: ANTIGRAVITY_SUMMARY }));
+    const request = vi.fn(async () => ({ status_code: 200, body: JSON.stringify(ANTIGRAVITY_SUMMARY) }));
     const quota = await probeAccountQuota(request as never, "management-key",
       account({ provider: "antigravity", projectId: "aicode-consumers" }));
 
@@ -68,6 +69,16 @@ describe("provider quota probe", () => {
       windows: [{ windowMinutes: 300, label: "Five Hour Limit Remaining" }, { windowMinutes: 10080 }]
     });
     expect(Math.round(quota?.groups?.[0]?.windows[0]?.remainingPercent ?? 0)).toBe(99);
+  });
+
+  it("still reads a body the host happened to decode", async () => {
+    const request = vi.fn(async () => ({ status_code: 200, body: CODEX_USAGE }));
+    expect(await probeAccountQuota(request as never, "management-key", account())).toMatchObject({ plan: "plus" });
+  });
+
+  it("reports a response it cannot make sense of instead of looking limit-free", async () => {
+    const request = vi.fn(async () => ({ status_code: 200, body: "not json" }));
+    await expect(probeAccountQuota(request as never, "management-key", account())).rejects.toThrow(/no usable quota/u);
   });
 
   it("falls through to the next host when one refuses, and reports a total failure", async () => {

@@ -178,19 +178,29 @@ export async function probeAccountQuota(
     }
     const parsed = probe.parse(readBody(response));
     if (parsed) return parsed;
+    // Answered, but with nothing this code understands — worth saying so rather
+    // than leaving a card that merely looks like it has no limits.
+    lastError = new Error("The provider returned no usable quota");
   }
   if (lastError) throw lastError;
   return undefined;
 }
 
+/**
+ * The gateway hands the provider's response back as a JSON **string** in `body`
+ * — it does not decode it, and it sends no `bodyText`. Reading only a decoded
+ * object left every probe silently empty.
+ */
 function readBody(response: ApiCallResponse): JsonRecord | undefined {
-  if (record(response.body)) return record(response.body);
-  if (typeof response.bodyText === "string") {
-    try {
-      return record(JSON.parse(response.bodyText));
-    } catch {
-      return undefined;
-    }
+  const decoded = record(response.body);
+  if (decoded) return decoded;
+  const text = typeof response.body === "string" ? response.body
+    : typeof response.bodyText === "string" ? response.bodyText
+      : undefined;
+  if (!text) return undefined;
+  try {
+    return record(JSON.parse(text));
+  } catch {
+    return undefined;
   }
-  return undefined;
 }
