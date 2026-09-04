@@ -43,7 +43,14 @@ export interface ManagedModelsApi {
     apiKey: string;
     api: string;
     displayName: string;
-    models: Array<{ id: string; name?: string; api?: string; reasoning?: boolean }>;
+    models: Array<{
+      id: string;
+      name?: string;
+      api?: string;
+      reasoning?: boolean;
+      contextWindow?: number;
+      maxTokens?: number;
+    }>;
   }): Promise<void>;
   removeProvider(providerId: string): Promise<void>;
 }

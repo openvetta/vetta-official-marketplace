@@ -7,6 +7,10 @@ export function fixture() {
   let baseUrl = "http://127.0.0.1:12345";
   const handle = vi.fn(async (request: { path: string; method?: string }): Promise<unknown> => {
     if (request.path === "/v1/models") return { data: [{ id: "gemini-test", owned_by: "google" }] };
+    if (request.path === "/v0/management/model-definitions/gemini") {
+      return { channel: "gemini", models: [{ id: "gemini-test", owned_by: "google", context_length: 1048576, max_completion_tokens: 65536, thinking: { levels: ["low", "high"] } }] };
+    }
+    if (request.path.startsWith("/v0/management/model-definitions/")) return { channel: "other", error: "unknown channel" };
     if (request.path === "/v0/management/auth-files") return { files: [] };
     if (request.path.includes("auth-url")) return { status: "ok", url: "https://accounts.example.com/oauth", state: "state-1", user_code: "ABCD-EFGH" };
     if (request.method === "DELETE") return { status: "ok", cancelled: true };

@@ -1,4 +1,4 @@
-import { API_CREDENTIAL, SERVICE_ID, createProxyClient } from "./proxy-client";
+import { SERVICE_ID, createProxyClient } from "./proxy-client";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 
 /** Keep the discovered provider endpoint current even when the detail slot is not mounted. */
@@ -16,9 +16,9 @@ export function maintainModelConnection(context: ManagedPluginContext) {
     if (phase !== "ready") return;
     pending = pending.then(async () => {
       if (!active || current !== generation) return;
-      const payload = await client.serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL });
+      const models = await client.loadModels();
       if (!active || current !== generation) return;
-      await client.publishModels(client.readModels(payload), () => active && current === generation);
+      await client.publishModels(models, () => active && current === generation);
       lastError = undefined;
     }).catch((error: unknown) => { lastError = error; });
   };

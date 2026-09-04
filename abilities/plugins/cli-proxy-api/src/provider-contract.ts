@@ -35,3 +35,16 @@ export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup 
   if (["codex", "openai"].includes(source)) return "responses";
   return "completions";
 }
+
+/**
+ * Channels accepted by `/v0/management/model-definitions/:channel`.
+ *
+ * The route is keyed by upstream **channel**, not by the `owned_by` value that
+ * `/v1/models` reports, and the runtime answers `{"error":"unknown channel"}`
+ * for anything else — `gemini-cli`, `google`, `openai` and `anthropic` are all
+ * rejected even though they appear as owners. Kept in channel order so catalog
+ * merging stays deterministic.
+ */
+export const MODEL_DEFINITION_CHANNELS = [
+  "antigravity", "aistudio", "claude", "codex", "gemini", "kimi", "vertex", "xai"
+] as const;

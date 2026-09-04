@@ -34,6 +34,34 @@ describe("CLIProxyAPI contracts", () => {
     ]);
     expect(f.context.services.connection).toHaveBeenCalledWith("proxy", "api-key");
   });
+  it("publishes the upstream context window instead of letting the host fall back to 128k", async () => {
+    const f = fixture();
+    const client = createProxyClient(f.context);
+    const models = await client.loadModels();
+    expect(models).toEqual([{ id: "gemini-test", ownedBy: "google", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]);
+    await client.publishModels(models);
+    expect(f.upsertProvider).toHaveBeenCalledWith("google", expect.objectContaining({
+      models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]
+    }));
+  });
+  it("omits figures the catalog does not state and survives channels the runtime rejects", async () => {
+    const f = fixture();
+    f.handle.mockImplementation(async (request: { path: string }) => {
+      if (request.path === "/v1/models") return { data: [{ id: "mystery", owned_by: "kimi" }] };
+      if (request.path === "/v0/management/model-definitions/kimi") {
+        // context_length 0 is upstream's "unknown"; publishing it would fail host validation.
+        return { models: [{ id: "mystery", owned_by: "kimi", context_length: 0 }] };
+      }
+      throw new Error("unknown channel");
+    });
+    const client = createProxyClient(f.context);
+    const models = await client.loadModels();
+    expect(models).toEqual([{ id: "mystery", ownedBy: "kimi" }]);
+    await client.publishModels(models);
+    expect(f.upsertProvider).toHaveBeenCalledWith("anthropic", expect.objectContaining({
+      models: [{ id: "mystery", api: "anthropic-messages" }]
+    }));
+  });
   it("keeps account identity and removal capability without exposing upstream paths", () => {
     const client = createProxyClient(fixture().context);
     expect(client.readAccounts({ files: [

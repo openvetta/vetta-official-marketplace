@@ -1,11 +1,22 @@
-import { protocolGroupFor, type ProtocolGroup } from "./provider-contract";
+import { MODEL_DEFINITION_CHANNELS, protocolGroupFor, type ProtocolGroup } from "./provider-contract";
 import type { ManagedPluginContext } from "./runtime-contract";
 
 export const SERVICE_ID = "proxy";
 export const MANAGER_CREDENTIAL = "management-key";
 export const API_CREDENTIAL = "api-key";
 export type JsonRecord = Record<string, unknown>;
-export type ProxyModel = { id: string; ownedBy: string };
+
+/**
+ * The capability fields Vetta stores per model. Everything here is optional
+ * because the upstream catalog leaves it out for models it has no figures for,
+ * and guessing is worse than the host default: a wrong context window makes the
+ * agent compact too early or overflow the upstream request.
+ */
+export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
+export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
+
+/** Resolves a model advertised by `/v1/models` to its upstream capabilities. */
+export type ModelCatalog = { lookup(id: string, ownedBy: string): ModelMetadata | undefined; size: number };
 export type ProxyAccount = {
   key: string;
   provider: string;
@@ -25,6 +36,23 @@ export function textField(value: JsonRecord | undefined, ...keys: string[]): str
     if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
   }
   return undefined;
+}
+
+/** Upstream sends `0` for "unknown"; a zero context window would fail host validation. */
+export function positiveInteger(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+}
+
+/** Reads one `/v0/management/model-definitions` entry. Absent figures stay absent. */
+function readModelMetadata(entry: JsonRecord): ModelMetadata {
+  const contextWindow = positiveInteger(entry.context_length);
+  const maxTokens = positiveInteger(entry.max_completion_tokens);
+  return {
+    ...(contextWindow === undefined ? {} : { contextWindow }),
+    ...(maxTokens === undefined ? {} : { maxTokens }),
+    // A `thinking` block is upstream's own statement that the model reasons.
+    ...(record(entry.thinking) ? { reasoning: true } : {})
+  };
 }
 
 export function safeExternalUrl(value: string): string {
@@ -54,7 +82,59 @@ async function serviceRequest<T>(path: string, options: {
   return response.body;
 }
 
-function readModels(value: unknown): ProxyModel[] {
+/**
+ * Builds the capability catalog from `/v0/management/model-definitions`.
+ *
+ * `/v1/models` is an OpenAI-shaped list — it carries `id` and `owned_by` and
+ * nothing else — so publishing straight from it left every model without a
+ * context window and the host fell back to its 128k default, shrinking 1M-token
+ * models to an eighth of their real budget. The management route is the only
+ * place the runtime states the real figures.
+ *
+ * Channels are queried concurrently but merged in declaration order so the same
+ * gateway always yields the same catalog. A channel the runtime rejects, or one
+ * whose entry carries no figures at all, simply contributes nothing: several
+ * channels list the same model id and only some of them know its limits.
+ */
+async function fetchModelCatalog(): Promise<ModelCatalog> {
+  const perChannel = await Promise.all(MODEL_DEFINITION_CHANNELS.map(async (channel) => {
+    try {
+      const payload = await serviceRequest<unknown>(`/v0/management/model-definitions/${channel}`, {
+        credentialId: MANAGER_CREDENTIAL
+      });
+      const models = record(payload)?.models;
+      return { channel, models: Array.isArray(models) ? models : [] };
+    } catch {
+      // One unavailable channel must not cost the other seven their metadata.
+      return { channel, models: [] as unknown[] };
+    }
+  }));
+
+  // `owned_by` is what /v1/models reports back, so it is the key we can match on;
+  // the channel name is kept too because some owners (google) span three channels.
+  const qualified = new Map<string, ModelMetadata>();
+  const byId = new Map<string, ModelMetadata>();
+  for (const { channel, models } of perChannel) {
+    for (const item of models) {
+      const entry = record(item);
+      const id = textField(entry, "id");
+      if (!entry || !id) continue;
+      const metadata = readModelMetadata(entry);
+      if (Object.keys(metadata).length === 0) continue;
+      const owner = textField(entry, "owned_by", "ownedBy");
+      for (const key of owner ? [`${channel}/${id}`, `${owner}/${id}`] : [`${channel}/${id}`]) {
+        if (!qualified.has(key)) qualified.set(key, metadata);
+      }
+      if (!byId.has(id)) byId.set(id, metadata);
+    }
+  }
+  return {
+    size: byId.size,
+    lookup: (id, ownedBy) => qualified.get(`${ownedBy.trim().toLowerCase()}/${id}`) ?? byId.get(id)
+  };
+}
+
+function readModels(value: unknown, catalog?: ModelCatalog): ProxyModel[] {
   const data = record(value)?.data;
   if (!Array.isArray(data)) throw new Error("Invalid model catalog response");
   const seen = new Set<string>();
@@ -64,7 +144,8 @@ function readModels(value: unknown): ProxyModel[] {
     const id = textField(entry, "id");
     if (!id || seen.has(id)) continue;
     seen.add(id);
-    models.push({ id, ownedBy: textField(entry, "owned_by", "ownedBy") ?? "" });
+    const ownedBy = textField(entry, "owned_by", "ownedBy") ?? "";
+    models.push({ id, ownedBy, ...catalog?.lookup(id, ownedBy) });
   }
   return models.sort((left, right) => left.id.localeCompare(right.id));
 }
@@ -121,11 +202,25 @@ async function publishModels(models: ProxyModel[], isCurrent = () => true): Prom
       apiKey: connection.credential,
       api: config.api,
       displayName: config.title,
-      models: definitions.map((model) => ({ id: model.id, api: config.api }))
+      models: definitions.map((model) => ({
+        id: model.id,
+        api: config.api,
+        ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
+        ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
+        ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
+      }))
     });
   }
 }
 
+/** Reads the model list already enriched with upstream capabilities. */
+async function loadModels(): Promise<ProxyModel[]> {
+  const [payload, catalog] = await Promise.all([
+    serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL }),
+    fetchModelCatalog()
+  ]);
+  return readModels(payload, catalog);
+}
 
-return { serviceRequest, readModels, readAccounts, publishModels };
+return { serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels };
 }

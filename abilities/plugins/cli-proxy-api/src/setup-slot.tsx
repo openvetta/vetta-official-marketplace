@@ -6,7 +6,7 @@ import { ensureServiceStarted } from "./runtime-provisioner";
 import { toDisplayErrorMessage } from "./error-message";
 import { ProviderIcon } from "./provider-icon";
 
-import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyAccount, type ProxyModel } from "./proxy-client";
+import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyAccount, type ProxyModel } from "./proxy-client";
 
 type OAuthFlow = {
   provider: OAuthProviderId;
@@ -72,7 +72,7 @@ function ActionIcon({ name }: { name: "sync" | "restart" | "open" | "remove" }):
 
 export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPluginContext }): ReactElement {
   const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
-  const { serviceRequest, readModels, readAccounts, publishModels } = client;
+  const { serviceRequest, loadModels, readAccounts, publishModels } = client;
   const { t } = useTranslation();
   const [status, setStatus] = useState<ServiceStatus>({
     serviceId: SERVICE_ID,
@@ -105,11 +105,10 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       console.info("[cli-proxy-api] Model sync started.");
     }
     try {
-      const [modelPayload, accountPayload] = await Promise.all([
-        serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL }),
+      const [nextModels, accountPayload] = await Promise.all([
+        loadModels(),
         serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL })
       ]);
-      const nextModels = readModels(modelPayload);
       setModels(nextModels);
       setAccounts(readAccounts(accountPayload));
       if (publish) {
@@ -129,7 +128,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
       setRefreshing(false);
       if (publish) setSyncing(false);
     }
-  }, [publishModels, readAccounts, readModels, serviceRequest, t]);
+  }, [loadModels, publishModels, readAccounts, serviceRequest, t]);
 
   const startOAuth = useCallback(async (provider: OAuthProviderDefinition): Promise<void> => {
     if (startingRef.current || flowRef.current?.phase === "waiting") return;
