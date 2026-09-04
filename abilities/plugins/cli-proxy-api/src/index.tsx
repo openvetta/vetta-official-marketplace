@@ -24,7 +24,13 @@ export default definePlugin({
       label: "%console.title%",
       // No iconify class: the host only generates CSS for classes it can see in its
       // own sources, so a plugin-declared one renders as an empty box. Omitting it
-      // makes the host mask this plugin's packaged icon with the theme foreground.
+      // falls back to this plugin's packaged icon from plugin.json.
+      //
+      // That icon is a full-bleed logo with no transparency, and the host's default
+      // is to mask artwork with the theme foreground — which turns every opaque
+      // pixel into one solid block. Opting out of the tint renders it as a plain
+      // image instead, in its own colors.
+      iconTint: false,
       description: "%console.subtitle%",
       component: () => createElement(ProxyWorkspaceView, { context })
     });
