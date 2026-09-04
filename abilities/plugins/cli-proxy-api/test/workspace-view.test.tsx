@@ -317,6 +317,42 @@ describe("CLIProxyAPI console", () => {
     expect((within(first).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
   });
 
+
+  it("shows the provider's limits and its error sentence, not the raw envelope", async () => {
+    const f = fixture();
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [{
+          auth_index: "cx-1", name: "codex.json", provider: "codex", email: "user@example.com",
+          disabled: false, unavailable: true, success: 0, failed: 1,
+          status_message: JSON.stringify({ error: { type: "usage_limit_reached", message: "The usage limit has been reached" } }),
+          id_token: { plan_type: "plus" },
+          quota: { signals: {
+            "X-Codex-Plan-Type": "plus",
+            "X-Codex-Primary-Used-Percent": "100",
+            "X-Codex-Primary-Window-Minutes": "300",
+            "X-Codex-Secondary-Used-Percent": "32",
+            "X-Codex-Secondary-Window-Minutes": "10080"
+          } }
+        }] };
+      }
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+
+    expect(within(card).getByText("console.plan")).toBeTruthy();
+    // Remaining, not used: 100% consumed is 0% left.
+    expect(within(card).getAllByText("console.remaining")).toHaveLength(2);
+    expect(within(card).getByText("console.windowHours:5")).toBeTruthy();
+    expect(within(card).getByText("console.windowWeekly")).toBeTruthy();
+    // The JSON envelope stays out of the card.
+    expect(within(card).getByText("The usage limit has been reached")).toBeTruthy();
+    expect(within(card).queryByText(/usage_limit_reached/u)).toBeNull();
+  });
+
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();
     const { unmount } = render(<ProxyWorkspaceView context={f.context} />);

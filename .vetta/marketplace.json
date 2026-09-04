@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.04-10",
+  "marketplaceVersion": "2026.09.04-11",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -34,7 +34,7 @@
       "slug": "cli-proxy-api",
       "name": "CLIProxyAPI",
       "description": "Run a managed local gateway for Gemini CLI, Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
-      "version": "1.4.1",
+      "version": "1.5.0",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta / Router For Me",

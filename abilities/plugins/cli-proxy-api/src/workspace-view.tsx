@@ -9,7 +9,7 @@ import { ActionIcon, Button, Checkbox, ProviderTag, Spin, Toggle } from "./ui-ki
 import { Dialog } from "./dialog";
 import { providerForAccount, useProxyConsole } from "./use-proxy-console";
 import { readModelSelection, writeModelSelection } from "./model-selection";
-import { SERVICE_ID, createProxyClient, type ChannelModel, type ProxyAccount, type UsageBucket } from "./proxy-client";
+import { SERVICE_ID, createProxyClient, type ChannelModel, type ProxyAccount, type QuotaWindow, type UsageBucket } from "./proxy-client";
 
 export const WORKSPACE_VIEW_ID = "console";
 
@@ -46,6 +46,12 @@ function formatBytes(value: number | undefined): string | undefined {
   if (value >= 1_048_576) return `${(value / 1_048_576).toFixed(2)} MB`;
   if (value >= 1024) return `${(value / 1024).toFixed(2)} KB`;
   return `${value} B`;
+}
+
+function formatDay(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toLocaleDateString();
 }
 
 function formatMoment(value: string | undefined): string | undefined {
@@ -189,6 +195,109 @@ function ReloadNotice({ syncedModelCount }: { syncedModelCount: number | null })
   );
 }
 
+/** Providers park a credential with a JSON error body; only the sentence is useful. */
+function readableStatus(message: string | undefined): string | undefined {
+  if (!message) return undefined;
+  const trimmed = message.trim();
+  if (!trimmed.startsWith("{")) return trimmed;
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    const error = parsed && typeof parsed === "object" ? (parsed as { error?: unknown }).error : undefined;
+    const text = error && typeof error === "object" ? (error as { message?: unknown }).message : undefined;
+    return typeof text === "string" && text.trim() ? text.trim() : undefined;
+  } catch {
+    return trimmed;
+  }
+}
+
+/** Names a limit window by its span, because that is how providers describe them. */
+function useWindowLabel(): (minutes: number | undefined) => string {
+  const { t } = useTranslation();
+  return (minutes) => {
+    if (minutes === undefined) return t("console.windowUnknown");
+    if (minutes === 10080) return t("console.windowWeekly");
+    if (minutes === 1440) return t("console.windowDaily");
+    if (minutes % 60 === 0) return t("console.windowHours", { count: minutes / 60 });
+    return t("console.windowMinutes", { count: minutes });
+  };
+}
+
+/** "3 小时后" reads better than a timestamp for something that resets on a clock. */
+function useCountdown(): (window: QuotaWindow) => string | undefined {
+  const { t } = useTranslation();
+  return (window) => {
+    const seconds = window.resetInSeconds ?? (window.resetAt
+      ? Math.round((new Date(window.resetAt).getTime() - Date.now()) / 1000)
+      : undefined);
+    if (seconds === undefined || !Number.isFinite(seconds)) return undefined;
+    if (seconds <= 0) return t("console.resetNow");
+    if (seconds >= 86_400) return t("console.resetInDays", { count: Math.round(seconds / 86_400) });
+    if (seconds >= 3600) return t("console.resetInHours", { count: Math.round(seconds / 3600) });
+    return t("console.resetInMinutes", { count: Math.max(1, Math.round(seconds / 60)) });
+  };
+}
+
+/**
+ * The provider's own limits for one credential.
+ *
+ * Rendered from whatever limit headers the gateway last observed — nothing is
+ * inferred. A provider that has not answered with them yet simply has no panel,
+ * which is honest about the difference between "plenty left" and "not known".
+ */
+function QuotaPanel({ account }: { account: ProxyAccount }): ReactElement | null {
+  const { t } = useTranslation();
+  const label = useWindowLabel();
+  const countdown = useCountdown();
+  const quota = account.quota;
+  if (!quota) return null;
+  const renewal = formatDay(quota.subscriptionUntil);
+  const retry = quota.nextRetryAfter ? formatMoment(quota.nextRetryAfter) : undefined;
+
+  return (
+    <div className="mx-3.5 mb-3 rounded-lg border border-border/40 bg-background/30 px-3 py-2.5">
+      {quota.plan || renewal || quota.credits ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          {quota.plan ? (
+            <span className="rounded bg-muted/60 px-1.5 py-0.5 font-medium uppercase tracking-wide text-foreground">
+              {t("console.plan", { plan: quota.plan })}
+            </span>
+          ) : null}
+          {renewal ? <span className="tabular-nums text-muted-foreground">{t("console.renewsOn", { date: renewal })}</span> : null}
+          {quota.credits ? (
+            <span className="tabular-nums text-muted-foreground">
+              {quota.credits.unlimited ? t("console.creditsUnlimited") : t("console.credits", { count: quota.credits.balance ?? 0 })}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {quota.windows.map((window, index) => {
+        const left = Math.round(window.remainingPercent);
+        const tone = left >= 50 ? "bg-emerald-500/80" : left >= 20 ? "bg-amber-500/80" : "bg-destructive/80";
+        const due = countdown(window);
+        return (
+          <div key={index} className="mt-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-[11px]">
+              <span className="text-muted-foreground">{label(window.windowMinutes)}</span>
+              <span className="flex items-baseline gap-2 tabular-nums">
+                <span className={left >= 50 ? "text-emerald-400" : left >= 20 ? "text-amber-400" : "text-destructive"}>
+                  {t("console.remaining", { percent: left })}
+                </span>
+                {due ? <span className="text-muted-foreground">{due}</span> : null}
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted-foreground/15">
+              <div className={`h-full rounded-full ${tone}`} style={{ width: `${left}%` }} />
+            </div>
+          </div>
+        );
+      })}
+
+      {retry ? <p className="mt-2 text-[11px] tabular-nums text-amber-400">{t("console.retryAfter", { time: retry })}</p> : null}
+    </div>
+  );
+}
+
 /** One credential, laid out as the CLIProxyAPI panel lays it out. */
 function AccountCard({
   account, provider, pending, confirming, removing, disabled,
@@ -210,6 +319,7 @@ function AccountCard({
   const { t } = useTranslation();
   const rate = successRate(account.success, account.failed);
   const meta = [formatBytes(account.size), formatMoment(account.modifiedAt ?? account.lastRefresh)].filter(Boolean).join(" · ");
+  const status = account.statusMessage && account.statusMessage !== "ok" ? readableStatus(account.statusMessage) : undefined;
   const stateTone = account.disabled
     ? "bg-muted/70 text-muted-foreground"
     : account.active ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400";
@@ -250,10 +360,10 @@ function AccountCard({
           <p className="min-w-0 truncate text-[11px] tabular-nums text-muted-foreground">{meta}</p>
           <span className="shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground">{rate === null ? "—" : `${rate}%`}</span>
         </div>
-        {account.statusMessage && account.statusMessage !== "ok" ? (
-          <p className="mt-1 truncate text-[11px] text-amber-400" title={account.statusMessage}>{account.statusMessage}</p>
-        ) : null}
+        {status ? <p className="mt-1 truncate text-[11px] text-amber-400" title={status}>{status}</p> : null}
       </div>
+
+      <QuotaPanel account={account} />
 
       <footer className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/40 px-3.5 py-2.5">
         {confirming ? (
@@ -732,7 +842,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
             <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">{t("console.noAccountsHint")}</p>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
             {accounts.map((account) => (
               <AccountCard
                 key={account.key}

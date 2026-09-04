@@ -103,5 +103,20 @@
   "console.applyAndReload": "应用并重载",
   "console.applyConfirmTitle": "应用并重载应用？",
   "console.applyConfirmBody": "Vetta 将只保留所选的 {{count}} 个模型，覆盖本网关当前已同步的内容；随后重载应用，模型选择器才会读到它们。进行中的工作不会丢失。",
-  "console.applyFailed": "应用模型选择失败：{{details}}"
+  "console.applyFailed": "应用模型选择失败：{{details}}",
+  "console.plan": "套餐 {{plan}}",
+  "console.renewsOn": "续期 {{date}}",
+  "console.credits": "余额 {{count}}",
+  "console.creditsUnlimited": "额度不限",
+  "console.remaining": "剩余 {{percent}}%",
+  "console.windowWeekly": "周限额",
+  "console.windowDaily": "日限额",
+  "console.windowHours": "{{count}} 小时限额",
+  "console.windowMinutes": "{{count}} 分钟限额",
+  "console.windowUnknown": "用量限额",
+  "console.resetNow": "即将刷新",
+  "console.resetInDays": "{{count}} 天后刷新",
+  "console.resetInHours": "{{count}} 小时后刷新",
+  "console.resetInMinutes": "{{count}} 分钟后刷新",
+  "console.retryAfter": "已被服务商限流，{{time}} 后重试。"
 }

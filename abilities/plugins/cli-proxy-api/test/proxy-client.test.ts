@@ -66,6 +66,48 @@ describe("CLIProxyAPI contracts", () => {
       models: [{ id: "mystery", api: "anthropic-messages" }]
     }));
   });
+  it("reads the provider's limit headers as remaining budget, ignoring what it cannot parse", () => {
+    const client = createProxyClient(fixture().context);
+    const [account] = client.readAccounts({ files: [{
+      auth_index: "codex-1",
+      name: "codex.json",
+      provider: "codex",
+      email: "user@example.com",
+      next_retry_after: "2026-09-04T18:13:10+08:00",
+      id_token: { plan_type: "plus", chatgpt_subscription_active_until: "2026-09-19T03:00:53+00:00" },
+      quota: { observed_at: "2026-09-04T14:47:24+08:00", signals: {
+        "X-Codex-Plan-Type": "plus",
+        "X-Codex-Primary-Used-Percent": "100",
+        "X-Codex-Primary-Window-Minutes": "300",
+        "X-Codex-Primary-Reset-After-Seconds": "12347",
+        "X-Codex-Secondary-Used-Percent": "32",
+        "X-Codex-Secondary-Window-Minutes": "10080",
+        "X-Codex-Credits-Balance": "0",
+        "X-Codex-Credits-Unlimited": "False",
+        "X-Codex-Active-Limit": "premium"
+      } }
+    }] });
+
+    // Upstream states what is used; a budget reads as what is left.
+    expect(account?.quota).toMatchObject({
+      plan: "plus",
+      subscriptionUntil: "2026-09-19T03:00:53+00:00",
+      nextRetryAfter: "2026-09-04T18:13:10+08:00",
+      credits: { unlimited: false, balance: 0 },
+      windows: [
+        { windowMinutes: 300, remainingPercent: 0, resetInSeconds: 12347 },
+        { windowMinutes: 10080, remainingPercent: 68 }
+      ]
+    });
+  });
+  it("reports no quota at all rather than an empty one when the provider never answered", () => {
+    const client = createProxyClient(fixture().context);
+    // Antigravity credentials carry only tokens until a request observes limits.
+    const [account] = client.readAccounts({ files: [
+      { auth_index: "ag-1", name: "ag.json", provider: "antigravity", quota: { signals: {} } }
+    ] });
+    expect(account?.quota).toBeUndefined();
+  });
   it("keeps account identity and removal capability without exposing upstream paths", () => {
     const client = createProxyClient(fixture().context);
     expect(client.readAccounts({ files: [

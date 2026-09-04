@@ -30,6 +30,31 @@ export type ModelCatalog = {
 /** A ten-minute request bucket as reported by `/v0/management/auth-files`. */
 export type UsageBucket = { time: string; success: number; failed: number };
 
+/**
+ * One rate-limit window the provider reports, normalised.
+ *
+ * Upstream states how much has been *used*; every panel that shows this reads
+ * better as what is left, so the inversion happens once, here.
+ */
+export type QuotaWindow = {
+  /** Span in minutes: 300 is a five-hour limit, 10080 a weekly one. */
+  windowMinutes?: number;
+  remainingPercent: number;
+  resetAt?: string;
+  resetInSeconds?: number;
+};
+
+/** What the gateway knows about a credential's subscription and its limits. */
+export type AccountQuota = {
+  plan?: string;
+  observedAt?: string;
+  subscriptionUntil?: string;
+  /** When a credential parked by a limit is due to be tried again. */
+  nextRetryAfter?: string;
+  credits?: { balance?: number; unlimited: boolean };
+  windows: QuotaWindow[];
+};
+
 export type ProxyAccount = {
   key: string;
   provider: string;
@@ -52,6 +77,8 @@ export type ProxyAccount = {
   success: number;
   failed: number;
   recentRequests: UsageBucket[];
+  /** Absent until the provider has answered at least once with limit headers. */
+  quota?: AccountQuota;
 };
 
 export function record(value: unknown): JsonRecord | undefined {
@@ -81,6 +108,59 @@ function readUsageBuckets(value: unknown): UsageBucket[] {
     buckets.push({ time, success: counter(entry?.success), failed: counter(entry?.failed) });
   }
   return buckets;
+}
+
+
+/** Providers report limits as headers; the names carry the structure. */
+function readQuota(entry: JsonRecord): AccountQuota | undefined {
+  const quota = record(entry.quota);
+  const signals = record(quota?.signals) ?? {};
+  const idToken = record(entry.id_token);
+
+  // `<family>-Used-Percent` anchors a window; its siblings describe the same one.
+  const windows: QuotaWindow[] = [];
+  for (const [key, raw] of Object.entries(signals)) {
+    const match = /^(.*)-used-percent$/iu.exec(key);
+    if (!match || typeof raw !== "string") continue;
+    const used = Number.parseFloat(raw);
+    if (!Number.isFinite(used)) continue;
+    const family = match[1];
+    const sibling = (suffix: string): number | undefined => {
+      const value = signals[`${family}-${suffix}`];
+      const parsed = typeof value === "string" ? Number.parseFloat(value) : Number.NaN;
+      return Number.isFinite(parsed) ? parsed : undefined;
+    };
+    const resetAt = sibling("Reset-At");
+    const resetInSeconds = sibling("Reset-After-Seconds");
+    const windowMinutes = sibling("Window-Minutes");
+    windows.push({
+      remainingPercent: Math.max(0, Math.min(100, 100 - used)),
+      ...(windowMinutes === undefined ? {} : { windowMinutes }),
+      ...(resetAt === undefined ? {} : { resetAt: new Date(resetAt * 1000).toISOString() }),
+      ...(resetInSeconds === undefined ? {} : { resetInSeconds })
+    });
+  }
+  windows.sort((left, right) => (left.windowMinutes ?? Infinity) - (right.windowMinutes ?? Infinity));
+
+  const planSignal = Object.entries(signals).find(([key]) => /-plan-type$/iu.test(key))?.[1];
+  const plan = (typeof planSignal === "string" ? planSignal : undefined) ?? textField(idToken, "plan_type");
+  const unlimited = Object.entries(signals).find(([key]) => /-credits-unlimited$/iu.test(key))?.[1] === "True";
+  const balanceRaw = Object.entries(signals).find(([key]) => /-credits-balance$/iu.test(key))?.[1];
+  const balance = typeof balanceRaw === "string" ? Number.parseFloat(balanceRaw) : Number.NaN;
+  const hasCredits = unlimited || Number.isFinite(balance);
+
+  const observedAt = textField(quota, "observed_at");
+  const subscriptionUntil = textField(idToken, "chatgpt_subscription_active_until");
+  const nextRetryAfter = textField(entry, "next_retry_after");
+  if (windows.length === 0 && !plan && !subscriptionUntil && !nextRetryAfter && !hasCredits) return undefined;
+  return {
+    windows,
+    ...(plan ? { plan } : {}),
+    ...(observedAt ? { observedAt } : {}),
+    ...(subscriptionUntil ? { subscriptionUntil } : {}),
+    ...(nextRetryAfter ? { nextRetryAfter } : {}),
+    ...(hasCredits ? { credits: { unlimited, ...(Number.isFinite(balance) ? { balance } : {}) } } : {})
+  };
 }
 
 /** Upstream sends `0` for "unknown"; a zero context window would fail host validation. */
@@ -222,6 +302,7 @@ function readAccounts(value: unknown): ProxyAccount[] {
     const statusMessage = textField(entry, "status_message");
     const email = textField(entry, "email");
     const lastRefresh = textField(entry, "last_refresh", "updated_at");
+    const quota = readQuota(entry);
     accounts.push({
       key: `${stableId}:${index}`,
       provider,
@@ -239,7 +320,8 @@ function readAccounts(value: unknown): ProxyAccount[] {
       ...(lastRefresh ? { lastRefresh } : {}),
       success: counter(entry.success),
       failed: counter(entry.failed),
-      recentRequests: readUsageBuckets(entry.recent_requests)
+      recentRequests: readUsageBuckets(entry.recent_requests),
+      ...(quota ? { quota } : {})
     });
   }
   return accounts.sort((left, right) => left.provider.localeCompare(right.provider) || left.displayName.localeCompare(right.displayName));
