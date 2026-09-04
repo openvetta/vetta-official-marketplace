@@ -36,11 +36,18 @@ export type ProxyAccount = {
   deleteName?: string;
   active: boolean;
   removable: boolean;
+  /** Distinct from `active`: only a disabled credential can be switched back on. */
+  disabled: boolean;
   /** Upstream health, absent on gateways that report no counters for the credential. */
   status?: string;
   statusMessage?: string;
   email?: string;
   lastRefresh?: string;
+  /** Stable runtime id; quota resets address the credential by this, not by name. */
+  authIndex?: string;
+  /** Stored credential file size in bytes, as the gateway reports it. */
+  size?: number;
+  modifiedAt?: string;
   success: number;
   failed: number;
   recentRequests: UsageBucket[];
@@ -209,6 +216,7 @@ function readAccounts(value: unknown): ProxyAccount[] {
     const stableId = textField(entry, "auth_index", "id", "name") ?? provider;
     const displayName = textField(entry, "email", "label", "account", "id", "name") ?? provider;
     const runtimeOnly = entry.runtime_only === true || textField(entry, "source") === "memory";
+    const authIndex = textField(entry, "auth_index");
     const status = textField(entry, "status");
     const statusMessage = textField(entry, "status_message");
     const email = textField(entry, "email");
@@ -219,7 +227,11 @@ function readAccounts(value: unknown): ProxyAccount[] {
       displayName,
       ...(deleteName ? { deleteName } : {}),
       active: entry.disabled !== true && entry.unavailable !== true,
+      disabled: entry.disabled === true,
       removable: !runtimeOnly && Boolean(deleteName),
+      ...(authIndex ? { authIndex } : {}),
+      ...(positiveInteger(entry.size) === undefined ? {} : { size: entry.size as number }),
+      ...(textField(entry, "modtime", "updated_at") ? { modifiedAt: textField(entry, "modtime", "updated_at") } : {}),
       ...(status ? { status } : {}),
       ...(statusMessage ? { statusMessage } : {}),
       ...(email ? { email } : {}),
@@ -284,5 +296,59 @@ async function loadModels(): Promise<{ models: ProxyModel[]; catalog: ModelCatal
   return { models: readModels(payload, catalog), catalog };
 }
 
-return { serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels };
+/** Switches one credential in or out of the routing pool. */
+async function setAccountDisabled(account: ProxyAccount, disabled: boolean): Promise<void> {
+  const name = account.deleteName ?? account.authIndex;
+  if (!name) throw new Error("This credential cannot be switched from here");
+  await serviceRequest("/v0/management/auth-files/status", {
+    method: "PATCH",
+    credentialId: MANAGER_CREDENTIAL,
+    body: { name, disabled }
+  });
+}
+
+/** Clears the quota and cooldown state that parks a credential after a rejection. */
+async function resetAccountQuota(account: ProxyAccount): Promise<void> {
+  if (!account.authIndex) throw new Error("This credential has no runtime index to reset");
+  await serviceRequest("/v0/management/reset-quota", {
+    method: "POST",
+    credentialId: MANAGER_CREDENTIAL,
+    body: { auth_index: account.authIndex }
+  });
+}
+
+/**
+ * The models one credential can actually serve.
+ *
+ * The channel catalog describes what a provider offers in general; this route
+ * answers for the account in hand, which is what the card's model dialog claims
+ * to show. Limits are filled in from the catalog because this route omits them.
+ */
+async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog): Promise<ChannelModel[]> {
+  const name = account.deleteName ?? account.authIndex;
+  if (!name) return [];
+  const payload = await serviceRequest<unknown>(
+    `/v0/management/auth-files/models?name=${encodeURIComponent(name)}`,
+    { credentialId: MANAGER_CREDENTIAL }
+  );
+  const data = record(payload)?.models;
+  if (!Array.isArray(data)) return [];
+  const models: ChannelModel[] = [];
+  const seen = new Set<string>();
+  for (const item of data) {
+    const entry = record(item);
+    const id = textField(entry, "id");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const displayName = textField(entry, "display_name", "name");
+    const owner = textField(entry, "owned_by", "ownedBy") ?? account.provider;
+    models.push({ id, ...(displayName ? { displayName } : {}), ...catalog?.lookup(id, owner) });
+  }
+  return models.sort((left, right) => left.id.localeCompare(right.id));
+}
+
+return {
+  serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels,
+  setAccountDisabled, resetAccountQuota, fetchAccountModels
+};
 }

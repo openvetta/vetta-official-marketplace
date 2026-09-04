@@ -37,8 +37,8 @@
         },
         {
           "icon": "solar:chart-square-bold",
-          "title": "A page for day-to-day use",
-          "description": "Authorize channels, inspect the models each one advertises with their real context windows, and read per-channel request health without opening the ability page."
+          "title": "Health at a glance",
+          "description": "Each credential card carries its own request history, so a failing account is visible before it becomes a failing conversation. Its model list opens on demand rather than crowding the page."
         }
       ]
     },
@@ -58,8 +58,8 @@
           "description": "Fetch the live /v1/models catalog and publish each protocol group into the plugin-owned Vetta model namespace."
         },
         {
-          "title": "Watch the gateway from its own page",
-          "description": "The Model gateway page in the sidebar shows every channel side by side: the accounts on it, the models it can route, and how many recent requests succeeded or failed."
+          "title": "Run it from the CPA setup page",
+          "description": "The CPA setup page in the sidebar lays every credential out as a card: its recent success and failure counts, a per-window health strip, and switches to disable, clear quota state or remove it."
         }
       ]
     },

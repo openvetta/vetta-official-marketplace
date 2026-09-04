@@ -1,30 +1,19 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
-import { useEffect, useMemo, useState, type ReactElement } from "react";
-import { MODEL_CHANNEL_BY_PROVIDER, OAUTH_PROVIDERS, type OAuthProviderId } from "./provider-contract";
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from "react";
+import { OAUTH_PROVIDERS, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
 import { toDisplayErrorMessage } from "./error-message";
 import { ProviderIcon } from "./provider-icon";
-import { ActionIcon, Button, Spin } from "./ui-kit";
-import { useProxyConsole } from "./use-proxy-console";
-import { SERVICE_ID, type ChannelModel, type ProxyAccount, type ProxyModel, type UsageBucket } from "./proxy-client";
+import { ActionIcon, Button, ProviderTag, Spin, Toggle } from "./ui-kit";
+import { Dialog } from "./dialog";
+import { providerForAccount, useProxyConsole } from "./use-proxy-console";
+import { SERVICE_ID, createProxyClient, type ChannelModel, type ProxyAccount, type UsageBucket } from "./proxy-client";
 
 export const WORKSPACE_VIEW_ID = "console";
 
-/** One channel as the page renders it: its accounts, its health and what it can route. */
-type ChannelSummary = {
-  provider: OAuthProviderId;
-  deviceFlow: boolean;
-  accounts: ProxyAccount[];
-  activeCount: number;
-  success: number;
-  failed: number;
-  buckets: UsageBucket[];
-  /** Everything the channel advertises, whether or not a credential is connected. */
-  supported: ChannelModel[];
-  /** Ids currently routable through `/v1/models`. */
-  live: Set<string>;
-};
+/** Windows the gateway keeps per credential; a fixed axis keeps every strip aligned. */
+const HEALTH_WINDOWS = 20;
 
 function statusLabelKey(phase: ServiceStatus["phase"]): string {
   if (phase === "ready") return "setup.serviceReady";
@@ -33,24 +22,49 @@ function statusLabelKey(phase: ServiceStatus["phase"]): string {
   return "setup.serviceWorking";
 }
 
-/** 1048576 → "1M". Model limits are only ever read as an order of magnitude. */
-function formatTokens(value: number | undefined): string | undefined {
+/**
+ * Token limits, in the units their vendor quotes them in.
+ *
+ * Model context is published in both conventions — 200000 is "200K" and 65536
+ * is "64K" — so a single divisor always misreads one of them. Whichever base
+ * divides evenly is the one the number was written in.
+ */
+export function formatTokens(value: number | undefined): string | undefined {
   if (value === undefined) return undefined;
-  if (value >= 1_000_000) return `${Math.round((value / 1_048_576) * 10) / 10}M`;
-  if (value >= 1000) return `${Math.round(value / 1024)}K`;
+  if (value >= 1_000_000) {
+    return value % 1_048_576 === 0 ? `${value / 1_048_576}M` : `${Math.round((value / 1_000_000) * 100) / 100}M`;
+  }
+  if (value % 1000 === 0) return `${value / 1000}K`;
+  if (value % 1024 === 0) return `${value / 1024}K`;
+  if (value >= 1000) return `${Math.round((value / 1000) * 10) / 10}K`;
   return `${value}`;
 }
 
-/**
- * Sums the per-credential buckets of one channel position by position.
- *
- * Upstream hands every credential the same 20 ten-minute windows, so the bars
- * only line up if they are added by index rather than by label.
- */
+function formatBytes(value: number | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  if (value >= 1_048_576) return `${(value / 1_048_576).toFixed(2)} MB`;
+  if (value >= 1024) return `${(value / 1024).toFixed(2)} KB`;
+  return `${value} B`;
+}
+
+function formatMoment(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toLocaleString();
+}
+
+/** Pads to a fixed axis so a quiet credential still reads as a timeline, not a stub. */
+function paddedBuckets(buckets: UsageBucket[]): UsageBucket[] {
+  const tail = buckets.slice(-HEALTH_WINDOWS);
+  const padding = Array.from({ length: Math.max(0, HEALTH_WINDOWS - tail.length) }, () => ({ time: "", success: 0, failed: 0 }));
+  return [...padding, ...tail];
+}
+
+/** Adds credential timelines position by position; upstream aligns them by index. */
 function mergeBuckets(accounts: ProxyAccount[]): UsageBucket[] {
   const merged: UsageBucket[] = [];
   for (const account of accounts) {
-    account.recentRequests.forEach((bucket, index) => {
+    paddedBuckets(account.recentRequests).forEach((bucket, index) => {
       const current = merged[index];
       if (!current) {
         merged[index] = { ...bucket };
@@ -58,26 +72,41 @@ function mergeBuckets(accounts: ProxyAccount[]): UsageBucket[] {
       }
       current.success += bucket.success;
       current.failed += bucket.failed;
+      if (!current.time) current.time = bucket.time;
     });
   }
   return merged;
 }
 
-/** Request volume over the recent windows; red marks the windows that had failures. */
-function Sparkline({ buckets }: { buckets: UsageBucket[] }): ReactElement | null {
+function successRate(success: number, failed: number): number | null {
+  const total = success + failed;
+  return total === 0 ? null : Math.round((success / total) * 1000) / 10;
+}
+
+/**
+ * The per-credential health strip from the CLIProxyAPI panel: one cell per
+ * ten-minute window, coloured by what happened in it.
+ *
+ * Deliberately not scaled by volume — at this size a height ramp is noise. The
+ * question a card answers is "is this credential healthy right now", and that is
+ * a matter of which windows contain failures.
+ */
+function HealthStrip({ buckets }: { buckets: UsageBucket[] }): ReactElement {
   const { t } = useTranslation();
-  if (buckets.length === 0) return null;
-  const peak = Math.max(...buckets.map((bucket) => bucket.success + bucket.failed), 1);
   return (
-    <div className="flex h-8 items-end gap-px" role="img" aria-label={t("console.usageChart")}>
-      {buckets.map((bucket, index) => {
+    <div className="mt-2 flex items-center gap-[3px]" role="img" aria-label={t("console.usageChart")}>
+      {paddedBuckets(buckets).map((bucket, index) => {
         const total = bucket.success + bucket.failed;
+        const tone = total === 0
+          ? "bg-muted-foreground/15"
+          : bucket.failed === 0
+            ? "bg-emerald-500/80"
+            : bucket.success === 0 ? "bg-destructive/80" : "bg-amber-500/80";
         return (
           <span
-            key={`${bucket.time}:${index}`}
-            title={`${bucket.time} · ${bucket.success} / ${bucket.failed}`}
-            className={`w-1.5 rounded-sm ${total === 0 ? "bg-muted" : bucket.failed > 0 ? "bg-destructive/70" : "bg-emerald-500/70"}`}
-            style={{ height: `${total === 0 ? 8 : Math.max(12, (total / peak) * 100)}%` }}
+            key={index}
+            title={bucket.time ? `${bucket.time} · ${bucket.success} / ${bucket.failed}` : undefined}
+            className={`h-4 flex-1 rounded-[2px] ${tone}`}
           />
         );
       })}
@@ -85,189 +114,294 @@ function Sparkline({ buckets }: { buckets: UsageBucket[] }): ReactElement | null
   );
 }
 
-function HealthPill({ account }: { account: ProxyAccount }): ReactElement {
+/** The page-level chart: request volume per window across every credential. */
+function HealthOverview({ accounts }: { accounts: ProxyAccount[] }): ReactElement {
   const { t } = useTranslation();
-  const total = account.success + account.failed;
-  const rate = total === 0 ? null : Math.round((account.success / total) * 100);
-  const tone = !account.active
-    ? "bg-amber-500/10 text-amber-400"
-    : rate !== null && rate < 80
-      ? "bg-destructive/10 text-destructive"
-      : "bg-emerald-500/10 text-emerald-400";
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] ${tone}`}>
-      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-      {!account.active
-        ? t("setup.accountUnavailable")
-        : rate === null
-          ? t("setup.accountActive")
-          : t("console.successRate", { rate })}
-    </span>
-  );
-}
-
-function ModelRow({ model, live }: { model: ChannelModel; live: boolean }): ReactElement {
-  const { t } = useTranslation();
-  const context = formatTokens(model.contextWindow);
-  return (
-    <li className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs">
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${live ? "bg-emerald-400" : "bg-muted-foreground/30"}`} aria-hidden="true" />
-      <span className="min-w-0 truncate font-mono text-[11px] text-foreground">{model.id}</span>
-      {model.displayName && model.displayName !== model.id ? (
-        <span className="min-w-0 truncate text-muted-foreground">{model.displayName}</span>
-      ) : null}
-      <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-        {model.reasoning ? <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">{t("console.reasoning")}</span> : null}
-        {context ? <span className="rounded bg-muted/60 px-1.5 py-0.5">{t("console.context", { value: context })}</span> : null}
-        {!live ? <span className="rounded bg-muted/40 px-1.5 py-0.5">{t("console.notRouted")}</span> : null}
-      </span>
-    </li>
-  );
-}
-
-function ChannelCard({
-  summary, disabled, busy, onConnect, onRemove, removalCandidate, setRemovalCandidate, removingAccount
-}: {
-  summary: ChannelSummary;
-  disabled: boolean;
-  busy: boolean;
-  onConnect: () => void;
-  onRemove: (account: ProxyAccount) => void;
-  removalCandidate: string | null;
-  setRemovalCandidate: (key: string | null) => void;
-  removingAccount: string | null;
-}): ReactElement {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const providerName = t(`provider.${summary.provider}`);
-  const total = summary.success + summary.failed;
-  const listed = expanded ? summary.supported : summary.supported.slice(0, 5);
+  const buckets = useMemo(() => mergeBuckets(accounts), [accounts]);
+  const success = accounts.reduce((sum, account) => sum + account.success, 0);
+  const failed = accounts.reduce((sum, account) => sum + account.failed, 0);
+  const rate = successRate(success, failed);
+  const peak = Math.max(...buckets.map((bucket) => bucket.success + bucket.failed), 1);
 
   return (
-    <section className="rounded-xl border border-border/50 bg-card/25 transition-colors hover:border-border">
-      <div className="flex flex-wrap items-start justify-between gap-3 p-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <ProviderIcon provider={summary.provider} />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{providerName}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {summary.accounts.length > 0
-                ? t("setup.accountStatus", { active: summary.activeCount, unavailable: summary.accounts.length - summary.activeCount })
-                : summary.deviceFlow ? t("setup.deviceFlow") : t("setup.browserFlow")}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {total > 0 ? <Sparkline buckets={summary.buckets} /> : null}
-          <Button className="shrink-0" aria-label={`${t(summary.accounts.length > 0 ? "setup.addOrReplace" : "setup.connect")} ${providerName}`} disabled={disabled} onClick={onConnect}>
-            {busy ? <Spin /> : null}
-            {t(summary.accounts.length > 0 ? "setup.addOrReplace" : "setup.connect")}
-          </Button>
-        </div>
-      </div>
-
-      {total > 0 ? (
-        <p className="border-t border-border/40 px-3 py-2 text-[11px] text-muted-foreground">
-          {t("console.channelRequests", { success: summary.success, failed: summary.failed })}
+    <section className="grid gap-4 rounded-xl border border-border/50 bg-card/30 p-4 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] sm:items-center" aria-labelledby="cpa-health-title">
+      <div>
+        <p id="cpa-health-title" className="text-xs font-medium text-muted-foreground">{t("console.healthOverview")}</p>
+        <p className="mt-1 flex items-baseline gap-2">
+          <span className="text-3xl font-semibold tabular-nums leading-none text-foreground">{rate === null ? "—" : `${rate}%`}</span>
+          <span className="text-xs text-muted-foreground">{t("console.successRateLabel")}</span>
         </p>
-      ) : null}
-
-      {summary.accounts.length > 0 ? (
-        <ul className="divide-y divide-border/40 border-t border-border/40">
-          {summary.accounts.map((account) => {
-            const confirming = removalCandidate === account.key;
-            const removing = removingAccount === account.key;
+        <p className="mt-2 flex items-baseline gap-3 text-xs tabular-nums">
+          <span className="text-emerald-400">{t("console.successCount", { count: success })}</span>
+          <span className={failed > 0 ? "text-destructive" : "text-muted-foreground"}>{t("console.failedCount", { count: failed })}</span>
+        </p>
+      </div>
+      <div>
+        <div className="flex h-20 items-end gap-1.5" role="img" aria-label={t("console.usageChart")}>
+          {buckets.map((bucket, index) => {
+            const total = bucket.success + bucket.failed;
+            const height = total === 0 ? 4 : Math.max(12, Math.round((total / peak) * 100));
             return (
-              <li key={account.key} className="px-3 py-2.5 text-xs text-muted-foreground">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-foreground">{account.displayName}</p>
-                    <p className="mt-0.5 text-[11px]">
-                      {account.statusMessage ?? account.status ?? t("console.noRequests")}
-                    </p>
-                  </div>
-                  <div className="ml-auto flex items-center gap-2">
-                    <HealthPill account={account} />
-                    {account.removable ? (
-                      confirming ? (
-                        <>
-                          <Button className="border-destructive/40 text-destructive hover:bg-destructive/10" disabled={removing} onClick={() => onRemove(account)}>
-                            {removing ? <Spin /> : <ActionIcon name="remove" />}{t("setup.confirmRemove")}
-                          </Button>
-                          <Button className="border-transparent bg-transparent" disabled={removing} onClick={() => setRemovalCandidate(null)}>{t("setup.cancel")}</Button>
-                        </>
-                      ) : (
-                        <Button className="border-transparent bg-transparent text-muted-foreground hover:text-foreground" aria-label={`${t("setup.removeAccount")} ${account.displayName}`} disabled={removingAccount !== null} onClick={() => setRemovalCandidate(account.key)}>
-                          <ActionIcon name="remove" />
-                        </Button>
-                      )
-                    ) : null}
-                  </div>
-                </div>
-              </li>
+              <span
+                key={index}
+                title={bucket.time ? `${bucket.time} · ${bucket.success} / ${bucket.failed}` : undefined}
+                className="flex flex-1 flex-col justify-end overflow-hidden rounded-[3px]"
+                style={{ height: `${height}%` }}
+              >
+                {bucket.failed > 0 ? (
+                  <span className="w-full bg-destructive/80" style={{ height: `${Math.round((bucket.failed / total) * 100)}%` }} />
+                ) : null}
+                <span className={`w-full flex-1 ${total === 0 ? "bg-muted-foreground/15" : "bg-emerald-500/70"}`} />
+              </span>
             );
           })}
-        </ul>
-      ) : null}
-
-      {summary.supported.length > 0 ? (
-        <div className="border-t border-border/40">
-          <div className="flex items-center justify-between gap-2 px-3 py-2">
-            <p className="text-[11px] font-medium text-muted-foreground">
-              {t("console.supportedModels", { live: summary.live.size, total: summary.supported.length })}
-            </p>
-            {summary.supported.length > 5 ? (
-              <Button className="border-transparent bg-transparent text-[11px] text-muted-foreground hover:text-foreground" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
-                {t(expanded ? "console.collapse" : "console.expand")}
-              </Button>
-            ) : null}
-          </div>
-          <ul className="divide-y divide-border/30 border-t border-border/30">
-            {listed.map((model) => <ModelRow key={model.id} model={model} live={summary.live.has(model.id)} />)}
-          </ul>
         </div>
-      ) : null}
+        <p className="mt-1.5 text-right text-[10px] text-muted-foreground">{t("console.windowAxis", { count: HEALTH_WINDOWS })}</p>
+      </div>
     </section>
   );
 }
 
+/** One credential, laid out as the CLIProxyAPI panel lays it out. */
+function AccountCard({
+  account, provider, pending, confirming, removing, disabled,
+  onModels, onReset, onToggle, onAskRemove, onCancelRemove, onRemove
+}: {
+  account: ProxyAccount;
+  provider: OAuthProviderId | undefined;
+  pending: boolean;
+  confirming: boolean;
+  removing: boolean;
+  disabled: boolean;
+  onModels: () => void;
+  onReset: () => void;
+  onToggle: () => void;
+  onAskRemove: () => void;
+  onCancelRemove: () => void;
+  onRemove: () => void;
+}): ReactElement {
+  const { t } = useTranslation();
+  const rate = successRate(account.success, account.failed);
+  const meta = [formatBytes(account.size), formatMoment(account.modifiedAt ?? account.lastRefresh)].filter(Boolean).join(" · ");
+  const stateTone = account.disabled
+    ? "bg-muted/70 text-muted-foreground"
+    : account.active ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400";
+
+  return (
+    <article className="flex flex-col rounded-xl border border-border/50 bg-card/30 transition-colors hover:border-border/80">
+      <header className="flex items-start gap-2.5 p-3.5 pb-2.5">
+        {provider ? <ProviderIcon provider={provider} compact /> : (
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-semibold uppercase text-muted-foreground" aria-hidden="true">
+            {account.provider.slice(0, 1)}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <ProviderTag>{provider ? t(`provider.short.${provider}`) : account.provider}</ProviderTag>
+            <span className={`ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] ${stateTone}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+              {t(account.disabled ? "console.disabled" : account.active ? "console.enabled" : "setup.accountUnavailable")}
+            </span>
+          </div>
+          <p className="mt-1.5 truncate text-sm font-medium text-foreground" title={account.displayName}>{account.displayName}</p>
+          {account.deleteName && account.deleteName !== account.displayName ? (
+            <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={account.deleteName}>{account.deleteName}</p>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="px-3.5 pb-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">{t("console.healthStatus")}</span>
+          <span className="flex items-baseline gap-2.5 text-[11px] tabular-nums">
+            <span className={account.success > 0 ? "text-emerald-400" : "text-muted-foreground"}>{t("console.successCount", { count: account.success })}</span>
+            <span className={account.failed > 0 ? "text-destructive" : "text-muted-foreground"}>{t("console.failedCount", { count: account.failed })}</span>
+          </span>
+        </div>
+        <HealthStrip buckets={account.recentRequests} />
+        <div className="mt-2.5 flex items-baseline justify-between gap-2">
+          <p className="min-w-0 truncate text-[11px] tabular-nums text-muted-foreground">{meta}</p>
+          <span className="shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground">{rate === null ? "—" : `${rate}%`}</span>
+        </div>
+        {account.statusMessage && account.statusMessage !== "ok" ? (
+          <p className="mt-1 truncate text-[11px] text-amber-400" title={account.statusMessage}>{account.statusMessage}</p>
+        ) : null}
+      </div>
+
+      <footer className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/40 px-3.5 py-2.5">
+        {confirming ? (
+          <>
+            <p className="w-full text-[11px] text-destructive">{t("setup.removeAccountConfirm", { account: account.displayName })}</p>
+            <Button className="border-destructive/40 text-destructive hover:bg-destructive/10" disabled={removing} onClick={onRemove}>
+              {removing ? <Spin /> : <ActionIcon name="remove" />}{t("setup.confirmRemove")}
+            </Button>
+            <Button className="border-transparent bg-transparent" disabled={removing} onClick={onCancelRemove}>{t("setup.cancel")}</Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={onModels}><ActionIcon name="models" />{t("console.models")}</Button>
+            <Button aria-label={`${t("console.resetQuota")} ${account.displayName}`} title={t("console.resetQuota")} disabled={disabled || !account.authIndex} onClick={onReset}>
+              {pending ? <Spin /> : <ActionIcon name="reset" />}
+            </Button>
+            {account.removable ? (
+              <Button className="text-destructive hover:bg-destructive/10" aria-label={`${t("setup.removeAccount")} ${account.displayName}`} title={t("setup.removeAccount")} disabled={disabled} onClick={onAskRemove}>
+                <ActionIcon name="remove" />
+              </Button>
+            ) : null}
+            <span className="ml-auto flex items-center">
+              <Toggle
+                checked={!account.disabled}
+                disabled={disabled}
+                label={`${t(account.disabled ? "console.enable" : "console.disable")} ${account.displayName}`}
+                onChange={onToggle}
+              />
+            </span>
+          </>
+        )}
+      </footer>
+    </article>
+  );
+}
+
+/** Shows what one credential can serve, on demand — the grid stays about health. */
+function ModelDialog({
+  account, models, loading, error, onClose
+}: {
+  account: ProxyAccount;
+  models: ChannelModel[];
+  loading: boolean;
+  error: string | null;
+  onClose: () => void;
+}): ReactElement {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return models;
+    return models.filter((model) => `${model.id} ${model.displayName ?? ""}`.toLowerCase().includes(needle));
+  }, [models, query]);
+
+  return (
+    <Dialog title={t("console.modelsTitle")} description={account.displayName} onClose={onClose}
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] tabular-nums text-muted-foreground">{t("console.modelCount", { count: models.length })}</span>
+          <Button onClick={onClose}>{t("setup.close")}</Button>
+        </div>
+      }
+    >
+      {models.length > 8 ? (
+        <div className="sticky top-0 border-b border-border/40 bg-card/95 px-4 py-2 backdrop-blur">
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("console.filterModels")}
+            aria-label={t("console.filterModels")}
+            className="w-full rounded-md border border-border/60 bg-background px-2.5 py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-primary/60"
+          />
+        </div>
+      ) : null}
+      {loading ? (
+        <p className="px-4 py-6 text-center text-xs text-muted-foreground"><Spin /> {t("console.loadingModels")}</p>
+      ) : error ? (
+        <p className="px-4 py-6 text-center text-xs text-destructive" role="alert">{error}</p>
+      ) : filtered.length === 0 ? (
+        <p className="px-4 py-6 text-center text-xs text-muted-foreground">{t(models.length === 0 ? "console.noModels" : "console.noMatches")}</p>
+      ) : (
+        <ul className="divide-y divide-border/30">
+          {filtered.map((model) => {
+            const context = formatTokens(model.contextWindow);
+            const output = formatTokens(model.maxTokens);
+            return (
+              <li key={model.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2.5">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-mono text-[11px] text-foreground">{model.id}</span>
+                  {model.displayName && model.displayName !== model.id ? (
+                    <span className="block truncate text-[11px] text-muted-foreground">{model.displayName}</span>
+                  ) : null}
+                </span>
+                <span className="flex shrink-0 items-center gap-1.5 text-[10px] tabular-nums text-muted-foreground">
+                  {model.reasoning ? <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">{t("console.reasoning")}</span> : null}
+                  {context ? <span className="rounded bg-muted/60 px-1.5 py-0.5">{t("console.context", { value: context })}</span> : null}
+                  {output ? <span className="rounded bg-muted/60 px-1.5 py-0.5">{t("console.output", { value: output })}</span> : null}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Dialog>
+  );
+}
+
+/** The provider picker; authorizing is a deliberate act, not a permanent toolbar. */
+function ConnectDialog({ onClose, onPick, disabled }: {
+  onClose: () => void;
+  onPick: (provider: OAuthProviderId) => void;
+  disabled: boolean;
+}): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <Dialog title={t("console.addAccount")} description={t("setup.oauthDescription")} onClose={onClose}>
+      <div className="grid gap-2 p-4 sm:grid-cols-2">
+        {OAUTH_PROVIDERS.map((provider) => (
+          <button
+            key={provider.id}
+            type="button"
+            disabled={disabled}
+            onClick={() => onPick(provider.id)}
+            className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/40 p-3 text-left transition-colors hover:border-border hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ProviderIcon provider={provider.id} compact />
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium text-foreground">{t(`provider.${provider.id}`)}</span>
+              <span className="block text-[11px] text-muted-foreground">{provider.deviceFlow ? t("setup.deviceFlow") : t("setup.browserFlow")}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </Dialog>
+  );
+}
+
 /**
- * The gateway console: one full page that configures every channel, states what
- * each one can route and how it is behaving.
+ * The CLIProxyAPI console: every credential as a card, health first.
  *
- * The ability detail slot stays the place you set the gateway up; this page is
- * where you live with it afterwards, which is why it is organised per channel
- * rather than per task.
+ * The ability detail slot is where the gateway gets set up; this page is where
+ * you live with it. That is why it is a grid of credentials rather than a list
+ * of channels — what goes wrong day to day goes wrong per account — and why the
+ * model lists sit behind a button: they are long, rarely the question, and would
+ * otherwise bury the health signal the grid exists to show.
  */
 export function ProxyWorkspaceView({ context: pluginContext }: { context: ManagedPluginContext }): ReactElement {
   const { t } = useTranslation();
   const {
-    status, models, catalog, accountsByProvider, busy, flow, error,
+    status, accounts, models, catalog, busy, flow, error,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount,
-    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount,
+    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   } = useProxyConsole(pluginContext);
 
-  const liveByChannel = useMemo(() => {
-    const byId = new Map<string, ProxyModel>(models.map((model) => [model.id, model]));
-    return byId;
-  }, [models]);
+  const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
+  const [connecting, setConnecting] = useState(false);
+  const [modelAccount, setModelAccount] = useState<ProxyAccount | null>(null);
+  const [accountModels, setAccountModels] = useState<ChannelModel[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
 
-  const channels = useMemo<ChannelSummary[]>(() => OAUTH_PROVIDERS.map((provider) => {
-    const accounts = accountsByProvider.get(provider.id) ?? [];
-    const supported = catalog?.channels.get(MODEL_CHANNEL_BY_PROVIDER[provider.id]) ?? [];
-    return {
-      provider: provider.id,
-      deviceFlow: provider.deviceFlow,
-      accounts,
-      activeCount: accounts.filter((account) => account.active).length,
-      success: accounts.reduce((sum, account) => sum + account.success, 0),
-      failed: accounts.reduce((sum, account) => sum + account.failed, 0),
-      buckets: mergeBuckets(accounts),
-      supported,
-      live: new Set(supported.filter((model) => liveByChannel.has(model.id)).map((model) => model.id))
-    };
-  }), [accountsByProvider, catalog, liveByChannel]);
+  const openModels = useCallback((account: ProxyAccount): void => {
+    setModelAccount(account);
+    setAccountModels([]);
+    setModelsError(null);
+    setModelsLoading(true);
+    void client.fetchAccountModels(account, catalog ?? undefined)
+      .then(setAccountModels)
+      .catch((reason: unknown) => setModelsError(toDisplayErrorMessage(reason)))
+      .finally(() => setModelsLoading(false));
+  }, [catalog, client]);
+
+  const locked = status.phase !== "ready" || flow?.phase === "waiting" || pendingAccount !== null || removingAccount !== null;
 
   // The host header owns the window drag region; filling it keeps this page from
   // stacking a second toolbar under the app title.
@@ -282,7 +416,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
                 {syncing ? <Spin /> : <ActionIcon name="sync" />}
                 {t(syncing ? "setup.syncingModels" : "setup.syncModels")}
               </Button>
-              <Button onClick={() => void pluginContext.services.restart(SERVICE_ID)}><ActionIcon name="restart" />{t("setup.restart")}</Button>
+              <Button aria-label={t("setup.restart")} title={t("setup.restart")} onClick={() => void pluginContext.services.restart(SERVICE_ID)}>
+                <ActionIcon name="restart" />
+              </Button>
             </>
           ) : (
             <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" disabled={busy} onClick={() => void ensureServiceStarted(pluginContext).catch(() => undefined)}>
@@ -297,14 +433,14 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
 
   return (
     <div className="h-full overflow-y-auto" aria-live="polite">
-      <div className="mx-auto max-w-4xl space-y-4 p-4">
+      <div className="mx-auto max-w-6xl space-y-4 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${status.phase === "ready" ? "bg-emerald-500/15 text-emerald-400" : status.phase === "failed" ? "bg-destructive/15 text-destructive" : "bg-primary/10 text-primary"}`}>
             {busy ? <Spin /> : <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />}
             {t(statusLabelKey(status.phase))}
           </span>
-          <span className="rounded-md bg-background/50 px-2 py-1 text-[11px] text-muted-foreground">{t("setup.runtimeVersion", { version: status.version })}</span>
-          <span className="rounded-md bg-background/50 px-2 py-1 text-[11px] text-muted-foreground">{t("setup.routesDiscovered", { count: models.length })}</span>
+          <span className="rounded-md bg-muted/40 px-2 py-1 text-[11px] tabular-nums text-muted-foreground">{t("setup.runtimeVersion", { version: status.version })}</span>
+          <span className="rounded-md bg-muted/40 px-2 py-1 text-[11px] tabular-nums text-muted-foreground">{t("setup.routesDiscovered", { count: models.length })}</span>
           {syncedModelCount !== null ? (
             <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-400" role="status">
               <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
@@ -313,9 +449,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
           ) : null}
         </div>
 
-        <p className="text-xs leading-relaxed text-muted-foreground">{t("console.subtitle")}</p>
-
         {error ? <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive" role="alert">{error}</p> : null}
+
+        {accounts.length > 0 ? <HealthOverview accounts={accounts} /> : null}
 
         {flow ? (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
@@ -342,24 +478,46 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
           </div>
         ) : null}
 
-        <div className="space-y-3">
-          {channels.map((summary) => (
-            <ChannelCard
-              key={summary.provider}
-              summary={summary}
-              disabled={status.phase !== "ready" || startingOAuth || flow?.phase === "waiting" || removingAccount !== null}
-              busy={startingOAuth}
-              onConnect={() => {
-                const definition = OAUTH_PROVIDERS.find((provider) => provider.id === summary.provider);
-                if (definition) void startOAuth(definition);
-              }}
-              onRemove={(account) => void removeAccount(account)}
-              removalCandidate={removalCandidate}
-              setRemovalCandidate={setRemovalCandidate}
-              removingAccount={removingAccount}
-            />
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-foreground">{t("console.accountsTitle")}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{t("console.subtitle")}</p>
+          </div>
+          <Button
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+            disabled={status.phase !== "ready" || startingOAuth || flow?.phase === "waiting"}
+            onClick={() => setConnecting(true)}
+          >
+            {startingOAuth ? <Spin /> : <ActionIcon name="plus" />}{t("console.addAccount")}
+          </Button>
         </div>
+
+        {accounts.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 px-6 py-12 text-center">
+            <p className="text-sm font-medium text-foreground">{t("console.noAccounts")}</p>
+            <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">{t("console.noAccountsHint")}</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {accounts.map((account) => (
+              <AccountCard
+                key={account.key}
+                account={account}
+                provider={providerForAccount(account)}
+                pending={pendingAccount === account.key}
+                confirming={removalCandidate === account.key}
+                removing={removingAccount === account.key}
+                disabled={locked}
+                onModels={() => openModels(account)}
+                onReset={() => void resetQuota(account)}
+                onToggle={() => void toggleAccount(account)}
+                onAskRemove={() => setRemovalCandidate(account.key)}
+                onCancelRemove={() => setRemovalCandidate(null)}
+                onRemove={() => void removeAccount(account)}
+              />
+            ))}
+          </div>
+        )}
 
         <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
           <span className="mt-px" aria-hidden="true">ⓘ</span>{t("setup.removeLocalOnly")}
@@ -372,6 +530,28 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
           </details>
         ) : null}
       </div>
+
+      {connecting ? (
+        <ConnectDialog
+          disabled={startingOAuth}
+          onClose={() => setConnecting(false)}
+          onPick={(id) => {
+            const definition = OAUTH_PROVIDERS.find((provider) => provider.id === id);
+            setConnecting(false);
+            if (definition) void startOAuth(definition);
+          }}
+        />
+      ) : null}
+
+      {modelAccount ? (
+        <ModelDialog
+          account={modelAccount}
+          models={accountModels}
+          loading={modelsLoading}
+          error={modelsError}
+          onClose={() => setModelAccount(null)}
+        />
+      ) : null}
     </div>
   );
 }

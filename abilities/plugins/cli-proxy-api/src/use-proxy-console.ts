@@ -36,7 +36,7 @@ export function providerForAccount(account: ProxyAccount): OAuthProviderId | und
  */
 export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
-  const { serviceRequest, loadModels, readAccounts, publishModels } = client;
+  const { serviceRequest, loadModels, readAccounts, publishModels, setAccountDisabled, resetAccountQuota } = client;
   const { t } = useTranslation();
   const [status, setStatus] = useState<ServiceStatus>({
     serviceId: SERVICE_ID,
@@ -56,6 +56,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const [startingOAuth, setStartingOAuth] = useState(false);
   const [removalCandidate, setRemovalCandidate] = useState<string | null>(null);
   const [removingAccount, setRemovingAccount] = useState<string | null>(null);
+  const [pendingAccount, setPendingAccount] = useState<string | null>(null);
   const startingRef = useRef(false);
   const removingAccountRef = useRef(false);
   const oauthGeneration = useRef(0);
@@ -172,6 +173,33 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     }
   }, [refresh, serviceRequest, t]);
 
+  /** Runs a per-credential action, then re-reads so the card shows the new truth. */
+  const runAccountAction = useCallback(async (
+    account: ProxyAccount,
+    action: () => Promise<void>,
+    failureKey: string
+  ): Promise<void> => {
+    if (pendingAccount !== null) return;
+    setPendingAccount(account.key);
+    setError(null);
+    try {
+      await action();
+      await refresh(false);
+    } catch (reason) {
+      setError(t(failureKey, { details: toDisplayErrorMessage(reason) }));
+    } finally {
+      setPendingAccount(null);
+    }
+  }, [pendingAccount, refresh, t]);
+
+  const toggleAccount = useCallback((account: ProxyAccount): Promise<void> => runAccountAction(
+    account, () => setAccountDisabled(account, !account.disabled), "console.toggleFailed"
+  ), [runAccountAction, setAccountDisabled]);
+
+  const resetQuota = useCallback((account: ProxyAccount): Promise<void> => runAccountAction(
+    account, () => resetAccountQuota(account), "console.resetFailed"
+  ), [runAccountAction, resetAccountQuota]);
+
   useEffect(() => {
     let active = true;
     let previousPhase: ServiceStatus["phase"] | undefined;
@@ -246,7 +274,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   return {
     client, status, models, catalog, accounts, accountsByProvider, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount,
-    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount,
+    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   };
 }

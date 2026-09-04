@@ -22,6 +22,7 @@ export default definePlugin({
     const view = context.ui.registerWorkspaceView({
       id: WORKSPACE_VIEW_ID,
       label: "%console.title%",
+      icon: "icon-[solar--link-round-angle-outline]",
       description: "%console.subtitle%",
       component: () => createElement(ProxyWorkspaceView, { context })
     });
