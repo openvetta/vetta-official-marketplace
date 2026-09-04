@@ -118,5 +118,8 @@
   "console.resetInDays": "resets in {{count}}d",
   "console.resetInHours": "resets in {{count}}h",
   "console.resetInMinutes": "resets in {{count}}m",
-  "console.retryAfter": "Parked by the provider until {{time}}."
+  "console.retryAfter": "Parked by the provider until {{time}}.",
+  "console.quotaLoading": "Reading remaining quota…",
+  "console.quotaRefresh": "Refresh quota",
+  "console.resetCredits": "{{count}} limit resets left"
 }

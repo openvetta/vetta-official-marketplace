@@ -257,7 +257,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     "openai-compatibility",
   ]) assert.match(providerContract, new RegExp(route, "u"));
 
-  const integration = ["src/index.tsx", "src/setup-slot.tsx", "src/use-proxy-console.ts", "src/workspace-view.tsx", "src/model-selection.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  const integration = ["src/index.tsx", "src/setup-slot.tsx", "src/use-proxy-console.ts", "src/workspace-view.tsx", "src/model-selection.ts", "src/quota-probe.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
   assert.match(integration, /\/v0\/management\/get-auth-status/u);
   assert.match(integration, /\/v0\/management\/oauth-session/u);
   assert.match(integration, /\/v0\/management\/auth-files/u);
@@ -272,6 +272,10 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(integration, /\/v0\/management\/model-definitions/u);
   assert.match(integration, /contextWindow/u);
   assert.match(integration, /registerWorkspaceView/u);
+  // Quota is read through the gateway, which substitutes the token: the plugin
+  // must never carry a provider credential itself.
+  assert.match(integration, /\/v0\/management\/api-call/u);
+  assert.match(integration, /\$TOKEN\$/u);
   // The published set is chosen by the user and must survive a restart, or the
   // service's own sync would put the unticked models back on the next start.
   assert.match(integration, /published-models/u);

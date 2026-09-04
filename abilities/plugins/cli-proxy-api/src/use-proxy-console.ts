@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { toDisplayErrorMessage } from "./error-message";
-import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
+import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type AccountQuota, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
+import { hasQuotaProbe, probeAccountQuota } from "./quota-probe";
 
 export type OAuthFlow = {
   provider: OAuthProviderId;
@@ -57,6 +58,10 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const [removalCandidate, setRemovalCandidate] = useState<string | null>(null);
   const [removingAccount, setRemovingAccount] = useState<string | null>(null);
   const [pendingAccount, setPendingAccount] = useState<string | null>(null);
+  /** Provider-reported quota, keyed by credential; absent until asked for. */
+  const [quotas, setQuotas] = useState<ReadonlyMap<string, AccountQuota>>(new Map());
+  const [quotaLoading, setQuotaLoading] = useState<ReadonlySet<string>>(new Set());
+  const probedRef = useRef<Set<string>>(new Set());
   const startingRef = useRef(false);
   const removingAccountRef = useRef(false);
   const oauthGeneration = useRef(0);
@@ -223,6 +228,35 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     account, () => resetAccountQuota(account), "console.resetFailed"
   ), [runAccountAction, resetAccountQuota]);
 
+  /**
+   * Asks the provider what is left on one credential.
+   *
+   * Done once per credential per session unless the user asks again: it is an
+   * outbound call on their account, not something to repeat on every render.
+   */
+  const loadQuota = useCallback(async (account: ProxyAccount, force = false): Promise<void> => {
+    if (!hasQuotaProbe(account)) return;
+    if (!force && probedRef.current.has(account.key)) return;
+    probedRef.current.add(account.key);
+    setQuotaLoading((current) => new Set([...current, account.key]));
+    try {
+      const quota = await probeAccountQuota(serviceRequest, MANAGER_CREDENTIAL, account);
+      if (quota) setQuotas((current) => new Map(current).set(account.key, quota));
+    } catch {
+      // A provider that will not answer leaves the gateway's own figures in place.
+    } finally {
+      setQuotaLoading((current) => {
+        const next = new Set(current);
+        next.delete(account.key);
+        return next;
+      });
+    }
+  }, [serviceRequest]);
+
+  useEffect(() => {
+    for (const account of accounts) void loadQuota(account);
+  }, [accounts, loadQuota]);
+
   useEffect(() => {
     let active = true;
     let previousPhase: ServiceStatus["phase"] | undefined;
@@ -297,7 +331,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   return {
     client, status, models, catalog, accounts, accountsByProvider, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount,
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, loadQuota,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   };
 }

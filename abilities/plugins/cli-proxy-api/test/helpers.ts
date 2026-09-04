@@ -31,7 +31,7 @@ export function fixture() {
       getPlatform: vi.fn(async () => ({ tag: "win32-x64" })),
       getStatus: vi.fn(async () => ready), install: vi.fn(async () => ready), start: vi.fn(async () => ready), stop: vi.fn(), restart: vi.fn(async () => ready),
       connection: vi.fn(async () => ({ baseUrl, credential: "local-api-key" })),
-      request: vi.fn(async (_id: string, request: { path: string; method?: string }) => ({
+      request: vi.fn(async (_id: string, request: { path: string; method?: string; body?: unknown }) => ({
         ok: true, status: 200, statusText: "OK", body: await handle(request)
       })),
       onStatusChange: (listener: (status: ServiceStatus) => void) => {

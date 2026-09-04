@@ -9,7 +9,7 @@ import { ActionIcon, Button, Checkbox, ProviderTag, Spin, Toggle } from "./ui-ki
 import { Dialog } from "./dialog";
 import { providerForAccount, useProxyConsole } from "./use-proxy-console";
 import { readModelSelection, writeModelSelection } from "./model-selection";
-import { SERVICE_ID, createProxyClient, type ChannelModel, type ProxyAccount, type QuotaWindow, type UsageBucket } from "./proxy-client";
+import { SERVICE_ID, createProxyClient, type AccountQuota, type ChannelModel, type ProxyAccount, type QuotaWindow, type UsageBucket } from "./proxy-client";
 
 export const WORKSPACE_VIEW_ID = "console";
 
@@ -210,6 +210,52 @@ function readableStatus(message: string | undefined): string | undefined {
   }
 }
 
+/**
+ * Combines what the provider just said with what the gateway had already seen.
+ *
+ * The live probe carries the limits and the plan; the gateway's own record
+ * carries things the usage endpoint never returns — the subscription date it
+ * read from the identity token, and when a parked credential is due back.
+ */
+function mergeQuota(observed: AccountQuota | undefined, probed: AccountQuota | undefined): AccountQuota | undefined {
+  if (!probed) return observed;
+  if (!observed) return probed;
+  return {
+    ...probed,
+    ...(probed.plan ?? observed.plan ? { plan: probed.plan ?? observed.plan } : {}),
+    ...(observed.subscriptionUntil ? { subscriptionUntil: observed.subscriptionUntil } : {}),
+    ...(observed.nextRetryAfter ? { nextRetryAfter: observed.nextRetryAfter } : {})
+  };
+}
+
+/** One limit window: how much is left, and when it comes back. */
+function QuotaBar({ window, label, countdown }: {
+  window: QuotaWindow;
+  label: (minutes: number | undefined) => string;
+  countdown: (window: QuotaWindow) => string | undefined;
+}): ReactElement {
+  const { t } = useTranslation();
+  const left = Math.round(window.remainingPercent);
+  const tone = left >= 50 ? "bg-emerald-500/80" : left >= 20 ? "bg-amber-500/80" : "bg-destructive/80";
+  const due = countdown(window);
+  return (
+    <div className="mt-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-[11px]">
+        <span className="min-w-0 truncate text-muted-foreground">{window.label ?? label(window.windowMinutes)}</span>
+        <span className="flex shrink-0 items-baseline gap-2 tabular-nums">
+          <span className={left >= 50 ? "text-emerald-400" : left >= 20 ? "text-amber-400" : "text-destructive"}>
+            {t("console.remaining", { percent: left })}
+          </span>
+          {due ? <span className="text-muted-foreground">{due}</span> : null}
+        </span>
+      </div>
+      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted-foreground/15">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${left}%` }} />
+      </div>
+    </div>
+  );
+}
+
 /** Names a limit window by its span, because that is how providers describe them. */
 function useWindowLabel(): (minutes: number | undefined) => string {
   const { t } = useTranslation();
@@ -244,18 +290,28 @@ function useCountdown(): (window: QuotaWindow) => string | undefined {
  * inferred. A provider that has not answered with them yet simply has no panel,
  * which is honest about the difference between "plenty left" and "not known".
  */
-function QuotaPanel({ account }: { account: ProxyAccount }): ReactElement | null {
+function QuotaPanel({ account, quota, loading, onRefresh }: {
+  account: ProxyAccount;
+  quota: AccountQuota | undefined;
+  loading: boolean;
+  onRefresh: () => void;
+}): ReactElement | null {
   const { t } = useTranslation();
   const label = useWindowLabel();
   const countdown = useCountdown();
-  const quota = account.quota;
-  if (!quota) return null;
+  if (!quota) {
+    return loading ? (
+      <p className="mx-3.5 mb-3 rounded-lg border border-border/40 px-3 py-2 text-[11px] text-muted-foreground">
+        <Spin /> {t("console.quotaLoading")}
+      </p>
+    ) : null;
+  }
   const renewal = formatDay(quota.subscriptionUntil);
   const retry = quota.nextRetryAfter ? formatMoment(quota.nextRetryAfter) : undefined;
 
   return (
     <div className="mx-3.5 mb-3 rounded-lg border border-border/40 bg-background/30 px-3 py-2.5">
-      {quota.plan || renewal || quota.credits ? (
+      {quota.plan || renewal || quota.credits || quota.resetCredits !== undefined ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
           {quota.plan ? (
             <span className="rounded bg-muted/60 px-1.5 py-0.5 font-medium uppercase tracking-wide text-foreground">
@@ -268,30 +324,29 @@ function QuotaPanel({ account }: { account: ProxyAccount }): ReactElement | null
               {quota.credits.unlimited ? t("console.creditsUnlimited") : t("console.credits", { count: quota.credits.balance ?? 0 })}
             </span>
           ) : null}
+          {quota.resetCredits !== undefined ? (
+            <span className="tabular-nums text-muted-foreground">{t("console.resetCredits", { count: quota.resetCredits })}</span>
+          ) : null}
+          <button
+            type="button"
+            className="ml-auto text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:opacity-50"
+            disabled={loading}
+            onClick={onRefresh}
+          >
+            {loading ? <Spin /> : t("console.quotaRefresh")}
+          </button>
         </div>
       ) : null}
 
-      {quota.windows.map((window, index) => {
-        const left = Math.round(window.remainingPercent);
-        const tone = left >= 50 ? "bg-emerald-500/80" : left >= 20 ? "bg-amber-500/80" : "bg-destructive/80";
-        const due = countdown(window);
-        return (
-          <div key={index} className="mt-2">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-[11px]">
-              <span className="text-muted-foreground">{label(window.windowMinutes)}</span>
-              <span className="flex items-baseline gap-2 tabular-nums">
-                <span className={left >= 50 ? "text-emerald-400" : left >= 20 ? "text-amber-400" : "text-destructive"}>
-                  {t("console.remaining", { percent: left })}
-                </span>
-                {due ? <span className="text-muted-foreground">{due}</span> : null}
-              </span>
-            </div>
-            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted-foreground/15">
-              <div className={`h-full rounded-full ${tone}`} style={{ width: `${left}%` }} />
-            </div>
-          </div>
-        );
-      })}
+      {quota.windows.map((window, index) => <QuotaBar key={index} window={window} label={label} countdown={countdown} />)}
+
+      {quota.groups?.map((group, index) => (
+        <div key={index} className={index > 0 ? "mt-3 border-t border-border/40 pt-2" : "mt-2"}>
+          <p className="text-[11px] font-medium text-foreground">{group.name}</p>
+          {group.description ? <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">{group.description}</p> : null}
+          {group.windows.map((window, position) => <QuotaBar key={position} window={window} label={label} countdown={countdown} />)}
+        </div>
+      ))}
 
       {retry ? <p className="mt-2 text-[11px] tabular-nums text-amber-400">{t("console.retryAfter", { time: retry })}</p> : null}
     </div>
@@ -300,11 +355,14 @@ function QuotaPanel({ account }: { account: ProxyAccount }): ReactElement | null
 
 /** One credential, laid out as the CLIProxyAPI panel lays it out. */
 function AccountCard({
-  account, provider, pending, confirming, removing, disabled,
-  onModels, onReset, onToggle, onAskRemove, onCancelRemove, onRemove
+  account, provider, pending, confirming, removing, disabled, quota, quotaLoading,
+  onModels, onReset, onToggle, onAskRemove, onCancelRemove, onRemove, onRefreshQuota
 }: {
   account: ProxyAccount;
   provider: OAuthProviderId | undefined;
+  quota: AccountQuota | undefined;
+  quotaLoading: boolean;
+  onRefreshQuota: () => void;
   pending: boolean;
   confirming: boolean;
   removing: boolean;
@@ -363,7 +421,7 @@ function AccountCard({
         {status ? <p className="mt-1 truncate text-[11px] text-amber-400" title={status}>{status}</p> : null}
       </div>
 
-      <QuotaPanel account={account} />
+      <QuotaPanel account={account} quota={mergeQuota(account.quota, quota)} loading={quotaLoading} onRefresh={onRefreshQuota} />
 
       <footer className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/40 px-3.5 py-2.5">
         {confirming ? (
@@ -658,7 +716,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const {
     status, accounts, models, catalog, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
-    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount,
+    removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, loadQuota,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
   } = useProxyConsole(pluginContext);
 
@@ -849,6 +907,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
                 account={account}
                 provider={providerForAccount(account)}
                 pending={pendingAccount === account.key}
+                quota={quotas.get(account.key)}
+                quotaLoading={quotaLoading.has(account.key)}
+                onRefreshQuota={() => void loadQuota(account, true)}
                 confirming={removalCandidate === account.key}
                 removing={removingAccount === account.key}
                 disabled={locked}

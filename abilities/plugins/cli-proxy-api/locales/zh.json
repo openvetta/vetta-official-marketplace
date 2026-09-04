@@ -118,5 +118,8 @@
   "console.resetInDays": "{{count}} 天后刷新",
   "console.resetInHours": "{{count}} 小时后刷新",
   "console.resetInMinutes": "{{count}} 分钟后刷新",
-  "console.retryAfter": "已被服务商限流，{{time}} 后重试。"
+  "console.retryAfter": "已被服务商限流，{{time}} 后重试。",
+  "console.quotaLoading": "正在读取剩余额度…",
+  "console.quotaRefresh": "刷新额度",
+  "console.resetCredits": "主动重置次数 {{count}}"
 }

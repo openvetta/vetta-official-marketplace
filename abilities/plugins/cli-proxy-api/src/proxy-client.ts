@@ -39,12 +39,17 @@ export type UsageBucket = { time: string; success: number; failed: number };
 export type QuotaWindow = {
   /** Span in minutes: 300 is a five-hour limit, 10080 a weekly one. */
   windowMinutes?: number;
+  /** The provider's own wording, when it gives one. */
+  label?: string;
   remainingPercent: number;
   resetAt?: string;
   resetInSeconds?: number;
 };
 
-/** What the gateway knows about a credential's subscription and its limits. */
+/** Providers that meter several model families bill them against separate pools. */
+export type QuotaGroup = { name?: string; description?: string; windows: QuotaWindow[] };
+
+/** What is known about a credential's subscription and its limits. */
 export type AccountQuota = {
   plan?: string;
   observedAt?: string;
@@ -53,6 +58,10 @@ export type AccountQuota = {
   nextRetryAfter?: string;
   credits?: { balance?: number; unlimited: boolean };
   windows: QuotaWindow[];
+  /** Set instead of `windows` by providers that meter per model family. */
+  groups?: QuotaGroup[];
+  /** Self-serve limit resets the plan still has left. */
+  resetCredits?: number;
 };
 
 export type ProxyAccount = {
@@ -69,8 +78,10 @@ export type ProxyAccount = {
   statusMessage?: string;
   email?: string;
   lastRefresh?: string;
-  /** Stable runtime id; quota resets address the credential by this, not by name. */
+  /** Stable runtime id; quota resets and provider probes address the credential by this. */
   authIndex?: string;
+  /** Google projects the credential bills against; required to read its quota. */
+  projectId?: string;
   /** Stored credential file size in bytes, as the gateway reports it. */
   size?: number;
   modifiedAt?: string;
@@ -298,6 +309,7 @@ function readAccounts(value: unknown): ProxyAccount[] {
     const displayName = textField(entry, "email", "label", "account", "id", "name") ?? provider;
     const runtimeOnly = entry.runtime_only === true || textField(entry, "source") === "memory";
     const authIndex = textField(entry, "auth_index");
+    const projectId = textField(entry, "project_id");
     const status = textField(entry, "status");
     const statusMessage = textField(entry, "status_message");
     const email = textField(entry, "email");
@@ -312,6 +324,7 @@ function readAccounts(value: unknown): ProxyAccount[] {
       disabled: entry.disabled === true,
       removable: !runtimeOnly && Boolean(deleteName),
       ...(authIndex ? { authIndex } : {}),
+      ...(projectId ? { projectId } : {}),
       ...(positiveInteger(entry.size) === undefined ? {} : { size: entry.size as number }),
       ...(textField(entry, "modtime", "updated_at") ? { modifiedAt: textField(entry, "modtime", "updated_at") } : {}),
       ...(status ? { status } : {}),
