@@ -1,35 +1,13 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
-import { useCallback, useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactElement } from "react";
-import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
+import type { ReactElement } from "react";
+import { OAUTH_PROVIDERS, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
 import { toDisplayErrorMessage } from "./error-message";
 import { ProviderIcon } from "./provider-icon";
-
-import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyAccount, type ProxyModel } from "./proxy-client";
-
-type OAuthFlow = {
-  provider: OAuthProviderId;
-  state: string;
-  url: string;
-  userCode?: string;
-  phase: "waiting" | "success" | "error";
-  error?: string;
-};
-
-function Button({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>): ReactElement {
-  return (
-    <button
-      type="button"
-      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border/60 bg-background px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-      {...props}
-    />
-  );
-}
-
-function Spin(): ReactElement {
-  return <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-r-transparent align-[-2px]" aria-hidden="true" />;
-}
+import { ActionIcon, Button, ServiceIcon, Spin } from "./ui-kit";
+import { providerForAccount, useProxyConsole } from "./use-proxy-console";
+import { SERVICE_ID } from "./proxy-client";
 
 function statusLabelKey(phase: ServiceStatus["phase"]): string {
   if (phase === "ready") return "setup.serviceReady";
@@ -38,239 +16,14 @@ function statusLabelKey(phase: ServiceStatus["phase"]): string {
   return "setup.serviceWorking";
 }
 
-function accountMatchesProvider(account: ProxyAccount, provider: OAuthProviderId): boolean {
-  const value = account.provider.trim().toLowerCase();
-  if (provider === "claude") return value === "claude" || value === "anthropic";
-  if (provider === "gemini-cli") return value === "gemini-cli" || value === "gemini";
-  return value === provider;
-}
-
-function providerForAccount(account: ProxyAccount): OAuthProviderId | undefined {
-  return OAUTH_PROVIDERS.find((provider) => accountMatchesProvider(account, provider.id))?.id;
-}
-
-function ServiceIcon(): ReactElement {
-  return (
-    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/20" aria-hidden="true">
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 8.5h14M5 15.5h14" /><circle cx="8" cy="8.5" r="1" fill="currentColor" stroke="none" /><circle cx="16" cy="15.5" r="1" fill="currentColor" stroke="none" /><rect x="3" y="4" width="18" height="16" rx="4" />
-      </svg>
-    </span>
-  );
-}
-
-function ActionIcon({ name }: { name: "sync" | "restart" | "open" | "remove" }): ReactElement {
-  const path = name === "sync"
-    ? <><path d="M20 7h-5V2" /><path d="M20 7a8 8 0 1 0 1 7" /></>
-    : name === "restart"
-      ? <><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></>
-      : name === "open"
-        ? <><path d="M14 4h6v6" /><path d="m20 4-9 9" /><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" /></>
-        : <><path d="M4 7h16M9 7V4h6v3M8 11v6M12 11v6M16 11v6M6 7l1 14h10l1-14" /></>;
-  return <svg className="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{path}</svg>;
-}
-
 export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPluginContext }): ReactElement {
-  const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
-  const { serviceRequest, loadModels, readAccounts, publishModels } = client;
   const { t } = useTranslation();
-  const [status, setStatus] = useState<ServiceStatus>({
-    serviceId: SERVICE_ID,
-    phase: "stopped",
-    version: "…",
-    installed: false,
-    recentOutput: ""
-  });
-  const [models, setModels] = useState<ProxyModel[]>([]);
-  const [accounts, setAccounts] = useState<ProxyAccount[]>([]);
-  const [flow, setFlow] = useState<OAuthFlow | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncedModelCount, setSyncedModelCount] = useState<number | null>(null);
-  const [startingOAuth, setStartingOAuth] = useState(false);
-  const [removalCandidate, setRemovalCandidate] = useState<string | null>(null);
-  const [removingAccount, setRemovingAccount] = useState<string | null>(null);
-  const startingRef = useRef(false);
-  const removingAccountRef = useRef(false);
-  const oauthGeneration = useRef(0);
-  const flowRef = useRef<OAuthFlow | null>(null);
-
-  const refresh = useCallback(async (publish: boolean): Promise<void> => {
-    setRefreshing(true);
-    setError(null);
-    if (publish) {
-      setSyncing(true);
-      setSyncedModelCount(null);
-      console.info("[cli-proxy-api] Model sync started.");
-    }
-    try {
-      const [nextModels, accountPayload] = await Promise.all([
-        loadModels(),
-        serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL })
-      ]);
-      setModels(nextModels);
-      setAccounts(readAccounts(accountPayload));
-      if (publish) {
-        await publishModels(nextModels);
-        setSyncedModelCount(nextModels.length);
-        console.info(`[cli-proxy-api] Model sync completed: ${nextModels.length} model(s).`);
-      }
-    } catch (reason) {
-      const details = toDisplayErrorMessage(reason);
-      if (publish) {
-        setError(t("setup.syncFailed", { details }));
-        console.error(`[cli-proxy-api] Model sync failed: ${details}`);
-      } else {
-        setError(details);
-      }
-    } finally {
-      setRefreshing(false);
-      if (publish) setSyncing(false);
-    }
-  }, [loadModels, publishModels, readAccounts, serviceRequest, t]);
-
-  const startOAuth = useCallback(async (provider: OAuthProviderDefinition): Promise<void> => {
-    if (startingRef.current || flowRef.current?.phase === "waiting") return;
-    startingRef.current = true;
-    setStartingOAuth(true);
-    setRemovalCandidate(null);
-    const generation = ++oauthGeneration.current;
-    setError(null);
-    try {
-      const payload = record(await serviceRequest<unknown>(provider.authPath, { credentialId: MANAGER_CREDENTIAL }));
-      const state = textField(payload, "state");
-      const rawUrl = textField(payload, "url", "verification_uri_complete", "verification_uri");
-      if (!state || !rawUrl || textField(payload, "status") !== "ok") throw new Error("Invalid OAuth start response");
-      if (generation !== oauthGeneration.current) {
-        await serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(state)}`, {
-          credentialId: MANAGER_CREDENTIAL, method: "DELETE"
-        });
-        return;
-      }
-      const next: OAuthFlow = {
-        provider: provider.id,
-        state,
-        url: safeExternalUrl(rawUrl),
-        userCode: textField(payload, "user_code"),
-        phase: "waiting"
-      };
-      flowRef.current = next;
-      setFlow(next);
-      await pluginContext.ui.openExternal(next.url);
-    } catch (reason) {
-      if (generation === oauthGeneration.current) setError(toDisplayErrorMessage(reason));
-    } finally {
-      startingRef.current = false;
-      if (generation === oauthGeneration.current) setStartingOAuth(false);
-    }
-  }, []);
-
-  const cancelOAuth = useCallback(async (): Promise<void> => {
-    const current = flowRef.current;
-    if (!current) return;
-    oauthGeneration.current += 1;
-    flowRef.current = null;
-    setFlow(null);
-    try {
-      await serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(current.state)}`, {
-        credentialId: MANAGER_CREDENTIAL, method: "DELETE"
-      });
-    } catch (reason) {
-      setError(toDisplayErrorMessage(reason));
-    }
-  }, []);
-
-  const removeAccount = useCallback(async (account: ProxyAccount): Promise<void> => {
-    if (!account.removable || !account.deleteName || removingAccountRef.current) return;
-    removingAccountRef.current = true;
-    setRemovingAccount(account.key);
-    setError(null);
-    try {
-      await serviceRequest(`/v0/management/auth-files?name=${encodeURIComponent(account.deleteName)}`, {
-        credentialId: MANAGER_CREDENTIAL,
-        method: "DELETE"
-      });
-      setRemovalCandidate(null);
-      await refresh(true);
-    } catch (reason) {
-      setError(t("setup.removeFailed", { details: toDisplayErrorMessage(reason) }));
-    } finally {
-      removingAccountRef.current = false;
-      setRemovingAccount(null);
-    }
-  }, [refresh, serviceRequest, t]);
-
-  useEffect(() => {
-    let active = true;
-    let previousPhase: ServiceStatus["phase"] | undefined;
-    void pluginContext.services.getStatus(SERVICE_ID).then((next) => {
-      if (!active) return;
-      setStatus(next);
-      previousPhase = next.phase;
-      if (next.phase === "ready") void refresh(false);
-    }).catch((reason: unknown) => { if (active) setError(toDisplayErrorMessage(reason)); });
-    const subscription = pluginContext.services.onStatusChange((next) => {
-      if (!active || next.serviceId !== SERVICE_ID) return;
-      setStatus(next);
-      if (next.phase === "ready" && previousPhase !== "ready") void refresh(false);
-      previousPhase = next.phase;
-    });
-    return () => {
-      active = false;
-      oauthGeneration.current += 1;
-      subscription.dispose();
-      const current = flowRef.current;
-      if (current?.phase === "waiting") {
-        void serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(current.state)}`, {
-          credentialId: MANAGER_CREDENTIAL,
-          method: "DELETE"
-        }).catch(() => undefined);
-      }
-    };
-  }, [refresh]);
-
-  useEffect(() => {
-    if (flow?.phase !== "waiting") return;
-    let inFlight = false;
-    const timer = window.setInterval(() => {
-      const current = flowRef.current;
-      if (!current || current.phase !== "waiting" || inFlight) return;
-      inFlight = true;
-      void serviceRequest<unknown>(`/v0/management/get-auth-status?state=${encodeURIComponent(current.state)}`, {
-        credentialId: MANAGER_CREDENTIAL
-      }).then((payload) => {
-        if (flowRef.current !== current) return;
-        const value = record(payload);
-        const nextStatus = textField(value, "status");
-        if (nextStatus === "wait") return;
-        if (nextStatus === "ok") {
-          const next = { ...current, phase: "success" as const };
-          flowRef.current = next;
-          setFlow(next);
-          window.clearInterval(timer);
-          void refresh(true);
-          return;
-        }
-        const next = { ...current, phase: "error" as const, error: textField(value, "error") ?? t("setup.oauthFailed") };
-        flowRef.current = next;
-        setFlow(next);
-        window.clearInterval(timer);
-      }).catch((reason: unknown) => {
-        if (flowRef.current !== current) return;
-        const next = { ...current, phase: "error" as const, error: toDisplayErrorMessage(reason) };
-        flowRef.current = next;
-        setFlow(next);
-        window.clearInterval(timer);
-      }).finally(() => { inFlight = false; });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [flow?.phase, flow?.state, refresh, t]);
-
-  const accountsByProvider = useMemo(() => new Map(
-    OAUTH_PROVIDERS.map((provider) => [provider.id, accounts.filter((account) => accountMatchesProvider(account, provider.id))])
-  ), [accounts]);
-  const busy = status.phase === "installing" || status.phase === "starting" || status.phase === "stopping";
+  const {
+    status, models, accountsByProvider, busy, flow, error, setError,
+    refreshing, syncing, syncedModelCount, startingOAuth,
+    removalCandidate, setRemovalCandidate, removingAccount,
+    accounts, refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount
+  } = useProxyConsole(pluginContext);
 
   return (
     <section className="space-y-5" aria-live="polite">
@@ -372,7 +125,7 @@ export function ProxySetupSlot({ context: pluginContext }: { context: ManagedPlu
                     <Button className="border-transparent bg-transparent" onClick={() => void cancelOAuth()}>{t("setup.cancel")}</Button>
                   </>
                 ) : (
-                  <Button className="border-transparent bg-transparent" onClick={() => { flowRef.current = null; setFlow(null); }}>{t("setup.close")}</Button>
+                  <Button className="border-transparent bg-transparent" onClick={dismissFlow}>{t("setup.close")}</Button>
                 )}
               </div>
             </div>
