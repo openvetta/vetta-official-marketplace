@@ -757,6 +757,13 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const selectionLoaded = useRef(false);
   /** Model ids the picker has already offered; anything new is opted in. */
   const knownIds = useRef<ReadonlySet<string>>(new Set());
+  /** Latest ids the gateway offered, whether or not the selection has been read. */
+  const offered = useRef<ReadonlySet<string>>(new Set());
+  /** Set once the user changes the selection, so a late read cannot overwrite it. */
+  const touched = useRef(false);
+  /** The stored choice, once read; `null` means "everything". */
+  const storedSelection = useRef<ReadonlySet<string> | null>(null);
+  const seeded = useRef(false);
   const [confirmApply, setConfirmApply] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -784,17 +791,11 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       const every = new Set([...next.values()].flatMap((group) => group.models).map((model) => model.id));
       setGroupedModels(next);
       setPickerLoading(false);
-      // Nothing chosen yet means "publish everything", which is what the gateway
-      // did before this picker existed — so start with every box ticked.
-      if (!selectionLoaded.current) {
-        void readModelSelection(pluginContext).then((stored) => {
-          if (!active) return;
-          knownIds.current = every;
-          setSelected(stored ?? every);
-          selectionLoaded.current = true;
-        });
-        return;
-      }
+      // Seeding is the other effect's job. Two loads could otherwise both find
+      // the selection "not yet read" and each re-tick everything, undoing a
+      // clear the user had just made.
+      offered.current = every;
+      if (seedSelection()) return;
       // A model the picker has never shown is ticked by default: authorizing an
       // account is a request for its models, not an invitation to hunt for them.
       const fresh = [...every].filter((id) => !knownIds.current.has(id));
@@ -803,6 +804,34 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     });
     return () => { active = false; };
   }, [accountKeys, catalog, client]);
+
+  /**
+   * Establishes the initial selection, exactly once, and only when both halves
+   * are in: the stored choice and the first batch of models.
+   *
+   * Seeding on whichever arrives first was the bug — reading storage before any
+   * model had loaded left "already offered" empty, so the entire first batch
+   * then counted as newly discovered and was ticked on, undoing a clear the user
+   * had made in between. Returns true when it did the seeding.
+   */
+  const seedSelection = useCallback((): boolean => {
+    if (seeded.current || !selectionLoaded.current || offered.current.size === 0) return false;
+    seeded.current = true;
+    knownIds.current = offered.current;
+    if (!touched.current) setSelected(storedSelection.current ?? offered.current);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void readModelSelection(pluginContext).then((stored) => {
+      if (!active) return;
+      storedSelection.current = stored;
+      selectionLoaded.current = true;
+      seedSelection();
+    });
+    return () => { active = false; };
+  }, [pluginContext, seedSelection]);
 
   const applySelection = useCallback(async (): Promise<void> => {
     setConfirmApply(false);
@@ -841,9 +870,10 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
         <div className="flex items-center gap-2">
           {status.phase === "ready" ? (
             <>
-              <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" disabled={refreshing} onClick={() => void refresh(true)}>
-                {syncing ? <Spin /> : <ActionIcon name="sync" />}
-                {t(syncing ? "setup.syncingModels" : "setup.syncModels")}
+              {/* Publishing belongs to Apply now; this only re-reads the gateway. */}
+              <Button disabled={refreshing} onClick={() => void refresh(false)}>
+                {refreshing ? <Spin /> : <ActionIcon name="sync" />}
+                {t("console.refresh")}
               </Button>
               <Button aria-label={t("setup.restart")} title={t("setup.restart")} onClick={() => void pluginContext.services.restart(SERVICE_ID)}>
                 <ActionIcon name="restart" />
@@ -957,7 +987,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
             accountModels={groupedModels}
             loading={pickerLoading}
             selected={selected}
-            setSelected={setSelected}
+            setSelected={(next) => { touched.current = true; setSelected(next); }}
             applying={applying}
             onApply={() => setConfirmApply(true)}
           />

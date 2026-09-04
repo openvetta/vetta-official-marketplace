@@ -310,7 +310,10 @@ describe("CLIProxyAPI console", () => {
     });
 
     render(<ProxyWorkspaceView context={f.context} />);
-    await screen.findByRole("region", { name: "user@example.com" });
+    const first = await screen.findByRole("region", { name: "user@example.com" });
+    // Clear-all is disabled while nothing is selected, so wait for the models.
+    await within(first).findByRole("checkbox", { name: "gemini-test" });
+    await waitFor(() => expect((screen.getByRole("button", { name: "console.clearAll" }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByRole("button", { name: "console.clearAll" }));
 
     // A second credential arrives; its models are a request, not a suggestion.
@@ -324,7 +327,6 @@ describe("CLIProxyAPI console", () => {
     const second = await screen.findByRole("region", { name: "second@example.com" });
     await waitFor(() => expect((within(second).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(true));
     // The models the user had just cleared stay cleared.
-    const first = screen.getByRole("region", { name: "user@example.com" });
     expect((within(first).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
   });
 
@@ -467,6 +469,28 @@ describe("CLIProxyAPI console", () => {
     await vi.waitFor(() => expect(screen.getAllByRole("checkbox", { name: "kimi-k2" }).length).toBeGreaterThan(0), { timeout: 20000 });
     vi.useRealTimers();
   }, 25000);
+
+
+  it("publishes only the chosen models when the gateway syncs on its own", async () => {
+    const f = fixture();
+    // A credential the user had curated down to one model.
+    f.readJson.mockImplementation(async () => ({ schemaVersion: 1, models: ["gemini-test"] }));
+    withAccounts(f);
+    render(<ProxyWorkspaceView context={f.context} />);
+    await screen.findByRole("region", { name: "user@example.com" });
+
+    // The post-authorization poll republishes; it must not quietly restore the rest.
+    fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    fireEvent.click(await screen.findByRole("button", { name: "provider.kimi setup.deviceFlow" }));
+    f.handle.mockImplementation(async (request: { path: string }) =>
+      request.path.includes("get-auth-status") ? { status: "ok" }
+        : request.path === "/v1/models" ? { data: [{ id: "gemini-test", owned_by: "google" }, { id: "other", owned_by: "google" }] }
+        : { files: [] });
+
+    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalledWith("google", expect.objectContaining({
+      models: [expect.objectContaining({ id: "gemini-test" })]
+    })), { timeout: 4000 });
+  });
 
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();

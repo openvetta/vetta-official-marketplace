@@ -5,6 +5,7 @@ import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { toDisplayErrorMessage } from "./error-message";
 import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type AccountQuota, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
 import { hasQuotaProbe, probeAccountQuota } from "./quota-probe";
+import { readModelSelection } from "./model-selection";
 
 export type OAuthFlow = {
   provider: OAuthProviderId;
@@ -92,11 +93,15 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       setAccounts(nextAccounts);
       accountsRef.current = nextAccounts;
       if (publish) {
-        // An explicit sync is a request for the current truth, quota included.
+        // Publishing outside the picker must still honour what the user chose:
+        // the post-authorization poll runs this several times, and publishing
+        // everything there would quietly undo their curation.
+        const selection = await readModelSelection(pluginContext);
+        const published = selection ? nextModels.filter((model) => selection.has(model.id)) : nextModels;
         probedRef.current.clear();
-        await publishModels(nextModels);
-        setSyncedModelCount(nextModels.length);
-        console.info(`[cli-proxy-api] Model sync completed: ${nextModels.length} model(s).`);
+        await publishModels(nextModels, () => true, selection);
+        setSyncedModelCount(published.length);
+        console.info(`[cli-proxy-api] Model sync completed: ${published.length} model(s).`);
       }
     } catch (reason) {
       const details = toDisplayErrorMessage(reason);

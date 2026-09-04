@@ -2,7 +2,7 @@
   "id": "cli-proxy-api",
   "name": "%name%",
   "icon": "assets/nav-icon.png",
-  "version": "1.6.3",
+  "version": "1.7.0",
   "pluginApiVersion": "^1.5.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
