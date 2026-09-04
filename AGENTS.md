@@ -169,7 +169,8 @@ version: 1.0.0           # 必须 === 条目的 version
 ```
 
 - `setup` 只允许受管运行时（有 `runtime` 的 `schemaVersion: 2`）使用，没有数据目录就无从判断是否完成。
-- `kind` 当前只能是 `agent-tool`；`tool` 是要让 Agent 在对话里调用的 MCP 工具名，桌面端会把它直接显示给用户。
+- `kind` 当前只能是 `agent-tool`；`tool` 是完成这一步要调用的 MCP 工具名。桌面端会自己连上该服务调用它，把返回的二维码显示在弹窗里；取不到二维码时才退回提示用户在对话里让 Agent 调用。
+- 该工具必须无参可调，并返回二维码图片（image 内容块、`structuredContent`，或含 base64 字段的 JSON 文本均可）。
 - `completedWhen.dataFile` 是相对 `${VETTA_MCP_DATA_DIR}` 的安全相对路径（不得逃逸目录）。该文件存在即视为完成；在此之前条目显示「需要配置」。
 
 ### plugin
