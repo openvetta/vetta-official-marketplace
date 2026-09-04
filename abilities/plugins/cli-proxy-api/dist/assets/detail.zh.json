@@ -6,7 +6,11 @@
       "eyebrow": "受管本地模型网关",
       "title": "用一个本地入口调用订阅账号模型",
       "description": "通过 CLIProxyAPI 连接受支持的服务商账号，动态发现可路由模型，并按协议加入 Vetta；不复制上游源码，也不维护长期 Fork。",
-      "badges": ["固定版本制品", "仅回环监听", "OAuth 服务商"]
+      "badges": [
+        "固定版本制品",
+        "仅回环监听",
+        "OAuth 服务商"
+      ]
     },
     {
       "type": "callout",
@@ -30,15 +34,33 @@
           "icon": "solar:server-minimalistic-bold",
           "title": "按协议注册 Vetta 模型",
           "description": "动态路由会分为 Google Generative AI、Anthropic Messages、OpenAI Responses 和兼容 Chat Completions；来源未知时保守回退到 Chat Completions。"
+        },
+        {
+          "icon": "solar:chart-square-bold",
+          "title": "日常使用的独立页面",
+          "description": "在同一页完成渠道授权、查看每个渠道声明的模型及其真实上下文长度，并了解各渠道的请求健康度，无需再打开能力详情页。"
         }
       ]
     },
     {
       "type": "steps",
       "items": [
-        { "title": "安装并启用", "description": "插件为当前系统和架构下载两份锁定制品；Vetta 再次校验 SHA-256，并使用动态回环端口启动服务。" },
-        { "title": "连接与管理账号", "description": "OAuth 成功后设置面板仍会保留。你可以随时添加账号；需要彻底更换时，先移除旧的本地凭据，再授权新账号。升级运行时不会覆盖已连接账号。" },
-        { "title": "同步模型", "description": "读取实时 `/v1/models` 目录，并把不同协议组发布到本插件拥有的 Vetta 模型命名空间。" }
+        {
+          "title": "安装并启用",
+          "description": "插件为当前系统和架构下载两份锁定制品；Vetta 再次校验 SHA-256，并使用动态回环端口启动服务。"
+        },
+        {
+          "title": "连接与管理账号",
+          "description": "OAuth 成功后设置面板仍会保留。你可以随时添加账号；需要彻底更换时，先移除旧的本地凭据，再授权新账号。升级运行时不会覆盖已连接账号。"
+        },
+        {
+          "title": "同步模型",
+          "description": "读取实时 `/v1/models` 目录，并把不同协议组发布到本插件拥有的 Vetta 模型命名空间。"
+        },
+        {
+          "title": "在独立页面查看网关",
+          "description": "侧边栏的「模型网关」页面把各渠道并排呈现：已连接的账号、该渠道能路由的模型，以及近期请求的成功与失败次数。"
+        }
       ]
     },
     {

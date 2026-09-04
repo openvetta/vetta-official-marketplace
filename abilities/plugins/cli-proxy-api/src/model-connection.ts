@@ -16,7 +16,7 @@ export function maintainModelConnection(context: ManagedPluginContext) {
     if (phase !== "ready") return;
     pending = pending.then(async () => {
       if (!active || current !== generation) return;
-      const models = await client.loadModels();
+      const { models } = await client.loadModels();
       if (!active || current !== generation) return;
       await client.publishModels(models, () => active && current === generation);
       lastError = undefined;

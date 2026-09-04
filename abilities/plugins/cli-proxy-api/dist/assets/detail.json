@@ -6,7 +6,11 @@
       "eyebrow": "Managed local model gateway",
       "title": "Use subscription-backed models through one local endpoint",
       "description": "Connect supported provider accounts with CLIProxyAPI, discover their routable models and add protocol-aware providers to Vetta without copying or forking the upstream project.",
-      "badges": ["Pinned releases", "Loopback only", "OAuth providers"]
+      "badges": [
+        "Pinned releases",
+        "Loopback only",
+        "OAuth providers"
+      ]
     },
     {
       "type": "callout",
@@ -30,15 +34,33 @@
           "icon": "solar:server-minimalistic-bold",
           "title": "Protocol-aware Vetta models",
           "description": "Discovered routes are grouped into Google Generative AI, Anthropic Messages, OpenAI Responses and compatible Chat Completions providers. Unknown ownership falls back conservatively to Chat Completions."
+        },
+        {
+          "icon": "solar:chart-square-bold",
+          "title": "A page for day-to-day use",
+          "description": "Authorize channels, inspect the models each one advertises with their real context windows, and read per-channel request health without opening the ability page."
         }
       ]
     },
     {
       "type": "steps",
       "items": [
-        { "title": "Install and enable", "description": "The plugin downloads the two pinned assets for your OS and architecture; Vetta verifies SHA-256 again and starts the service on a dynamic loopback port." },
-        { "title": "Connect and manage accounts", "description": "The setup panel remains available after OAuth. Add another account at any time, or remove the old local credential before authorizing its replacement. Runtime upgrades retain connected accounts." },
-        { "title": "Sync models", "description": "Fetch the live /v1/models catalog and publish each protocol group into the plugin-owned Vetta model namespace." }
+        {
+          "title": "Install and enable",
+          "description": "The plugin downloads the two pinned assets for your OS and architecture; Vetta verifies SHA-256 again and starts the service on a dynamic loopback port."
+        },
+        {
+          "title": "Connect and manage accounts",
+          "description": "The setup panel remains available after OAuth. Add another account at any time, or remove the old local credential before authorizing its replacement. Runtime upgrades retain connected accounts."
+        },
+        {
+          "title": "Sync models",
+          "description": "Fetch the live /v1/models catalog and publish each protocol group into the plugin-owned Vetta model namespace."
+        },
+        {
+          "title": "Watch the gateway from its own page",
+          "description": "The Model gateway page in the sidebar shows every channel side by side: the accounts on it, the models it can route, and how many recent requests succeeded or failed."
+        }
       ]
     },
     {

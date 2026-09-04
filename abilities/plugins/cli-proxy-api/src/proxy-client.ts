@@ -15,8 +15,20 @@ export type JsonRecord = Record<string, unknown>;
 export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
 
+/** One model as the upstream channel catalog describes it, before any account is connected. */
+export type ChannelModel = { id: string; displayName?: string } & ModelMetadata;
+
 /** Resolves a model advertised by `/v1/models` to its upstream capabilities. */
-export type ModelCatalog = { lookup(id: string, ownedBy: string): ModelMetadata | undefined; size: number };
+export type ModelCatalog = {
+  lookup(id: string, ownedBy: string): ModelMetadata | undefined;
+  size: number;
+  /** Everything each channel says it can route, keyed by channel name. */
+  channels: ReadonlyMap<string, ChannelModel[]>;
+};
+
+/** A ten-minute request bucket as reported by `/v0/management/auth-files`. */
+export type UsageBucket = { time: string; success: number; failed: number };
+
 export type ProxyAccount = {
   key: string;
   provider: string;
@@ -24,6 +36,14 @@ export type ProxyAccount = {
   deleteName?: string;
   active: boolean;
   removable: boolean;
+  /** Upstream health, absent on gateways that report no counters for the credential. */
+  status?: string;
+  statusMessage?: string;
+  email?: string;
+  lastRefresh?: string;
+  success: number;
+  failed: number;
+  recentRequests: UsageBucket[];
 };
 
 export function record(value: unknown): JsonRecord | undefined {
@@ -36,6 +56,23 @@ export function textField(value: JsonRecord | undefined, ...keys: string[]): str
     if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
   }
   return undefined;
+}
+
+/** Request counters are absent on gateways that never served the credential. */
+function counter(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
+}
+
+function readUsageBuckets(value: unknown): UsageBucket[] {
+  if (!Array.isArray(value)) return [];
+  const buckets: UsageBucket[] = [];
+  for (const item of value) {
+    const entry = record(item);
+    const time = textField(entry, "time");
+    if (!time) continue;
+    buckets.push({ time, success: counter(entry?.success), failed: counter(entry?.failed) });
+  }
+  return buckets;
 }
 
 /** Upstream sends `0` for "unknown"; a zero context window would fail host validation. */
@@ -114,12 +151,18 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
   // the channel name is kept too because some owners (google) span three channels.
   const qualified = new Map<string, ModelMetadata>();
   const byId = new Map<string, ModelMetadata>();
+  const channels = new Map<string, ChannelModel[]>();
   for (const { channel, models } of perChannel) {
+    const listing: ChannelModel[] = [];
     for (const item of models) {
       const entry = record(item);
       const id = textField(entry, "id");
       if (!entry || !id) continue;
       const metadata = readModelMetadata(entry);
+      const displayName = textField(entry, "display_name", "name");
+      listing.push({ id, ...(displayName ? { displayName } : {}), ...metadata });
+      // A listing entry without figures still belongs on the page, but it must not
+      // shadow another channel that does know this model's limits.
       if (Object.keys(metadata).length === 0) continue;
       const owner = textField(entry, "owned_by", "ownedBy");
       for (const key of owner ? [`${channel}/${id}`, `${owner}/${id}`] : [`${channel}/${id}`]) {
@@ -127,9 +170,13 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
       }
       if (!byId.has(id)) byId.set(id, metadata);
     }
+    if (listing.length > 0) {
+      channels.set(channel, listing.sort((left, right) => left.id.localeCompare(right.id)));
+    }
   }
   return {
     size: byId.size,
+    channels,
     lookup: (id, ownedBy) => qualified.get(`${ownedBy.trim().toLowerCase()}/${id}`) ?? byId.get(id)
   };
 }
@@ -162,13 +209,24 @@ function readAccounts(value: unknown): ProxyAccount[] {
     const stableId = textField(entry, "auth_index", "id", "name") ?? provider;
     const displayName = textField(entry, "email", "label", "account", "id", "name") ?? provider;
     const runtimeOnly = entry.runtime_only === true || textField(entry, "source") === "memory";
+    const status = textField(entry, "status");
+    const statusMessage = textField(entry, "status_message");
+    const email = textField(entry, "email");
+    const lastRefresh = textField(entry, "last_refresh", "updated_at");
     accounts.push({
       key: `${stableId}:${index}`,
       provider,
       displayName,
       ...(deleteName ? { deleteName } : {}),
       active: entry.disabled !== true && entry.unavailable !== true,
-      removable: !runtimeOnly && Boolean(deleteName)
+      removable: !runtimeOnly && Boolean(deleteName),
+      ...(status ? { status } : {}),
+      ...(statusMessage ? { statusMessage } : {}),
+      ...(email ? { email } : {}),
+      ...(lastRefresh ? { lastRefresh } : {}),
+      success: counter(entry.success),
+      failed: counter(entry.failed),
+      recentRequests: readUsageBuckets(entry.recent_requests)
     });
   }
   return accounts.sort((left, right) => left.provider.localeCompare(right.provider) || left.displayName.localeCompare(right.displayName));
@@ -213,13 +271,17 @@ async function publishModels(models: ProxyModel[], isCurrent = () => true): Prom
   }
 }
 
-/** Reads the model list already enriched with upstream capabilities. */
-async function loadModels(): Promise<ProxyModel[]> {
+/**
+ * Reads the routable model list already enriched with upstream capabilities, and
+ * hands back the catalog it used: the workspace view also needs the full
+ * per-channel listing, and fetching eight channels twice would be wasteful.
+ */
+async function loadModels(): Promise<{ models: ProxyModel[]; catalog: ModelCatalog }> {
   const [payload, catalog] = await Promise.all([
     serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL }),
     fetchModelCatalog()
   ]);
-  return readModels(payload, catalog);
+  return { models: readModels(payload, catalog), catalog };
 }
 
 return { serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels };

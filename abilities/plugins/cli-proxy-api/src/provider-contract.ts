@@ -48,3 +48,17 @@ export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup 
 export const MODEL_DEFINITION_CHANNELS = [
   "antigravity", "aistudio", "claude", "codex", "gemini", "kimi", "vertex", "xai"
 ] as const;
+
+/**
+ * Which model-definition channel backs each OAuth provider, so a connected
+ * account can be shown with the models its channel actually routes. Gemini CLI
+ * authenticates the `gemini` channel — the route has no `gemini-cli` key.
+ */
+export const MODEL_CHANNEL_BY_PROVIDER: Record<OAuthProviderId, string> = {
+  "gemini-cli": "gemini",
+  codex: "codex",
+  claude: "claude",
+  antigravity: "antigravity",
+  kimi: "kimi",
+  xai: "xai"
+};

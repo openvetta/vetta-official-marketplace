@@ -37,8 +37,12 @@ describe("CLIProxyAPI contracts", () => {
   it("publishes the upstream context window instead of letting the host fall back to 128k", async () => {
     const f = fixture();
     const client = createProxyClient(f.context);
-    const models = await client.loadModels();
+    const { models, catalog } = await client.loadModels();
     expect(models).toEqual([{ id: "gemini-test", ownedBy: "google", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]);
+    // The channel listing is what the workspace view renders as "supported models".
+    expect(catalog.channels.get("gemini")).toEqual([
+      { id: "gemini-test", contextWindow: 1048576, maxTokens: 65536, reasoning: true }
+    ]);
     await client.publishModels(models);
     expect(f.upsertProvider).toHaveBeenCalledWith("google", expect.objectContaining({
       models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]
@@ -55,7 +59,7 @@ describe("CLIProxyAPI contracts", () => {
       throw new Error("unknown channel");
     });
     const client = createProxyClient(f.context);
-    const models = await client.loadModels();
+    const { models } = await client.loadModels();
     expect(models).toEqual([{ id: "mystery", ownedBy: "kimi" }]);
     await client.publishModels(models);
     expect(f.upsertProvider).toHaveBeenCalledWith("anthropic", expect.objectContaining({
@@ -92,7 +96,11 @@ describe("CLIProxyAPI contracts", () => {
         displayName: "user@example.com",
         deleteName: "codex-user@example.com.json",
         active: true,
-        removable: true
+        removable: true,
+        email: "user@example.com",
+        success: 0,
+        failed: 0,
+        recentRequests: []
       },
       {
         key: "memory-1:1",
@@ -100,7 +108,10 @@ describe("CLIProxyAPI contracts", () => {
         displayName: "Runtime account",
         deleteName: "virtual-account",
         active: true,
-        removable: false
+        removable: false,
+        success: 0,
+        failed: 0,
+        recentRequests: []
       }
     ]);
   });

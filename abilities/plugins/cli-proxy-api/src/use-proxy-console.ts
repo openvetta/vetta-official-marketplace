@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { toDisplayErrorMessage } from "./error-message";
-import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ProxyAccount, type ProxyModel } from "./proxy-client";
+import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
 
 export type OAuthFlow = {
   provider: OAuthProviderId;
@@ -46,6 +46,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     recentOutput: ""
   });
   const [models, setModels] = useState<ProxyModel[]>([]);
+  const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
   const [accounts, setAccounts] = useState<ProxyAccount[]>([]);
   const [flow, setFlow] = useState<OAuthFlow | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +70,12 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       console.info("[cli-proxy-api] Model sync started.");
     }
     try {
-      const [nextModels, accountPayload] = await Promise.all([
+      const [{ models: nextModels, catalog: nextCatalog }, accountPayload] = await Promise.all([
         loadModels(),
         serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL })
       ]);
       setModels(nextModels);
+      setCatalog(nextCatalog);
       setAccounts(readAccounts(accountPayload));
       if (publish) {
         await publishModels(nextModels);
@@ -242,7 +244,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const busy = status.phase === "installing" || status.phase === "starting" || status.phase === "stopping";
 
   return {
-    client, status, models, accounts, accountsByProvider, busy, flow, error, setError,
+    client, status, models, catalog, accounts, accountsByProvider, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
     removalCandidate, setRemovalCandidate, removingAccount,
     refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount

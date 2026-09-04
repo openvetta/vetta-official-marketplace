@@ -48,5 +48,17 @@
   "provider.claude": "Claude Code",
   "provider.antigravity": "Google Antigravity",
   "provider.kimi": "Kimi",
-  "provider.xai": "xAI"
+  "provider.xai": "xAI",
+  "console.title": "Model gateway",
+  "console.subtitle": "Authorize channels, see what each one can route and how it is behaving.",
+  "console.supportedModels": "{{live}} of {{total}} models routable",
+  "console.context": "{{value}} context",
+  "console.reasoning": "Reasoning",
+  "console.notRouted": "Not routed",
+  "console.expand": "Show all",
+  "console.collapse": "Show less",
+  "console.successRate": "{{rate}}% success",
+  "console.channelRequests": "{{success}} succeeded, {{failed}} failed in the recent windows",
+  "console.noRequests": "No requests yet",
+  "console.usageChart": "Recent request volume per ten-minute window"
 }

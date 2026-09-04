@@ -48,5 +48,17 @@
   "provider.claude": "Claude Code",
   "provider.antigravity": "Google Antigravity",
   "provider.kimi": "Kimi",
-  "provider.xai": "xAI"
+  "provider.xai": "xAI",
+  "console.title": "模型网关",
+  "console.subtitle": "授权各渠道，查看每个渠道能路由哪些模型、运行是否正常。",
+  "console.supportedModels": "{{total}} 个模型中 {{live}} 个可路由",
+  "console.context": "上下文 {{value}}",
+  "console.reasoning": "推理",
+  "console.notRouted": "未路由",
+  "console.expand": "展开全部",
+  "console.collapse": "收起",
+  "console.successRate": "成功率 {{rate}}%",
+  "console.channelRequests": "近期窗口内成功 {{success}} 次，失败 {{failed}} 次",
+  "console.noRequests": "暂无请求",
+  "console.usageChart": "每十分钟窗口的请求量"
 }
