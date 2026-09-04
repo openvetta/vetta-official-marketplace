@@ -126,5 +126,6 @@
   "console.groupFailed": "Could not read this credential's models: {{details}}",
   "console.quotaFailed": "Could not read the provider's quota: {{details}}",
   "console.refresh": "Refresh",
-  "console.restartService": "Restart service"
+  "console.restartService": "Restart service",
+  "console.groupSettling": "Waiting for the gateway to register this credential's models…"
 }

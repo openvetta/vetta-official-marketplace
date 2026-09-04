@@ -577,10 +577,11 @@ function ConnectDialog({ onClose, onPick, disabled }: {
 export type ModelGroupState = { models: ChannelModel[]; error?: string };
 
 /** One credential's models, as tick boxes. */
-function ModelGroup({ account, provider, state, selected, onToggle, onGroup }: {
+function ModelGroup({ account, provider, state, settling, selected, onToggle, onGroup }: {
   account: ProxyAccount;
   provider: OAuthProviderId | undefined;
   state: ModelGroupState;
+  settling: boolean;
   selected: ReadonlySet<string>;
   onToggle: (id: string) => void;
   onGroup: (ids: string[], next: boolean) => void;
@@ -611,7 +612,9 @@ function ModelGroup({ account, provider, state, selected, onToggle, onGroup }: {
           {t("console.groupFailed", { details: state.error })}
         </p>
       ) : models.length === 0 ? (
-        <p className="px-3 py-2.5 text-[11px] text-muted-foreground">{t("console.groupEmpty")}</p>
+        <p className="px-3 py-2.5 text-[11px] text-muted-foreground">
+          {settling && account.active ? <><Spin /> {t("console.groupSettling")}</> : t("console.groupEmpty")}
+        </p>
       ) : (
       <div className="grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {models.map((model) => {
@@ -645,11 +648,12 @@ function ModelGroup({ account, provider, state, selected, onToggle, onGroup }: {
  * predictable once accounts come and go.
  */
 function ModelPicker({
-  accounts, accountModels, loading, selected, setSelected, onApply, applying
+  accounts, accountModels, loading, settling, selected, setSelected, onApply, applying
 }: {
   accounts: ProxyAccount[];
   accountModels: ReadonlyMap<string, ModelGroupState>;
   loading: boolean;
+  settling: boolean;
   selected: ReadonlySet<string>;
   setSelected: (next: ReadonlySet<string>) => void;
   onApply: () => void;
@@ -709,6 +713,7 @@ function ModelPicker({
               account={account}
               provider={providerForAccount(account)}
               state={accountModels.get(account.key) ?? { models: [] }}
+              settling={settling}
               selected={selected}
               onToggle={toggle}
               onGroup={setGroup}
@@ -746,6 +751,18 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const [modelsError, setModelsError] = useState<string | null>(null);
   const [groupedModels, setGroupedModels] = useState<ReadonlyMap<string, ModelGroupState>>(new Map());
   const [pickerLoading, setPickerLoading] = useState(true);
+  /**
+   * Bumped to re-read the models a credential should have.
+   *
+   * Restarting the gateway, authorizing an account and refreshing a token all
+   * leave the credential listed and active while its routes are still being
+   * rebuilt, so a read landing in that window sees nothing. Measured against a
+   * real restart, the window is a minute or two — long enough that the panel was
+   * settling on "no models" and never looking again.
+   */
+  const [retryTick, setRetryTick] = useState(0);
+  const retries = useRef(0);
+  const settling = useRef(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   /**
    * Whether the stored selection has been read.
@@ -769,6 +786,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
 
   // One read per credential, refreshed whenever the set of credentials changes.
   const accountKeys = accounts.map((account) => account.key).join("|");
+  useEffect(() => { retries.current = 0; }, [accountKeys]);
   useEffect(() => {
     let active = true;
     if (accounts.length === 0) {
@@ -776,7 +794,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       setPickerLoading(false);
       return () => { active = false; };
     }
-    setPickerLoading(true);
+    if (retries.current === 0) setPickerLoading(true);
     void Promise.all(accounts.map(async (account): Promise<readonly [string, ModelGroupState]> => {
       try {
         return [account.key, { models: await client.fetchAccountModels(account, catalog ?? undefined) }] as const;
@@ -794,6 +812,16 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       // Seeding is the other effect's job. Two loads could otherwise both find
       // the selection "not yet read" and each re-tick everything, undoing a
       // clear the user had just made.
+      // Active credentials that answered with nothing are probably mid-rebuild.
+      const unsettled = accounts.some((account) => account.active
+        && !next.get(account.key)?.error
+        && (next.get(account.key)?.models.length ?? 0) === 0);
+      const delay = [800, 1600, 3000, 5000, 8000][retries.current];
+      settling.current = unsettled && delay !== undefined;
+      if (settling.current) {
+        retries.current += 1;
+        window.setTimeout(() => { if (active) setRetryTick((tick) => tick + 1); }, delay);
+      }
       offered.current = every;
       if (seedSelection()) return;
       // A model the picker has never shown is ticked by default: authorizing an
@@ -803,7 +831,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       if (fresh.length > 0) setSelected((current) => new Set([...current, ...fresh]));
     });
     return () => { active = false; };
-  }, [accountKeys, catalog, client]);
+  }, [accountKeys, catalog, client, retryTick]);
 
   /**
    * Establishes the initial selection, exactly once, and only when both halves
@@ -987,6 +1015,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
             accounts={accounts}
             accountModels={groupedModels}
             loading={pickerLoading}
+            settling={settling.current}
             selected={selected}
             setSelected={(next) => { touched.current = true; setSelected(next); }}
             applying={applying}

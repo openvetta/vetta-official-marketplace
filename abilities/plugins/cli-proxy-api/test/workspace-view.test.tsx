@@ -492,6 +492,33 @@ describe("CLIProxyAPI console", () => {
     })), { timeout: 4000 });
   });
 
+
+  it("keeps re-reading a credential whose routes are still being rebuilt", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let reads = 0;
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [{ auth_index: "ag-1", name: "ag.json", provider: "antigravity", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
+      }
+      if (request.path.includes("/auth-files/models")) {
+        reads += 1;
+        // Restarting the gateway leaves the credential listed while its routes
+        // are rebuilt: the first reads land in that window and see nothing.
+        return { models: reads < 3 ? [] : [{ id: "gemini-3.8-flash" }] };
+      }
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    const group = await screen.findByRole("region", { name: "user@example.com" });
+    // While retries remain it says it is waiting, not that the credential is empty.
+    await within(group).findByText("console.groupSettling");
+    await vi.waitFor(() => expect(within(group).getByRole("checkbox", { name: "gemini-3.8-flash" })).toBeTruthy(), { timeout: 20000 });
+    vi.useRealTimers();
+  }, 25000);
+
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();
     const { unmount } = render(<ProxyWorkspaceView context={f.context} />);

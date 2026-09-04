@@ -126,5 +126,6 @@
   "console.groupFailed": "读取该凭据的模型失败：{{details}}",
   "console.quotaFailed": "读取服务商额度失败：{{details}}",
   "console.refresh": "刷新",
-  "console.restartService": "重启服务"
+  "console.restartService": "重启服务",
+  "console.groupSettling": "正在等待网关注册该凭据的模型…"
 }
