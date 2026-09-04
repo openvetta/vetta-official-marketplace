@@ -84,5 +84,9 @@
   "provider.short.claude": "Claude",
   "provider.short.antigravity": "Antigravity",
   "provider.short.kimi": "Kimi",
-  "provider.short.xai": "xAI"
+  "provider.short.xai": "xAI",
+  "console.reloadApp": "重载应用",
+  "console.reloadAppHint": "重载 Vetta，让刚同步的模型出现在模型选择器里。",
+  "console.openConsole": "打开 CPA 配置",
+  "setup.consoleHandoff": "账号在侧边栏的「CPA 配置」页面管理，那里可以看到每个凭据各自的请求健康状况。"
 }

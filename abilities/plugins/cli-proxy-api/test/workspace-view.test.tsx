@@ -1,5 +1,6 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
 import { ProxyWorkspaceView, formatTokens } from "../src/workspace-view";
 import { fixture } from "./helpers";
 
@@ -113,6 +114,80 @@ describe("CLIProxyAPI console", () => {
       method: "PATCH",
       body: { name: "gemini-user.json", disabled: true }
     })));
+  });
+
+
+  it("offers every provider for authorization and drives the flow from here", async () => {
+    const f = fixture();
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    const picker = await screen.findByRole("dialog");
+    const icons = Array.from(picker.querySelectorAll("[data-provider-icon]"), (el) => el.getAttribute("data-provider-icon"));
+    expect(icons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"]);
+
+    expect(f.openExternal).not.toHaveBeenCalled();
+    fireEvent.click(within(picker).getByRole("button", { name: "provider.kimi setup.deviceFlow" }));
+    await screen.findByText("ABCD-EFGH");
+    expect(f.openExternal).toHaveBeenCalledWith("https://accounts.example.com/oauth");
+
+    f.handle.mockImplementation(async (request: { path: string }) =>
+      request.path.includes("get-auth-status") ? { status: "ok" }
+        : request.path === "/v1/models" ? { data: [{ id: "codex-test", owned_by: "codex" }] }
+        : { files: [] });
+    await screen.findByText("setup.oauthSuccess", {}, { timeout: 2500 });
+    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalledWith("responses", expect.objectContaining({ api: "openai-responses" })));
+  });
+
+  it("does not accept an in-flight authorization that was cancelled", async () => {
+    const f = fixture();
+    render(<ProxyWorkspaceView context={f.context} />);
+    fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    fireEvent.click(await screen.findByRole("button", { name: "provider.codex setup.browserFlow" }));
+    await screen.findByText("setup.oauthWaiting");
+
+    let resolvePoll!: (value: unknown) => void;
+    f.handle.mockImplementation(async (request: { path: string }) =>
+      request.path.includes("get-auth-status") ? await new Promise((resolve) => { resolvePoll = resolve; }) : { status: "ok" });
+    await waitFor(() => expect(resolvePoll).toBeTypeOf("function"), { timeout: 2500 });
+    fireEvent.click(screen.getByRole("button", { name: "setup.cancel" }));
+    await act(async () => { resolvePoll({ status: "ok" }); });
+
+    expect(screen.queryByText("setup.oauthSuccess")).toBeNull();
+    expect(f.upsertProvider).not.toHaveBeenCalled();
+    expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
+      method: "DELETE", path: "/v0/management/oauth-session?state=state-1"
+    }));
+  });
+
+  it("removes a credential only after the removal is confirmed", async () => {
+    const f = fixture();
+    withAccounts(f);
+    render(<ProxyWorkspaceView context={f.context} />);
+
+    const card = (await screen.findByText("user@example.com")).closest("article") as HTMLElement;
+    fireEvent.click(within(card).getByRole("button", { name: "setup.removeAccount user@example.com" }));
+    expect(within(card).getByText("setup.removeAccountConfirm")).toBeTruthy();
+    fireEvent.click(within(card).getByRole("button", { name: "setup.confirmRemove" }));
+
+    await waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
+      method: "DELETE", path: "/v0/management/auth-files?name=gemini-user.json"
+    })));
+  });
+
+  it("offers a full app reload so freshly synced models reach the picker", async () => {
+    const f = fixture();
+    render(<ProxyWorkspaceView context={f.context} />);
+    // The header only carries the running-service actions once the service is up.
+    await screen.findByText("setup.serviceReady");
+    await waitFor(() => {
+      const header = f.setWorkspaceViewHeader.mock.calls.at(-1)?.[1] as { right: ReactElement } | null;
+      expect(header).toBeTruthy();
+      cleanup();
+      render(header!.right);
+      // The gateway can publish a provider without the running renderer noticing it.
+      expect(screen.getByRole("button", { name: "console.reloadApp" })).toBeTruthy();
+    });
   });
 
   it("takes over the host header and clears it on unmount", async () => {

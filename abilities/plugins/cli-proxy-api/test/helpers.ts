@@ -20,6 +20,7 @@ export function fixture() {
   const removeProvider = vi.fn(async () => undefined);
   const openExternal = vi.fn(async () => undefined);
   const setWorkspaceViewHeader = vi.fn();
+  const openWorkspaceView = vi.fn();
   const context = {
     services: {
       getPlatform: vi.fn(async () => ({ tag: "win32-x64" })),
@@ -34,9 +35,9 @@ export function fixture() {
     },
     models: { upsertProvider, removeProvider },
     network: { request: vi.fn() },
-    ui: { openExternal, setWorkspaceViewHeader }
+    ui: { openExternal, setWorkspaceViewHeader, openWorkspaceView, openWorkspaceView }
   } as unknown as ManagedPluginContext;
-  return { context, ready, handle, upsertProvider, removeProvider, openExternal, setWorkspaceViewHeader,
+  return { context, ready, handle, upsertProvider, removeProvider, openExternal, setWorkspaceViewHeader, openWorkspaceView,
     emit: (status: ServiceStatus) => { for (const listener of listeners) listener(status); },
     setBaseUrl: (url: string) => { baseUrl = url; }
   };

@@ -22,7 +22,9 @@ export default definePlugin({
     const view = context.ui.registerWorkspaceView({
       id: WORKSPACE_VIEW_ID,
       label: "%console.title%",
-      icon: "icon-[solar--link-round-angle-outline]",
+      // No iconify class: the host only generates CSS for classes it can see in its
+      // own sources, so a plugin-declared one renders as an empty box. Omitting it
+      // makes the host mask this plugin's packaged icon with the theme foreground.
       description: "%console.subtitle%",
       component: () => createElement(ProxyWorkspaceView, { context })
     });

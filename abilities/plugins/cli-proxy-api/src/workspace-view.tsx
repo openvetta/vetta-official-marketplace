@@ -419,6 +419,9 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
               <Button aria-label={t("setup.restart")} title={t("setup.restart")} onClick={() => void pluginContext.services.restart(SERVICE_ID)}>
                 <ActionIcon name="restart" />
               </Button>
+              <Button aria-label={t("console.reloadApp")} title={t("console.reloadAppHint")} onClick={() => window.location.reload()}>
+                <ActionIcon name="app-reload" />{t("console.reloadApp")}
+              </Button>
             </>
           ) : (
             <Button className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15" disabled={busy} onClick={() => void ensureServiceStarted(pluginContext).catch(() => undefined)}>

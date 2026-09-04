@@ -30,9 +30,12 @@ The host must implement Plugin API 1.5.0 (planned minimum Desktop 0.5.50). Until
 Runtime configuration is regenerated in the cache directory for each launch; credentials and OAuth accounts remain
 in the data directory. API-key configuration forms are not part of this first release. Disabling the plugin stops
 the service but retains model settings; re-enabling refreshes their endpoint, without changing the default model.
-The ability-detail setup panel remains registered while the plugin is enabled. It lists individual OAuth accounts,
-allows additional authorization flows, and removes file-backed local credentials with explicit confirmation. Local
-removal does not revoke the provider-side OAuth grant; runtime-only credentials must be removed from their backing store.
+Credentials are managed on the CPA setup workspace view, not on the ability page: it authorizes new accounts, lists
+each credential with its own request health, switches one in or out of the routing pool, clears quota state and removes
+file-backed local credentials with explicit confirmation. Local removal does not revoke the provider-side OAuth grant;
+runtime-only credentials must be removed from their backing store. The ability-detail panel keeps only the managed
+service's own state — install, start, restart and model sync — and a link into that view, so a single surface owns the
+gateway's credentials.
 
 The plugin, not Desktop, owns runtime downloads: it selects the current platform via `ctx.services.getPlatform()`,
 fetches each pinned URL through its declared `ctx.network` hosts, verifies SHA-256, and submits the archive bytes to

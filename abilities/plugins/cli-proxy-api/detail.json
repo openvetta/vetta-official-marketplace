@@ -50,8 +50,8 @@
           "description": "The plugin downloads the two pinned assets for your OS and architecture; Vetta verifies SHA-256 again and starts the service on a dynamic loopback port."
         },
         {
-          "title": "Connect and manage accounts",
-          "description": "The setup panel remains available after OAuth. Add another account at any time, or remove the old local credential before authorizing its replacement. Runtime upgrades retain connected accounts."
+          "title": "Connect accounts",
+          "description": "Open the CPA setup page from the sidebar and authorize a provider. Add another account at any time, or remove the old local credential before authorizing its replacement. Runtime upgrades retain connected accounts."
         },
         {
           "title": "Sync models",
