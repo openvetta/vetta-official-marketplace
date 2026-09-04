@@ -4,6 +4,11 @@
   "version": "2.5.0",
   "runtime": {
     "kind": "managed-binary",
+    "service": {
+      "kind": "http-mcp",
+      "path": "/mcp",
+      "readyTimeoutMs": 300000
+    },
     "platforms": {
       "win32-x64": {
         "url": "https://github.com/xpzouying/xiaohongshu-mcp/releases/download/v2.5.0/xiaohongshu-mcp-windows-amd64.exe",
@@ -28,7 +33,9 @@
   "server": {
     "type": "stdio",
     "command": "${VETTA_MCP_EXECUTABLE}",
-    "args": ["-transport=stdio"],
+    "args": [
+      "-port=:${VETTA_MCP_PORT}"
+    ],
     "env": {
       "COOKIES_PATH": "${VETTA_MCP_DATA_DIR}/cookies.json"
     }
@@ -46,6 +53,8 @@
   "setup": {
     "kind": "agent-tool",
     "tool": "get_login_qrcode",
-    "completedWhen": { "dataFile": "cookies.json" }
+    "completedWhen": {
+      "dataFile": "cookies.json"
+    }
   }
 }

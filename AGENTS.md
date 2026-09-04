@@ -156,6 +156,27 @@ version: 1.0.0           # 必须 === 条目的 version
 - `server.command` 必须精确为 `${VETTA_MCP_EXECUTABLE}`。参数、环境变量和工作目录可以使用 `${VETTA_MCP_RUNTIME_DIR}`、`${VETTA_MCP_DATA_DIR}`、`${VETTA_MCP_CACHE_DIR}`。
 - 只有已发布并可验证的 Release 产物才能注册；示例 URL 和 SHA-256 不能直接用于市场条目。
 
+有些官方二进制**本身就是一个本地 HTTP MCP 服务**（只监听端口，没有 stdio 模式）。这类要在 `runtime` 里加 `service`：
+
+```json
+{
+  "runtime": {
+    "kind": "managed-binary",
+    "service": { "kind": "http-mcp", "path": "/mcp", "readyTimeoutMs": 300000 },
+    "platforms": { "...": {} }
+  },
+  "server": {
+    "type": "stdio",
+    "command": "${VETTA_MCP_EXECUTABLE}",
+    "args": ["-port=:${VETTA_MCP_PORT}"]
+  }
+}
+```
+
+- 桌面端会分配一个空闲端口、拉起二进制、等 `path` 就绪，再用内置桥接把 stdio 转到该端点；进程随 MCP 客户端一起退出。
+- `server` 仍然按 stdio 写，描述的是**怎么启动这个二进制**；`${VETTA_MCP_PORT}` 必须出现在 `args` 或 `env` 里，否则校验直接失败——服务收不到分配的端口就永远等不到就绪。
+- `readyTimeoutMs` 上限 600000。首次运行要下载依赖（例如浏览器内核）的服务要放宽这个值。
+
 安装完还需要用户做一次动作（扫码登录等）的受管 MCP，用 `schemaVersion: 2` 的可选 `setup` 声明：
 
 ```json
