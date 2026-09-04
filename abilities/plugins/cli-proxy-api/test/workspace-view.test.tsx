@@ -519,6 +519,42 @@ describe("CLIProxyAPI console", () => {
     vi.useRealTimers();
   }, 25000);
 
+
+  it("does not re-tick models that only vanished while the gateway restarted", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let phase = "up";
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+        return { files: [{ auth_index: "ag-1", name: "ag.json", provider: "antigravity", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
+      }
+      if (request.path.includes("/auth-files/models")) {
+        return { models: phase === "down" ? [] : [{ id: "gemini-a" }, { id: "gemini-b" }] };
+      }
+      return original(request);
+    });
+
+    render(<ProxyWorkspaceView context={f.context} />);
+    const group = await screen.findByRole("region", { name: "user@example.com" });
+    const b = await within(group).findByRole("checkbox", { name: "gemini-b" });
+    await vi.waitFor(() => expect((b as HTMLInputElement).checked).toBe(true));
+    fireEvent.click(b);
+    expect((within(group).getByRole("checkbox", { name: "gemini-b" }) as HTMLInputElement).checked).toBe(false);
+
+    // The gateway restarts: the credential stays listed but reports nothing yet.
+    phase = "down";
+    fireEvent.click(screen.getByRole("button", { name: "console.resetQuota user@example.com" }));
+    await within(group).findByText("console.groupSettling");
+    phase = "up";
+
+    // Coming back is not the same as being new, so the deselection must survive.
+    await vi.waitFor(() => expect(within(group).getByRole("checkbox", { name: "gemini-b" })).toBeTruthy(), { timeout: 20000 });
+    await vi.waitFor(() => expect((within(group).getByRole("checkbox", { name: "gemini-a" }) as HTMLInputElement).checked).toBe(true));
+    expect((within(group).getByRole("checkbox", { name: "gemini-b" }) as HTMLInputElement).checked).toBe(false);
+    vi.useRealTimers();
+  }, 25000);
+
   it("takes over the host header and clears it on unmount", async () => {
     const f = fixture();
     const { unmount } = render(<ProxyWorkspaceView context={f.context} />);

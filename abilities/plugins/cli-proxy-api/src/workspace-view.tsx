@@ -772,7 +772,14 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
    * and re-tick every model — quietly undoing what the user had just cleared.
    */
   const selectionLoaded = useRef(false);
-  /** Model ids the picker has already offered; anything new is opted in. */
+  /**
+   * Every model id the picker has **ever** offered, not just the current batch.
+   *
+   * Cumulative on purpose: a credential briefly reports nothing while the
+   * gateway rebuilds its routes, and replacing this set with each batch made
+   * those ids look brand new when they came back — silently re-ticking models
+   * the user had deselected.
+   */
   const knownIds = useRef<ReadonlySet<string>>(new Set());
   /** Latest ids the gateway offered, whether or not the selection has been read. */
   const offered = useRef<ReadonlySet<string>>(new Set());
@@ -827,7 +834,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       // A model the picker has never shown is ticked by default: authorizing an
       // account is a request for its models, not an invitation to hunt for them.
       const fresh = [...every].filter((id) => !knownIds.current.has(id));
-      knownIds.current = every;
+      knownIds.current = new Set([...knownIds.current, ...every]);
       if (fresh.length > 0) setSelected((current) => new Set([...current, ...fresh]));
     });
     return () => { active = false; };
