@@ -57,4 +57,19 @@ describe("CLIProxyAPI semantic service readiness", () => {
     expect(modelReads).toBeGreaterThanOrEqual(2);
     await readiness.dispose();
   });
+
+  it("reconciles a starting status when the initial IPC event was missed", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let phase: "stopped" | "starting" = "stopped";
+    f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase }));
+    const readiness = maintainServiceReadiness(f.context);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(f.reportReady).not.toHaveBeenCalled();
+    phase = "starting";
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(f.reportReady).toHaveBeenCalledWith("proxy", true));
+    await readiness.dispose();
+  });
 });

@@ -206,4 +206,39 @@ describe("CLIProxyAPI contracts", () => {
     }));
     await connection.dispose();
   });
+
+  it("does not clear providers on an initially empty catalog without a selection", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    const stableHandle = f.handle.getMockImplementation();
+    let modelRequests = 0;
+    f.context.services.getStatus = vi.fn(async () => f.ready);
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v1/models" && modelRequests++ === 0) return { data: [] };
+      if (!stableHandle) throw new Error("missing fixture handler");
+      return stableHandle(request);
+    });
+
+    const connection = maintainModelConnection(f.context);
+    await vi.waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ path: "/v1/models" })));
+    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(10_000);
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
+    await connection.dispose();
+  });
+
+  it("reconciles a ready transition when the host status event was missed", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let phase: "starting" | "ready" = "starting";
+    f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase }));
+    const connection = maintainModelConnection(f.context);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
+    phase = "ready";
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
+    await connection.dispose();
+  });
 });

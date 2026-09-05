@@ -3,6 +3,7 @@ import { readModelSelection } from "./model-selection";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 
 const READINESS_RETRY_DELAYS_MS = [250, 500, 1_000, 2_000, 5_000, 10_000] as const;
+const STATUS_RECONCILE_INTERVAL_MS = 500;
 
 /**
  * The gateway can answer its transport health endpoint before its account-backed
@@ -16,6 +17,8 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
   let generation = 0;
   let phase: ServiceStatus["phase"] | undefined;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let statusTimer: ReturnType<typeof setInterval> | undefined;
+  let probing = false;
   let pending = Promise.resolve();
 
   const cancel = () => {
@@ -32,6 +35,8 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
     }, delay);
   };
   const probe = (current: number, attempt: number) => {
+    if (probing) return;
+    probing = true;
     pending = pending.then(async () => {
       if (!active || current !== generation || phase !== "starting") return;
       try {
@@ -52,7 +57,7 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
       } catch {
         schedule(current, attempt);
       }
-    }).catch(() => schedule(current, attempt));
+    }).catch(() => schedule(current, attempt)).finally(() => { probing = false; });
   };
   const update = (status: ServiceStatus) => {
     if (!active || status.serviceId !== SERVICE_ID || status.phase === phase) return;
@@ -61,6 +66,16 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
     cancel();
     if (phase === "starting") probe(current, 0);
   };
+  // Status events are best-effort IPC notifications.  A plugin can be
+  // activated while the host is starting the child process and miss the one
+  // `starting -> ready` transition.  Reconcile the authoritative status so a
+  // missed event cannot permanently strand the readiness state machine.
+  statusTimer = setInterval(() => {
+    void context.services.getStatus(SERVICE_ID).then((status) => {
+      if (phase !== status.phase) update(status);
+      else if (phase === "starting" && retryTimer === undefined) probe(generation, 0);
+    }).catch(() => undefined);
+  }, STATUS_RECONCILE_INTERVAL_MS);
   const subscription = context.services.onStatusChange(update);
   void context.services.getStatus(SERVICE_ID).then((status) => {
     if (phase === undefined) update(status);
@@ -70,6 +85,7 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
       active = false;
       generation += 1;
       cancel();
+      if (statusTimer !== undefined) clearInterval(statusTimer);
       subscription.dispose();
       await pending;
     },

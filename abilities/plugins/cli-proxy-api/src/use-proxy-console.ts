@@ -92,7 +92,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       setCatalog(nextCatalog);
       setAccounts(nextAccounts);
       accountsRef.current = nextAccounts;
-      if (publish) {
+      if (publish && nextModels.length > 0) {
         // Publishing outside the picker must still honour what the user chose:
         // the post-authorization poll runs this several times, and publishing
         // everything there would quietly undo their curation.
@@ -102,6 +102,11 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
         await publishModels(nextModels, () => true, selection);
         setSyncedModelCount(published.length);
         console.info(`[cli-proxy-api] Model sync completed: ${published.length} model(s).`);
+      } else if (publish) {
+        // A manual refresh is still a read operation. Do not interpret a
+        // temporary empty gateway response as the user's request to clear all
+        // published providers; only the explicit selection apply path clears.
+        console.info("[cli-proxy-api] Model sync skipped: gateway returned an empty catalog.");
       }
     } catch (reason) {
       const details = toDisplayErrorMessage(reason);
