@@ -12,31 +12,31 @@
     "name": "vite-preload-helper"
   },
   "assets/providers/antigravity.svg": {
-    "file": "assets/antigravity-Cm1Tvp5c.svg",
+    "file": "assets/antigravity-zYLgnO7E.svg",
     "src": "assets/providers/antigravity.svg"
   },
   "assets/providers/claude.svg": {
-    "file": "assets/claude-CBNYEA1u.svg",
+    "file": "assets/claude-C4D1XeU4.svg",
     "src": "assets/providers/claude.svg"
   },
   "assets/providers/codex.svg": {
-    "file": "assets/codex-DXuoGGqS.svg",
+    "file": "assets/codex-Cg75q3i9.svg",
     "src": "assets/providers/codex.svg"
   },
   "assets/providers/gemini-cli.svg": {
-    "file": "assets/gemini-cli-CeBtOXoo.svg",
+    "file": "assets/gemini-cli-C4BRocv-.svg",
     "src": "assets/providers/gemini-cli.svg"
   },
   "assets/providers/kimi.svg": {
-    "file": "assets/kimi-BlLwMwTl.svg",
+    "file": "assets/kimi-BdLQgu-B.svg",
     "src": "assets/providers/kimi.svg"
   },
   "assets/providers/xai.svg": {
-    "file": "assets/xai-ClWuMoQY.svg",
+    "file": "assets/xai-C6UG8jOq.svg",
     "src": "assets/providers/xai.svg"
   },
   "src/index.tsx": {
-    "file": "assets/index-CTII_9eG.js",
+    "file": "assets/index-CtFASC6j.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -51,12 +51,12 @@
       "style.css"
     ],
     "assets": [
-      "assets/gemini-cli-CeBtOXoo.svg",
-      "assets/codex-DXuoGGqS.svg",
-      "assets/claude-CBNYEA1u.svg",
-      "assets/antigravity-Cm1Tvp5c.svg",
-      "assets/kimi-BlLwMwTl.svg",
-      "assets/xai-ClWuMoQY.svg"
+      "assets/gemini-cli-C4BRocv-.svg",
+      "assets/codex-Cg75q3i9.svg",
+      "assets/claude-C4D1XeU4.svg",
+      "assets/antigravity-zYLgnO7E.svg",
+      "assets/kimi-BdLQgu-B.svg",
+      "assets/xai-C6UG8jOq.svg"
     ]
   },
   "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js": {
@@ -74,7 +74,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
-    "file": "assets/virtualExposes-SDkXvePC.js",
+    "file": "assets/virtualExposes-DI-UO1dr.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
     "isDynamicEntry": true,

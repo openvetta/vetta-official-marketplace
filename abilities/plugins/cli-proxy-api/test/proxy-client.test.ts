@@ -176,4 +176,25 @@ describe("CLIProxyAPI contracts", () => {
     f.emit(f.ready);
     expect(f.upsertProvider).toHaveBeenCalledTimes(2);
   });
+  it("keeps published providers while the gateway rebuilds its model routes", async () => {
+    const f = fixture();
+    const stableHandle = f.handle.getMockImplementation();
+    const providerOperations: string[] = [];
+    let modelRequests = 0;
+    f.upsertProvider.mockImplementation(async (provider: string) => { providerOperations.push(`upsert:${provider}`); });
+    f.removeProvider.mockImplementation(async (provider: string) => { providerOperations.push(`remove:${provider}`); });
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v1/models" && modelRequests++ === 0) return { data: [] };
+      if (!stableHandle) throw new Error("missing fixture handler");
+      return stableHandle(request);
+    });
+    f.readJson.mockResolvedValue({ schemaVersion: 1, models: ["gemini-test"] });
+
+    const connection = maintainModelConnection(f.context);
+
+    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(1), { timeout: 2_000 });
+    expect(modelRequests).toBeGreaterThanOrEqual(2);
+    expect(providerOperations[0]).toBe("upsert:google");
+    await connection.dispose();
+  });
 });
