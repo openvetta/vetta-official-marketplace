@@ -28,6 +28,13 @@ export function maintainModelConnection(context: ManagedPluginContext) {
       if (!active || current !== generation || phase !== "ready") return;
       const [{ models }, selection] = await Promise.all([client.loadModels(), readModelSelection(context)]);
       if (!active || current !== generation || phase !== "ready") return;
+      // An explicit selection means an empty catalog is almost certainly a
+      // transient gateway cold-start response. Never turn that response into
+      // an authoritative deletion of the user's published providers.
+      if (models.length === 0 && selection !== null && selection.size > 0) {
+        scheduleRetry(current);
+        return;
+      }
       await client.publishModels(models, () => active && current === generation && phase === "ready", selection);
       lastError = undefined;
     }).catch((error: unknown) => {

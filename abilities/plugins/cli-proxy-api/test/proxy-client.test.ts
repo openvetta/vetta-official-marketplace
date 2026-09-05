@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createProxyClient, safeExternalUrl } from "../src/proxy-client";
 import { OAUTH_PROVIDERS, protocolGroupFor } from "../src/provider-contract";
 import { maintainModelConnection } from "../src/model-connection";
 import { fixture } from "./helpers";
+
+afterEach(() => vi.useRealTimers());
 
 describe("CLIProxyAPI contracts", () => {
   it("selects known native protocols and keeps unknown owners on compatible Completions", () => {
@@ -180,7 +182,8 @@ describe("CLIProxyAPI contracts", () => {
     f.emit(f.ready);
     expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(2);
   });
-  it("publishes an authoritative empty catalog after the host reports semantic readiness", async () => {
+  it("does not clear a selected provider while the gateway catalog is still warming up", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const f = fixture();
     const stableHandle = f.handle.getMockImplementation();
     let modelRequests = 0;
@@ -193,9 +196,14 @@ describe("CLIProxyAPI contracts", () => {
 
     const connection = maintainModelConnection(f.context);
 
-    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1), { timeout: 2_000 });
+    await vi.waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ path: "/v1/models" })));
     expect(modelRequests).toBe(1);
-    expect(f.replaceOwnedProviders).toHaveBeenCalledWith({});
+    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(10_000);
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
+    expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      google: expect.objectContaining({ models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }] })
+    }));
     await connection.dispose();
   });
 });

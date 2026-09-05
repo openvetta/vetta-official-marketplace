@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "cli-proxy-api",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",

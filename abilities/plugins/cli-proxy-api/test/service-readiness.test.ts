@@ -36,4 +36,25 @@ describe("CLIProxyAPI semantic service readiness", () => {
     expect(modelReads).toBeGreaterThanOrEqual(2);
     await readiness.dispose();
   });
+
+  it("keeps waiting when a persisted selection meets a temporarily empty gateway", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let modelReads = 0;
+    f.readFile.mockResolvedValue(JSON.stringify({ schemaVersion: 1, models: ["gemini-test"] }));
+    f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase: "starting" }));
+    f.handle.mockImplementation(async (request: { path: string }) => {
+      if (request.path === "/v0/management/auth-files") return { files: [] };
+      if (request.path === "/v1/models") {
+        modelReads += 1;
+        return modelReads < 2 ? { data: [] } : { data: [{ id: "gemini-test", owned_by: "google" }] };
+      }
+      return { data: [] };
+    });
+    const readiness = maintainServiceReadiness(f.context);
+
+    await vi.waitFor(() => expect(f.reportReady).toHaveBeenCalledWith("proxy", true));
+    expect(modelReads).toBeGreaterThanOrEqual(2);
+    await readiness.dispose();
+  });
 });
