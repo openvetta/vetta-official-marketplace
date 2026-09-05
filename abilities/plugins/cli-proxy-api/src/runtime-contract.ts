@@ -1,4 +1,4 @@
-import type { Disposable, PluginContext } from "@vetta-org/plugin-sdk";
+import type { Disposable, PluginContext, PluginModelsApi } from "@vetta-org/plugin-sdk";
 
 export type ServicePhase = "disabled" | "installing" | "starting" | "ready" | "stopping" | "stopped" | "failed";
 
@@ -25,6 +25,7 @@ export interface ManagedServiceApi {
   start(serviceId: string): Promise<ServiceStatus>;
   stop(serviceId: string): Promise<ServiceStatus>;
   restart(serviceId: string): Promise<ServiceStatus>;
+  reportReady(serviceId: string, ready: boolean): Promise<ServiceStatus>;
   connection(serviceId: string, credentialId?: string): Promise<{ baseUrl: string; credential?: string }>;
   request<T>(serviceId: string, request: {
     path: string;
@@ -37,23 +38,7 @@ export interface ManagedServiceApi {
   onStatusChange(listener: (status: ServiceStatus) => void): Disposable;
 }
 
-export interface ManagedModelsApi {
-  upsertProvider(providerId: string, data: {
-    baseUrl: string;
-    apiKey: string;
-    api: string;
-    displayName: string;
-    models: Array<{
-      id: string;
-      name?: string;
-      api?: string;
-      reasoning?: boolean;
-      contextWindow?: number;
-      maxTokens?: number;
-    }>;
-  }): Promise<void>;
-  removeProvider(providerId: string): Promise<void>;
-}
+export type ManagedModelsApi = PluginModelsApi;
 
 export type ManagedPluginContext = PluginContext & {
   services: ManagedServiceApi;

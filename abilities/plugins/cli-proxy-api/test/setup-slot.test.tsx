@@ -28,7 +28,7 @@ describe("CLIProxyAPI setup", () => {
   it("shows progress and completion feedback when the user manually syncs models", async () => {
     const f = fixture();
     let finishPublish!: () => void;
-    f.upsertProvider.mockImplementation(async () => await new Promise<void>((resolve) => { finishPublish = resolve; }));
+    f.replaceOwnedProviders.mockImplementation(async () => await new Promise<void>((resolve) => { finishPublish = resolve; }));
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
     render(<ProxySetupSlot context={f.context} />);
     const button = await screen.findByRole("button", { name: "setup.syncModels" });
@@ -38,7 +38,7 @@ describe("CLIProxyAPI setup", () => {
 
     const syncingButton = await screen.findByRole("button", { name: "setup.syncingModels" });
     expect((syncingButton as HTMLButtonElement).disabled).toBe(true);
-    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalled());
+    await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalled());
     expect(info).toHaveBeenCalledWith("[cli-proxy-api] Model sync started.");
 
     await act(async () => { finishPublish(); });
@@ -49,7 +49,7 @@ describe("CLIProxyAPI setup", () => {
 
   it("shows and logs the operation context when manual model sync fails", async () => {
     const f = fixture();
-    f.upsertProvider.mockRejectedValue(new Error("provider write failed"));
+    f.replaceOwnedProviders.mockRejectedValue(new Error("provider write failed"));
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     render(<ProxySetupSlot context={f.context} />);
     const button = await screen.findByRole("button", { name: "setup.syncModels" });

@@ -350,9 +350,9 @@ const PROVIDER_CONFIG: Record<ProtocolGroup, { basePath: string; api: string; ti
 /**
  * Replaces the plugin-owned providers with exactly what is selected.
  *
- * The published set is always the whole truth — a group that ends up empty has
- * its provider removed rather than left behind, so unticking a model actually
- * takes it out of the picker instead of merely not re-adding it.
+ * The published set is always the whole truth. The host applies the complete
+ * plugin-owned snapshot atomically, so groups that end up empty are removed in
+ * the same transaction as the groups that remain.
  */
 async function publishModels(
   models: ProxyModel[],
@@ -366,28 +366,28 @@ async function publishModels(
     const group = protocolGroupFor(model.ownedBy, model.id);
     groups.set(group, [...(groups.get(group) ?? []), model]);
   }
-  for (const group of Object.keys(PROVIDER_CONFIG) as ProtocolGroup[]) {
-    if (!isCurrent()) return;
-    const definitions = groups.get(group) ?? [];
-    if (definitions.length === 0) {
-      await pluginContext.models.removeProvider(group);
-      continue;
-    }
-    const config = PROVIDER_CONFIG[group];
-    await pluginContext.models.upsertProvider(group, {
-      baseUrl: `${connection.baseUrl}${config.basePath}`,
-      apiKey: connection.credential,
-      api: config.api,
-      displayName: config.title,
-      models: definitions.map((model) => ({
-        id: model.id,
+  if (!isCurrent()) return;
+  const providers = Object.fromEntries(
+    (Object.keys(PROVIDER_CONFIG) as ProtocolGroup[]).flatMap((group) => {
+      const definitions = groups.get(group) ?? [];
+      if (definitions.length === 0) return [];
+      const config = PROVIDER_CONFIG[group];
+      return [[group, {
+        baseUrl: `${connection.baseUrl}${config.basePath}`,
+        apiKey: connection.credential,
         api: config.api,
-        ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
-        ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
-        ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
-      }))
-    });
-  }
+        displayName: config.title,
+        models: definitions.map((model) => ({
+          id: model.id,
+          api: config.api,
+          ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
+          ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
+          ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
+        }))
+      }]];
+    })
+  );
+  await pluginContext.models.replaceOwnedProviders(providers);
 }
 
 /**

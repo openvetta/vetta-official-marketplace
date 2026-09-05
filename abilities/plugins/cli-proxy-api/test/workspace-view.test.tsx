@@ -148,7 +148,9 @@ describe("CLIProxyAPI console", () => {
         : request.path === "/v1/models" ? { data: [{ id: "codex-test", owned_by: "codex" }] }
         : { files: [] });
     await screen.findByText("setup.oauthSuccess", {}, { timeout: 2500 });
-    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalledWith("responses", expect.objectContaining({ api: "openai-responses" })));
+    await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      responses: expect.objectContaining({ api: "openai-responses" })
+    })));
   });
 
   it("does not accept an in-flight authorization that was cancelled", async () => {
@@ -166,7 +168,7 @@ describe("CLIProxyAPI console", () => {
     await act(async () => { resolvePoll({ status: "ok" }); });
 
     expect(screen.queryByText("setup.oauthSuccess")).toBeNull();
-    expect(f.upsertProvider).not.toHaveBeenCalled();
+    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
     expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
       method: "DELETE", path: "/v0/management/oauth-session?state=state-1"
     }));
@@ -233,7 +235,7 @@ describe("CLIProxyAPI console", () => {
       "published-models",
       { schemaVersion: 1, models: [] },
     ));
-    await waitFor(() => expect(f.removeProvider).toHaveBeenCalledWith("google"));
+    await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith({}));
   });
 
   it("applies nothing until the reload is confirmed", async () => {
@@ -487,8 +489,10 @@ describe("CLIProxyAPI console", () => {
         : request.path === "/v1/models" ? { data: [{ id: "gemini-test", owned_by: "google" }, { id: "other", owned_by: "google" }] }
         : { files: [] });
 
-    await waitFor(() => expect(f.upsertProvider).toHaveBeenCalledWith("google", expect.objectContaining({
-      models: [expect.objectContaining({ id: "gemini-test" })]
+    await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      google: expect.objectContaining({
+        models: [expect.objectContaining({ id: "gemini-test" })]
+      })
     })), { timeout: 4000 });
   });
 

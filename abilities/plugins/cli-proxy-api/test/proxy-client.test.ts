@@ -26,12 +26,12 @@ describe("CLIProxyAPI contracts", () => {
       { id: "g", owned_by: "google" }, { id: "g", owned_by: "google" },
       { id: "c", owned_by: "claude" }, { id: "o", owned_by: "codex" }, { id: "x", owned_by: "unknown" }
     ] }));
-    expect(f.upsertProvider.mock.calls).toEqual([
-      ["google", expect.objectContaining({ baseUrl: "http://127.0.0.1:12345/v1beta", apiKey: "local-api-key", api: "google-generative-ai", models: [{ id: "g", api: "google-generative-ai" }] })],
-      ["anthropic", expect.objectContaining({ baseUrl: "http://127.0.0.1:12345", api: "anthropic-messages" })],
-      ["responses", expect.objectContaining({ api: "openai-responses" })],
-      ["completions", expect.objectContaining({ api: "openai-completions" })]
-    ]);
+    expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      google: expect.objectContaining({ baseUrl: "http://127.0.0.1:12345/v1beta", apiKey: "local-api-key", api: "google-generative-ai", models: [{ id: "g", api: "google-generative-ai" }] }),
+      anthropic: expect.objectContaining({ baseUrl: "http://127.0.0.1:12345", api: "anthropic-messages" }),
+      responses: expect.objectContaining({ api: "openai-responses" }),
+      completions: expect.objectContaining({ api: "openai-completions" })
+    }));
     expect(f.context.services.connection).toHaveBeenCalledWith("proxy", "api-key");
   });
   it("publishes the upstream context window instead of letting the host fall back to 128k", async () => {
@@ -44,8 +44,10 @@ describe("CLIProxyAPI contracts", () => {
       { id: "gemini-test", contextWindow: 1048576, maxTokens: 65536, reasoning: true }
     ]);
     await client.publishModels(models);
-    expect(f.upsertProvider).toHaveBeenCalledWith("google", expect.objectContaining({
-      models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]
+    expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      google: expect.objectContaining({
+        models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]
+      })
     }));
   });
   it("omits figures the catalog does not state and survives channels the runtime rejects", async () => {
@@ -62,8 +64,8 @@ describe("CLIProxyAPI contracts", () => {
     const { models } = await client.loadModels();
     expect(models).toEqual([{ id: "mystery", ownedBy: "kimi" }]);
     await client.publishModels(models);
-    expect(f.upsertProvider).toHaveBeenCalledWith("anthropic", expect.objectContaining({
-      models: [{ id: "mystery", api: "anthropic-messages" }]
+    expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
+      anthropic: expect.objectContaining({ models: [{ id: "mystery", api: "anthropic-messages" }] })
     }));
   });
   it("reads the provider's limit headers as remaining budget, ignoring what it cannot parse", () => {
@@ -164,25 +166,24 @@ describe("CLIProxyAPI contracts", () => {
   it("updates the endpoint on restart without mounting the UI and ignores repeated ready log events", async () => {
     const f = fixture();
     const connection = maintainModelConnection(f.context);
-    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
     f.emit({ ...f.ready, recentOutput: "log" });
     f.emit({ ...f.ready, phase: "stopped" });
     f.setBaseUrl("http://127.0.0.1:23456");
     f.emit(f.ready);
-    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(2));
-    expect(f.upsertProvider).toHaveBeenLastCalledWith("google", expect.objectContaining({ baseUrl: "http://127.0.0.1:23456/v1beta" }));
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(2));
+    expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith(expect.objectContaining({
+      google: expect.objectContaining({ baseUrl: "http://127.0.0.1:23456/v1beta" })
+    }));
     await connection.dispose();
     f.emit({ ...f.ready, phase: "stopped" });
     f.emit(f.ready);
-    expect(f.upsertProvider).toHaveBeenCalledTimes(2);
+    expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(2);
   });
-  it("keeps published providers while the gateway rebuilds its model routes", async () => {
+  it("publishes an authoritative empty catalog after the host reports semantic readiness", async () => {
     const f = fixture();
     const stableHandle = f.handle.getMockImplementation();
-    const providerOperations: string[] = [];
     let modelRequests = 0;
-    f.upsertProvider.mockImplementation(async (provider: string) => { providerOperations.push(`upsert:${provider}`); });
-    f.removeProvider.mockImplementation(async (provider: string) => { providerOperations.push(`remove:${provider}`); });
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
       if (request.path === "/v1/models" && modelRequests++ === 0) return { data: [] };
       if (!stableHandle) throw new Error("missing fixture handler");
@@ -192,9 +193,9 @@ describe("CLIProxyAPI contracts", () => {
 
     const connection = maintainModelConnection(f.context);
 
-    await vi.waitFor(() => expect(f.upsertProvider).toHaveBeenCalledTimes(1), { timeout: 2_000 });
-    expect(modelRequests).toBeGreaterThanOrEqual(2);
-    expect(providerOperations[0]).toBe("upsert:google");
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1), { timeout: 2_000 });
+    expect(modelRequests).toBe(1);
+    expect(f.replaceOwnedProviders).toHaveBeenCalledWith({});
     await connection.dispose();
   });
 });

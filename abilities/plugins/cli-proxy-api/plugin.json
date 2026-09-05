@@ -2,8 +2,8 @@
   "id": "cli-proxy-api",
   "name": "%name%",
   "icon": "assets/nav-icon.png",
-  "version": "1.7.4",
-  "pluginApiVersion": "^1.5.0",
+  "version": "1.8.0",
+  "pluginApiVersion": "^1.6.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
   "moduleFederation": {
@@ -134,7 +134,8 @@
         "health": {
           "path": "/v1/models",
           "credentialId": "api-key",
-          "timeoutMs": 60000
+          "timeoutMs": 60000,
+          "readiness": { "mode": "plugin" }
         }
       }
     ]

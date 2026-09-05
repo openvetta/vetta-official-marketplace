@@ -5,11 +5,13 @@ import { ProxyWorkspaceView, WORKSPACE_VIEW_ID } from "./workspace-view";
 import { maintainModelConnection } from "./model-connection";
 import type { ManagedPluginContext } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
+import { maintainServiceReadiness } from "./service-readiness";
 import "./style.css";
 
 export default definePlugin({
   activate(ctx: PluginContext) {
     const context = ctx as ManagedPluginContext;
+    const readiness = maintainServiceReadiness(context);
     void ensureServiceStarted(context).catch(() => undefined);
     const connection = maintainModelConnection(context);
     const slot = context.ui.registerAbilityDetailSlot({
@@ -37,6 +39,7 @@ export default definePlugin({
     return async () => {
       view.dispose();
       slot.dispose();
+      await readiness.dispose();
       await connection.dispose();
     };
   }

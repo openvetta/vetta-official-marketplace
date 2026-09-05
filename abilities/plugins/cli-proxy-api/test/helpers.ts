@@ -16,8 +16,8 @@ export function fixture() {
     if (request.method === "DELETE") return { status: "ok", cancelled: true };
     return { status: "wait" };
   });
-  const upsertProvider = vi.fn(async () => undefined);
-  const removeProvider = vi.fn(async () => undefined);
+  const replaceOwnedProviders = vi.fn(async () => undefined);
+  const reportReady = vi.fn(async () => ready);
   const openExternal = vi.fn(async () => undefined);
   const setWorkspaceViewHeader = vi.fn();
   const openWorkspaceView = vi.fn();
@@ -30,7 +30,7 @@ export function fixture() {
     services: {
       getPlatform: vi.fn(async () => ({ tag: "win32-x64" })),
       getStatus: vi.fn(async () => ready), install: vi.fn(async () => ready), start: vi.fn(async () => ready), stop: vi.fn(), restart: vi.fn(async () => ready),
-      connection: vi.fn(async () => ({ baseUrl, credential: "local-api-key" })),
+      reportReady, connection: vi.fn(async () => ({ baseUrl, credential: "local-api-key" })),
       request: vi.fn(async (_id: string, request: { path: string; method?: string; body?: unknown }) => ({
         ok: true, status: 200, statusText: "OK", body: await handle(request)
       })),
@@ -38,12 +38,12 @@ export function fixture() {
         listeners.add(listener); return { dispose: () => { listeners.delete(listener); } };
       }
     },
-    models: { upsertProvider, removeProvider },
+    models: { replaceOwnedProviders },
     network: { request: vi.fn() },
     storage: { readJson, writeJson },
     ui: { openExternal, setWorkspaceViewHeader, openWorkspaceView }
   } as unknown as ManagedPluginContext;
-  return { context, ready, handle, upsertProvider, removeProvider, openExternal, setWorkspaceViewHeader, openWorkspaceView, writeJson, readJson, reload,
+  return { context, ready, handle, replaceOwnedProviders, reportReady, openExternal, setWorkspaceViewHeader, openWorkspaceView, writeJson, readJson, reload,
     emit: (status: ServiceStatus) => { for (const listener of listeners) listener(status); },
     setBaseUrl: (url: string) => { baseUrl = url; }
   };

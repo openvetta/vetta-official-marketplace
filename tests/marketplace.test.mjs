@@ -163,7 +163,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   const icon = readFileSync(packageFile(directory, presentation.icon));
   assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   const plugin = readJson(packageFile(directory, "plugin.json"));
-  assert.equal(plugin.pluginApiVersion, "^1.5.0");
+  assert.equal(plugin.pluginApiVersion, "^1.6.0");
   assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "storage.read", "storage.write", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
   assert.deepEqual(plugin.network.allowedHosts.sort(), ["github.com", "release-assets.githubusercontent.com"]);
 
@@ -176,6 +176,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(service.runtime.version, `${upstream.core.version}+gemini.${upstream.providerPlugins["gemini-cli"].version}`);
   assert.equal(runtimeLock.version, service.runtime.version);
   assert.equal(service.templates[0].mode, "render");
+  assert.deepEqual(service.health.readiness, { mode: "plugin" });
   assert.ok(service.process.args.includes("${VETTA_SERVICE_CACHE_DIR}/config.yaml"));
   assert.deepEqual(Object.keys(service.runtime.platforms).sort(), [
     "darwin-arm64",
