@@ -25,9 +25,11 @@ The configuration template, bilingual details and provenance files are emitted i
 contains every manifest resource even with the currently published packaging tool. The tool still warns about its
 default `@vetta/ui` shared entry; this plugin does not import that unavailable package and uses its own small controls.
 
-The host must implement Plugin API 1.6.0. The plugin declares semantic readiness: Desktop keeps the service in
+The host must implement Plugin API 2.0.0. The plugin declares semantic readiness: Desktop keeps the service in
 `starting` after the loopback health endpoint responds, and the plugin reports `ready` only after account-backed model
 routes are usable. This prevents an early empty `/v1/models` response from erasing the persisted provider snapshot.
+The selected published model IDs are stored in the plugin-private `published-models.json` file through the generic
+storage file API. Missing storage and an empty selection are distinct states; updates replace the file atomically.
 Until the matching SDK is published,
 `src/runtime-contract.ts` describes only the consumed public API, without importing Desktop source files.
 Runtime configuration is regenerated in the cache directory for each launch; credentials and OAuth accounts remain

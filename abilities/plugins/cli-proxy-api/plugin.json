@@ -2,8 +2,8 @@
   "id": "cli-proxy-api",
   "name": "%name%",
   "icon": "assets/nav-icon.png",
-  "version": "1.8.0",
-  "pluginApiVersion": "^1.6.0",
+  "version": "1.8.1",
+  "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
   "moduleFederation": {

@@ -123,7 +123,7 @@ version: 1.0.0           # 必须 === 条目的 version
   - `type: "http"`：必填 `url`；可选 `headers`、`oauthClientId`、`oauthDeviceFlow`、`oauthScopes`
   - `type: "stdio"`（或省略 `type`）：必填 `command`；可选 `args`、`env`、`cwd`
   - 两者共有可选键：`disabled`、`autoApprove`、`startupTimeout`（正整数）、`debug`、`displayName`、`description`、`icon`
-- `parameters[]` 是让用户在 UI 里填的凭据项。`key` 会作为 stdio 的 `env` 键名或 http 的 header 名写入；`valueTemplate` 必须包含 `{value}`（例如 `"Bearer {value}"`），用户填的值会替换进去
+- `parameters[]` 是让用户在 UI 里填的连接参数。`key` 通常作为 stdio 的 `env` 键名或远程 http 的 header 名写入；对于 schema v3 的受管 HTTP runtime，它会作为经 manifest 白名单约束的子进程环境变量写入。`valueTemplate` 必须包含 `{value}`（例如 `"Bearer {value}"`），用户填的值会替换进去
 - `parameters[]` 也是 strict schema，不要加自定义字段
 
 需要由 Desktop 托管官方二进制的 MCP 可以使用 `schemaVersion: 3`，在同一个 `mcp.json` 中增加受管运行时：
@@ -133,6 +133,14 @@ version: 1.0.0           # 必须 === 条目的 version
   "schemaVersion": 3,
   "runtime": {
     "kind": "managed-binary",
+    "process": {
+      "args": ["-port=:${VETTA_MCP_PORT}"],
+      "env": {}
+    },
+    "service": {
+      "kind": "http-mcp",
+      "path": "/mcp"
+    },
     "platforms": {
       "win32-x64": {
         "url": "https://example.com/server.exe",
@@ -143,9 +151,8 @@ version: 1.0.0           # 必须 === 条目的 version
     }
   },
   "server": {
-    "type": "stdio",
-    "command": "${VETTA_MCP_EXECUTABLE}",
-    "args": ["--stdio"]
+    "type": "http",
+    "url": "${VETTA_MCP_URL}"
   }
 }
 ```
@@ -153,7 +160,7 @@ version: 1.0.0           # 必须 === 条目的 version
 - `runtime.kind` 当前只能是 `managed-binary`；平台键为 `win32|darwin|linux` 与 `x64|arm64` 的组合。
 - 产物 URL 必须是无凭据的 HTTPS，`sha256` 必须是 64 位小写十六进制；`archive` 只能是 `file` 或 `zip`。
 - ZIP 内不能有绝对路径、目录逃逸、符号链接或加密条目；不要提交或执行任何 shell、PowerShell、JavaScript 安装脚本。
-- `server.command` 必须精确为 `${VETTA_MCP_EXECUTABLE}`。参数、环境变量和工作目录可以使用 `${VETTA_MCP_RUNTIME_DIR}`、`${VETTA_MCP_DATA_DIR}`、`${VETTA_MCP_CACHE_DIR}`。
+- `server.url` 必须精确为 `${VETTA_MCP_URL}`。`runtime.process` 的参数、环境变量和工作目录可以使用 `${VETTA_MCP_RUNTIME_DIR}`、`${VETTA_MCP_DATA_DIR}`、`${VETTA_MCP_CACHE_DIR}`。
 - 只有已发布并可验证的 Release 产物才能注册；示例 URL 和 SHA-256 不能直接用于市场条目。
 
 有些官方二进制**本身就是一个本地 HTTP MCP 服务**（只监听端口，没有 stdio 模式）。这类要在 `runtime` 里加 `service`：
@@ -165,7 +172,7 @@ version: 1.0.0           # 必须 === 条目的 version
     "service": { "kind": "http-mcp", "path": "/mcp", "readyTimeoutMs": 300000 },
     "platforms": { "...": {} }
   },
-    "server": {
+  "server": {
     "type": "http",
     "url": "${VETTA_MCP_URL}"
   }
@@ -189,7 +196,7 @@ version: 1.0.0           # 必须 === 条目的 version
 }
 ```
 
-- `setup` 只允许受管运行时（有 `runtime` 的 `schemaVersion: 2`）使用，没有数据目录就无从判断是否完成。
+- `setup` 只允许受管运行时（有 `runtime` 的 `schemaVersion: 3`）使用。
 - `http-qrcode` 使用上游结构化 REST 接口；二维码由 `qrcodePath` 返回，登录结论只读取 `statusPath` 响应中的 `data.is_logged_in`。
 - `logoutPath` 供设置页执行显式退出登录；不使用 Cookies 文件存在与否推断登录状态。
 
@@ -202,7 +209,7 @@ version: 1.0.0           # 必须 === 条目的 version
   "id": "open-marketplace-demo-plugin",
   "name": "Extension Safety Demo",
   "version": "1.0.0",
-  "pluginApiVersion": "1.1.0",
+  "pluginApiVersion": "^2.0.0",
   "entry": "dist/index.js",
   "permissions": ["storage.read"]
 }
@@ -377,8 +384,8 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] bundle 无路径成员在顶层存在；路径成员使用 v2、包与元信息存在、身份和路径无冲突
 - [ ] 仅 bundle 成员没有重复注册到顶层，除非确实需要独立展示；包内默认名称、语言覆盖和分类齐全
 - [ ] mcp 条目在 manifest 里没有 `config` 键
-- [ ] `schemaVersion: 2` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
-- [ ] 声明了 `setup` 的 MCP 确认 `completedWhen.dataFile` 与服务实际写出的登录态文件一致
+- [ ] `schemaVersion: 3` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
+- [ ] 声明了 `setup` 的 MCP 确认 status/qrcode/logout 三个上游 REST 路径正确，且状态响应提供 `data.is_logged_in`
 - [ ] plugin 的 `entry`（及 `styles`）文件确实已提交
 - [ ] 卡片 `icon` 不是随手挑的：有官方品牌/应用图标则用包内官方位图，否则才用贴切的 Solar 名
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持

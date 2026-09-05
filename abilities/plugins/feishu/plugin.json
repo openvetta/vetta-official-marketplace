@@ -1,8 +1,8 @@
 {
   "id": "feishu",
   "name": "%name%",
-  "version": "1.0.2",
-  "pluginApiVersion": "^1.4.0",
+  "version": "1.0.3",
+  "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "moduleFederation": {
     "remoteName": "feishu",

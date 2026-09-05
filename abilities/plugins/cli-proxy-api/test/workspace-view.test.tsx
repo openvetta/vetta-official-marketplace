@@ -231,9 +231,10 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(within(confirm).getByRole("button", { name: "console.applyAndReload" }));
 
     // The applied set is the whole truth: an unticked model leaves the picker.
-    await waitFor(() => expect(f.writeJson).toHaveBeenCalledWith(
-      "published-models",
-      { schemaVersion: 1, models: [] },
+    await waitFor(() => expect(f.writeFile).toHaveBeenCalledWith(
+      "published-models.json",
+      JSON.stringify({ schemaVersion: 1, models: [] }, null, 2),
+      "utf8",
     ));
     await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith({}));
   });
@@ -250,7 +251,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(within(confirm).getByRole("button", { name: "setup.cancel" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(f.writeJson).not.toHaveBeenCalled();
+    expect(f.writeFile).not.toHaveBeenCalled();
     expect(f.reload).not.toHaveBeenCalled();
   });
 
@@ -476,7 +477,7 @@ describe("CLIProxyAPI console", () => {
   it("publishes only the chosen models when the gateway syncs on its own", async () => {
     const f = fixture();
     // A credential the user had curated down to one model.
-    f.readJson.mockImplementation(async () => ({ schemaVersion: 1, models: ["gemini-test"] }));
+    f.readFile.mockImplementation(async () => JSON.stringify({ schemaVersion: 1, models: ["gemini-test"] }));
     withAccounts(f);
     render(<ProxyWorkspaceView context={f.context} />);
     await screen.findByRole("region", { name: "user@example.com" });

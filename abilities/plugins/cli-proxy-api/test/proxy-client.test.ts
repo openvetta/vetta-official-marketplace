@@ -189,7 +189,7 @@ describe("CLIProxyAPI contracts", () => {
       if (!stableHandle) throw new Error("missing fixture handler");
       return stableHandle(request);
     });
-    f.readJson.mockResolvedValue({ schemaVersion: 1, models: ["gemini-test"] });
+    f.readFile.mockResolvedValue(JSON.stringify({ schemaVersion: 1, models: ["gemini-test"] }));
 
     const connection = maintainModelConnection(f.context);
 

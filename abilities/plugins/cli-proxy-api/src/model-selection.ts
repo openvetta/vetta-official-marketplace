@@ -1,6 +1,6 @@
 import type { ManagedPluginContext } from "./runtime-contract";
 
-const SELECTION_KEY = "published-models";
+const SELECTION_KEY = "published-models.json";
 
 /**
  * Which discovered models get published to Vetta.
@@ -17,7 +17,8 @@ type StoredSelection = { schemaVersion: 1; models: string[] };
 
 export async function readModelSelection(context: ManagedPluginContext): Promise<ModelSelection> {
   try {
-    const stored = await context.storage.readJson<StoredSelection>(SELECTION_KEY);
+		const raw = await context.storage.readFile(SELECTION_KEY, "utf8");
+		const stored = raw === null ? null : (JSON.parse(raw) as StoredSelection);
     if (!stored || !Array.isArray(stored.models)) return null;
     return new Set(stored.models.filter((id): id is string => typeof id === "string" && id.length > 0));
   } catch {
@@ -28,7 +29,11 @@ export async function readModelSelection(context: ManagedPluginContext): Promise
 
 export async function writeModelSelection(context: ManagedPluginContext, ids: Iterable<string>): Promise<void> {
   const models = [...new Set(ids)].sort((left, right) => left.localeCompare(right));
-  await context.storage.writeJson(SELECTION_KEY, { schemaVersion: 1, models } satisfies StoredSelection);
+	await context.storage.writeFile(
+		SELECTION_KEY,
+		JSON.stringify({ schemaVersion: 1, models } satisfies StoredSelection, null, 2),
+		"utf8",
+	);
 }
 
 /** Applies a selection to a discovered catalog. `null` keeps every model. */

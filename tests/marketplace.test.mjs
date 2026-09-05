@@ -163,7 +163,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   const icon = readFileSync(packageFile(directory, presentation.icon));
   assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   const plugin = readJson(packageFile(directory, "plugin.json"));
-  assert.equal(plugin.pluginApiVersion, "^1.6.0");
+	assert.equal(plugin.pluginApiVersion, "^2.0.0");
   assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "storage.read", "storage.write", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
   assert.deepEqual(plugin.network.allowedHosts.sort(), ["github.com", "release-assets.githubusercontent.com"]);
 
@@ -451,7 +451,7 @@ test("Zhihu research combines its guide with a pinned, credential-parameterized 
 test("Xiaohongshu uses direct managed HTTP and upstream QR login endpoints", () => {
   const ability = bySlug.get("xiaohongshu-mcp");
   assert.ok(ability);
-  assert.equal(ability.configVersion, 5);
+  assert.equal(ability.configVersion, 6);
   const mcp = readJson(packageFile(root, `${ability.source.path}/mcp.json`));
   assert.equal(mcp.schemaVersion, 3);
   assert.deepEqual(mcp.runtime.process, {

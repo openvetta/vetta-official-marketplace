@@ -17,7 +17,7 @@
         },
         {
           "title": "内置扫码登录",
-          "description": "直接调用 MCP 登录工具生成二维码，登录后的 Cookie 保存在 Vetta 管理的数据目录。",
+          "description": "Vetta 通过上游登录接口生成二维码，并以上游状态接口的结果判断是否登录。",
           "icon": "solar:qr-code-bold"
         },
         {
@@ -40,8 +40,8 @@
           "description": "Vetta 通过上游登录接口获取二维码并轮询真实登录状态，Cookie 由上游服务持久化。"
         },
         {
-          "title": "使用小红书工具",
-          "description": "Vetta 会在本机启动上游 HTTP 服务，并通过受管回环 HTTP 直接连接给 Agent 使用。"
+          "title": "按需配置并开始使用",
+          "description": "可在能力详情的“连接设置”中填写代理地址；保存不会自动触发扫码，Vetta 会通过受管回环 HTTP 直连上游服务。"
         }
       ]
     },

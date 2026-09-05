@@ -17,7 +17,7 @@
         },
         {
           "title": "Built-in QR login",
-          "description": "Use the MCP login tools to generate a QR code and keep the resulting cookies in Vetta-managed data.",
+          "description": "Vetta obtains a QR code from the upstream login API and trusts only the upstream status API for sign-in state.",
           "icon": "solar:qr-code-bold"
         },
         {
@@ -37,11 +37,11 @@
         },
         {
           "title": "Complete QR login",
-          "description": "Ask the agent to call the login QR-code tool, then scan it with Xiaohongshu. Cookies are stored outside the versioned runtime."
+          "description": "Open the sign-in flow in Vetta and scan the QR code with Xiaohongshu. Cookies are stored outside the versioned runtime."
         },
         {
-          "title": "Use Xiaohongshu tools",
-          "description": "Vetta starts the upstream HTTP service locally and connects to it directly over managed loopback HTTP."
+          "title": "Configure if needed, then use",
+          "description": "Optionally enter a proxy under Connection settings. Saving does not start QR sign-in; Vetta connects to the upstream service directly over managed loopback HTTP."
         }
       ]
     },
