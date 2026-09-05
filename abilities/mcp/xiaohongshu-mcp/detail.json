@@ -41,7 +41,7 @@
         },
         {
           "title": "Use Xiaohongshu tools",
-          "description": "Vetta starts the upstream HTTP service locally and exposes it to the agent through a managed MCP bridge."
+          "description": "Vetta starts the upstream HTTP service locally and connects to it directly over managed loopback HTTP."
         }
       ]
     },

@@ -37,11 +37,11 @@
         },
         {
           "title": "完成扫码登录",
-          "description": "让 Agent 调用登录二维码工具，然后使用小红书 App 扫码。Cookie 会保存在版本目录之外。"
+          "description": "Vetta 通过上游登录接口获取二维码并轮询真实登录状态，Cookie 由上游服务持久化。"
         },
         {
           "title": "使用小红书工具",
-          "description": "Vetta 会在本机启动上游 HTTP 服务，并通过受管 MCP 桥接提供给 Agent 使用。"
+          "description": "Vetta 会在本机启动上游 HTTP 服务，并通过受管回环 HTTP 直接连接给 Agent 使用。"
         }
       ]
     },

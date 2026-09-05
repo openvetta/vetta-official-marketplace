@@ -1,9 +1,17 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "slug": "xiaohongshu-mcp",
   "version": "2.5.0",
   "runtime": {
     "kind": "managed-binary",
+    "process": {
+      "args": [
+        "-port=:${VETTA_MCP_PORT}"
+      ],
+      "env": {
+        "COOKIES_PATH": "${VETTA_MCP_DATA_DIR}/cookies.json"
+      }
+    },
     "service": {
       "kind": "http-mcp",
       "path": "/mcp",
@@ -31,14 +39,8 @@
     }
   },
   "server": {
-    "type": "stdio",
-    "command": "${VETTA_MCP_EXECUTABLE}",
-    "args": [
-      "-port=:${VETTA_MCP_PORT}"
-    ],
-    "env": {
-      "COOKIES_PATH": "${VETTA_MCP_DATA_DIR}/cookies.json"
-    }
+    "type": "http",
+    "url": "${VETTA_MCP_URL}"
   },
   "parameters": [
     {
@@ -51,10 +53,9 @@
   ],
   "browserAuth": false,
   "setup": {
-    "kind": "agent-tool",
-    "tool": "get_login_qrcode",
-    "completedWhen": {
-      "dataFile": "cookies.json"
-    }
+    "kind": "http-qrcode",
+    "statusPath": "/api/v1/login/status",
+    "qrcodePath": "/api/v1/login/qrcode",
+    "logoutPath": "/api/v1/login/cookies"
   }
 }

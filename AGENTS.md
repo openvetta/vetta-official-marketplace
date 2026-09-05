@@ -126,11 +126,11 @@ version: 1.0.0           # 必须 === 条目的 version
 - `parameters[]` 是让用户在 UI 里填的凭据项。`key` 会作为 stdio 的 `env` 键名或 http 的 header 名写入；`valueTemplate` 必须包含 `{value}`（例如 `"Bearer {value}"`），用户填的值会替换进去
 - `parameters[]` 也是 strict schema，不要加自定义字段
 
-需要由 Desktop 托管官方二进制的 MCP 可以使用 `schemaVersion: 2`，在同一个 `mcp.json` 中增加受管运行时：
+需要由 Desktop 托管官方二进制的 MCP 可以使用 `schemaVersion: 3`，在同一个 `mcp.json` 中增加受管运行时：
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "runtime": {
     "kind": "managed-binary",
     "platforms": {
@@ -165,34 +165,33 @@ version: 1.0.0           # 必须 === 条目的 version
     "service": { "kind": "http-mcp", "path": "/mcp", "readyTimeoutMs": 300000 },
     "platforms": { "...": {} }
   },
-  "server": {
-    "type": "stdio",
-    "command": "${VETTA_MCP_EXECUTABLE}",
-    "args": ["-port=:${VETTA_MCP_PORT}"]
+    "server": {
+    "type": "http",
+    "url": "${VETTA_MCP_URL}"
   }
 }
 ```
 
-- 桌面端会分配一个空闲端口、拉起二进制、等 `path` 就绪，再用内置桥接把 stdio 转到该端点；进程随 MCP 客户端一起退出。
-- `server` 仍然按 stdio 写，描述的是**怎么启动这个二进制**；`${VETTA_MCP_PORT}` 必须出现在 `args` 或 `env` 里，否则校验直接失败——服务收不到分配的端口就永远等不到就绪。
+- 桌面端会分配一个空闲端口、拉起二进制并等待 `path` 就绪，然后通过 direct HTTP 连接；进程随 MCP 生命周期退出。
+- `runtime.process` 描述**怎么启动这个二进制**；`${VETTA_MCP_PORT}` 必须出现在 `args` 或 `env` 里，否则校验直接失败。
 - `readyTimeoutMs` 上限 600000。首次运行要下载依赖（例如浏览器内核）的服务要放宽这个值。
 
-安装完还需要用户做一次动作（扫码登录等）的受管 MCP，用 `schemaVersion: 2` 的可选 `setup` 声明：
+安装完还需要用户做一次动作（扫码登录等）的受管 MCP，用 `schemaVersion: 3` 的可选 `setup` 声明：
 
 ```json
 {
   "setup": {
-    "kind": "agent-tool",
-    "tool": "get_login_qrcode",
-    "completedWhen": { "dataFile": "cookies.json" }
+    "kind": "http-qrcode",
+    "statusPath": "/api/v1/login/status",
+    "qrcodePath": "/api/v1/login/qrcode",
+    "logoutPath": "/api/v1/login/cookies"
   }
 }
 ```
 
 - `setup` 只允许受管运行时（有 `runtime` 的 `schemaVersion: 2`）使用，没有数据目录就无从判断是否完成。
-- `kind` 当前只能是 `agent-tool`；`tool` 是完成这一步要调用的 MCP 工具名。桌面端会自己连上该服务调用它，把返回的二维码显示在弹窗里；取不到二维码时才退回提示用户在对话里让 Agent 调用。
-- 该工具必须无参可调，并返回二维码图片（image 内容块、`structuredContent`，或含 base64 字段的 JSON 文本均可）。
-- `completedWhen.dataFile` 是相对 `${VETTA_MCP_DATA_DIR}` 的安全相对路径（不得逃逸目录）。该文件存在即视为完成；在此之前条目显示「需要配置」。
+- `http-qrcode` 使用上游结构化 REST 接口；二维码由 `qrcodePath` 返回，登录结论只读取 `statusPath` 响应中的 `data.is_logged_in`。
+- `logoutPath` 供设置页执行显式退出登录；不使用 Cookies 文件存在与否推断登录状态。
 
 ### plugin
 

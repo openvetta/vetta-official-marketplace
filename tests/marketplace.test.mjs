@@ -448,22 +448,26 @@ test("Zhihu research combines its guide with a pinned, credential-parameterized 
   assert.equal("runtime" in mcp, false);
 });
 
-test("Xiaohongshu uses the HTTP service bridge and declares QR login setup", () => {
+test("Xiaohongshu uses direct managed HTTP and upstream QR login endpoints", () => {
   const ability = bySlug.get("xiaohongshu-mcp");
   assert.ok(ability);
-  assert.equal(ability.configVersion, 4);
+  assert.equal(ability.configVersion, 5);
   const mcp = readJson(packageFile(root, `${ability.source.path}/mcp.json`));
-  assert.deepEqual(mcp.runtime.service, { kind: "http-mcp", path: "/mcp", readyTimeoutMs: 300000 });
-  assert.deepEqual(mcp.server, {
-    type: "stdio",
-    command: "${VETTA_MCP_EXECUTABLE}",
+  assert.equal(mcp.schemaVersion, 3);
+  assert.deepEqual(mcp.runtime.process, {
     args: ["-port=:${VETTA_MCP_PORT}"],
     env: { COOKIES_PATH: "${VETTA_MCP_DATA_DIR}/cookies.json" },
   });
+  assert.deepEqual(mcp.runtime.service, { kind: "http-mcp", path: "/mcp", readyTimeoutMs: 300000 });
+  assert.deepEqual(mcp.server, {
+    type: "http",
+    url: "${VETTA_MCP_URL}",
+  });
   assert.deepEqual(mcp.setup, {
-    kind: "agent-tool",
-    tool: "get_login_qrcode",
-    completedWhen: { dataFile: "cookies.json" },
+    kind: "http-qrcode",
+    statusPath: "/api/v1/login/status",
+    qrcodePath: "/api/v1/login/qrcode",
+    logoutPath: "/api/v1/login/cookies",
   });
 });
 
