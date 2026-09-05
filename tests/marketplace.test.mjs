@@ -447,6 +447,25 @@ test("Zhihu research combines its guide with a pinned, credential-parameterized 
   assert.equal("runtime" in mcp, false);
 });
 
+test("Xiaohongshu uses the HTTP service bridge and declares QR login setup", () => {
+  const ability = bySlug.get("xiaohongshu-mcp");
+  assert.ok(ability);
+  assert.equal(ability.configVersion, 4);
+  const mcp = readJson(packageFile(root, `${ability.source.path}/mcp.json`));
+  assert.deepEqual(mcp.runtime.service, { kind: "http-mcp", path: "/mcp", readyTimeoutMs: 300000 });
+  assert.deepEqual(mcp.server, {
+    type: "stdio",
+    command: "${VETTA_MCP_EXECUTABLE}",
+    args: ["-port=:${VETTA_MCP_PORT}"],
+    env: { COOKIES_PATH: "${VETTA_MCP_DATA_DIR}/cookies.json" },
+  });
+  assert.deepEqual(mcp.setup, {
+    kind: "agent-tool",
+    tool: "get_login_qrcode",
+    completedWhen: { dataFile: "cookies.json" },
+  });
+});
+
 test("only the Zhihu bundle is independently listed; both members retain bilingual metadata and stable identities", () => {
   const listed = new Set(catalog.abilities.map((ability) => ability.slug));
   assert.equal(listed.has("zhihu-research"), true);

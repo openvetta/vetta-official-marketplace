@@ -41,7 +41,7 @@
         },
         {
           "title": "Use Xiaohongshu tools",
-          "description": "The server starts over stdio and is available to the agent as a normal MCP server."
+          "description": "Vetta starts the upstream HTTP service locally and exposes it to the agent through a managed MCP bridge."
         }
       ]
     },

@@ -41,7 +41,7 @@
         },
         {
           "title": "使用小红书工具",
-          "description": "服务通过 stdio 启动，Agent 可以像使用普通 MCP 一样调用它。"
+          "description": "Vetta 会在本机启动上游 HTTP 服务，并通过受管 MCP 桥接提供给 Agent 使用。"
         }
       ]
     },
