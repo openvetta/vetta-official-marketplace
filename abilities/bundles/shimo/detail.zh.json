@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "VETTA 沉浸式阅读",
+      "title": "安静地读，在需要时自然地问",
+      "description": "拾墨让正文保持安静，直到你需要帮助。用中文、英文或混合资料阅读书籍、诗歌和文章，划选内容向 Vetta 提问，在汉字上方显示拼音，并把每一条记录保存在正在学习的资料副本中。",
+      "badges": [
+        "PDF · Markdown · TXT",
+        "中英文",
+        "离线阅读"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "解析这句诗，给汉字标注上方拼音，并把解释保存到我的阅读记录。",
+        "assistant_reply": "我会保留你划选的诗句作为上下文，说明字面含义和意象，在原字上方添加拼音，并自动把回答保存到这份资料的阅读记录。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "界面很小，需要时才展开",
+      "items": [
+        {
+          "title": "渐进式披露",
+          "description": "正文始终保持专注。划选文字后才出现按阅读类别生成的操作条，不新增一套聊天界面。",
+          "icon": "solar:layers-minimalistic-linear"
+        },
+        {
+          "title": "中英文学习",
+          "description": "支持中文、英文和混合资料。拼音显示在对应汉字上方，解释和提示词跟随当前语言。",
+          "icon": "solar:translation-2-linear"
+        },
+        {
+          "title": "跟随资料的记录",
+          "description": "导入资料时复制到拾墨私有资料库。高亮、感想、AI 回答和修订记录都可以离线查看。",
+          "icon": "solar:book-bookmark-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "开始一次阅读",
+      "items": [
+        {
+          "title": "安装拾墨并选择资料",
+          "description": "从文件资源管理器打开 PDF、Markdown 或 TXT。拾墨会先创建私有副本，再开始阅读。"
+        },
+        {
+          "title": "遇到问题就划选",
+          "description": "使用简洁的类别操作条进行解释、诗句解析、拼音、翻译、记录或向 Vetta 提问。"
+        },
+        {
+          "title": "稍后回到你的思考",
+          "description": "回答会自动保存在现有 Vetta 会话和阅读记录中。导出文件名根据资料标题生成。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "OCR 默认在本地运行",
+      "content": "拾墨默认使用 Vetta 内置的本地 OCR Provider。远程 OCR 只定义为未来可安装的 Provider Plugin 协议，不随 Bundle 提供任何厂商实现，也不会静默切换远程服务。"
+    },
+    {
+      "type": "links",
+      "title": "技术说明",
+      "items": [
+        {
+          "label": "拾墨集成说明",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/shimo/README.zh.md"
+        },
+        {
+          "label": "Vetta 官方能力市场",
+          "href": "https://github.com/openvetta/vetta-official-marketplace"
+        }
+      ]
+    }
+  ]
+}

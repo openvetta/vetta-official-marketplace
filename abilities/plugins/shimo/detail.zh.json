@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "为主动学习而设计的安静阅读器",
+      "description": "复制导入 PDF、Markdown 或 TXT，专注阅读；遇到问题时划选内容，直接使用现有 Vetta 对话。",
+      "badges": [
+        "私有副本",
+        "记录可离线",
+        "复用 Vetta 对话"
+      ]
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "title": "先建立资料库",
+          "description": "资料会先复制到插件私有存储，再开始阅读。"
+        },
+        {
+          "title": "划选后出现操作",
+          "description": "选中文字后才显示提问、解释、翻译、拼音和记录操作。"
+        },
+        {
+          "title": "记录属于你",
+          "description": "高亮和 AI 回答带位置保存，可按资料标题导出。"
+        }
+      ]
+    }
+  ]
+}

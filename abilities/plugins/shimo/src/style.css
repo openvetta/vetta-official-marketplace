@@ -1,0 +1,179 @@
+/* Tailwind in plugins must not install a global reset into the host application. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./**/*.{ts,tsx}";
+
+/* The plugin build scopes this sheet to the Shimo root. Dark mode is inherited through
+   host tokens, so utilities use semantic colors instead of ancestor dark selectors. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+.shimo-serif {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+}
+
+.shimo-paper {
+  background-color: color-mix(in oklab, var(--background) 96%, #b98a52 4%);
+  background-image:
+    radial-gradient(circle at 50% -20%, color-mix(in oklab, var(--primary) 5%, transparent), transparent 48%),
+    radial-gradient(color-mix(in oklab, var(--foreground) 4%, transparent) 0.55px, transparent 0.55px);
+  background-size: auto, 6px 6px;
+  scroll-behavior: smooth;
+}
+
+.shimo-reading-text {
+  font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(1rem, 0.92rem + 0.22vw, 1.125rem);
+  line-height: 2;
+  letter-spacing: 0.015em;
+  text-wrap: pretty;
+}
+
+.shimo-reading-text::selection,
+.shimo-reading-text *::selection {
+  background: color-mix(in oklab, var(--primary) 22%, transparent);
+}
+
+.shimo-reading-text ruby {
+  ruby-position: over;
+}
+
+.shimo-reading-text rt {
+  color: color-mix(in oklab, var(--foreground) 62%, transparent);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.58em;
+  letter-spacing: 0;
+}
+
+.shimo-markdown > :first-child {
+  margin-block-start: 0;
+}
+
+.shimo-markdown > :last-child {
+  margin-block-end: 0;
+}
+
+.shimo-markdown h1,
+.shimo-markdown h2,
+.shimo-markdown h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  margin-block: 1.8em 0.7em;
+}
+
+.shimo-markdown h1 { font-size: 1.65em; }
+.shimo-markdown h2 { font-size: 1.35em; }
+.shimo-markdown h3 { font-size: 1.15em; }
+
+.shimo-markdown p,
+.shimo-markdown ul,
+.shimo-markdown ol,
+.shimo-markdown blockquote,
+.shimo-markdown pre {
+  margin-block: 1em;
+}
+
+.shimo-markdown ul,
+.shimo-markdown ol {
+  padding-inline-start: 1.5em;
+}
+
+.shimo-markdown ul { list-style: disc; }
+.shimo-markdown ol { list-style: decimal; }
+
+.shimo-markdown blockquote {
+  border-inline-start: 2px solid color-mix(in oklab, var(--primary) 38%, transparent);
+  color: color-mix(in oklab, var(--foreground) 72%, transparent);
+  padding-inline-start: 1.1em;
+}
+
+.shimo-markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.shimo-markdown code {
+  border-radius: 0.35em;
+  background: color-mix(in oklab, var(--muted) 70%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.86em;
+  padding: 0.12em 0.32em;
+}
+
+.shimo-markdown pre {
+  overflow-x: auto;
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  border-radius: 0.8rem;
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+  padding: 1rem;
+}
+
+.shimo-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.shimo-empty-mark {
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+.shimo-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 12%, transparent) transparent;
+}
+
+.shimo-selection-menu {
+  animation: shimo-menu-in 120ms ease-out;
+  transform-origin: top left;
+}
+
+.shimo-drawer-in {
+  animation: shimo-drawer-in 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes shimo-menu-in {
+  from { opacity: 0; transform: translateY(-3px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shimo-drawer-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 44rem) {
+  .shimo-library-panel {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 35;
+    box-shadow: 16px 0 40px color-mix(in oklab, black 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimo-selection-menu,
+  .shimo-drawer-in {
+    animation: none;
+  }
+}

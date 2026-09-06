@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -151,6 +151,42 @@ test("Feishu provides the official CLI lifecycle without adding an Action, MCP s
     assert.match(text, /QR|二维码/u);
     assert.match(text, /Secret/u);
   }
+});
+
+test("Shimo ships its reader Skills inside the plugin package", () => {
+  const ability = bySlug.get("shimo-reader");
+  assert.equal(ability?.type, "plugin");
+  const directory = packageFile(root, ability.source.path);
+  const plugin = readJson(packageFile(directory, "plugin.json"));
+  assert.ok(plugin.permissions.includes("agent.skills.control"));
+  assert.deepEqual(plugin.styles, ["dist/style.css"]);
+  packageFile(directory, "dist/style.css");
+  assert.equal(readJson(packageFile(directory, "locales/en.json")).name, "Shimo");
+  assert.equal(readJson(packageFile(directory, "locales/zh.json")).name, "拾墨");
+    assert.deepEqual(plugin.agent?.skillPaths, [
+      "agent/skills/shimo-reading-coach",
+      "agent/skills/shimo-poetry-analysis",
+      "agent/skills/shimo-reading-records",
+    ]);
+    packageFile(directory, "src/reader/useReaderController.ts");
+    packageFile(directory, "src/reader/components/NoteComposer.tsx");
+    packageFile(directory, "src/reader/components/PdfReader.tsx");
+    const readerSources = readdirSync(packageFile(directory, "src/reader/components"))
+      .filter((name) => name.endsWith(".tsx"))
+      .map((name) => readFileSync(packageFile(directory, `src/reader/components/${name}`), "utf8"))
+      .join("\n");
+    assert.doesNotMatch(readerSources, /window\.prompt/u);
+
+  const skillContracts = [
+    ["agent/skills/shimo-reading-coach/SKILL.md", /existing Vetta conversation/u],
+    ["agent/skills/shimo-poetry-analysis/SKILL.md", /Pinyin belongs above/u],
+    ["agent/skills/shimo-reading-records/SKILL.md", /material title/u],
+  ];
+  for (const [path, marker] of skillContracts) {
+    assert.match(readFileSync(packageFile(directory, path), "utf8"), marker);
+  }
+  const bundle = bySlug.get("shimo");
+  assert.deepEqual(bundle.config.members.map((member) => member.slug), ["shimo-reader", "pdf"]);
 });
 
 test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and pins a six-platform runtime set", () => {

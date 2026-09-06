@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "IMMERSIVE READING IN VETTA",
+      "title": "Read slowly, ask naturally, remember what matters",
+      "description": "Shimo keeps the page quiet until you need help. Read books, poetry and articles in Chinese or English, select a passage to ask Vetta, show pinyin above Chinese characters, and keep every note with the copy you are studying.",
+      "badges": [
+        "PDF · Markdown · TXT",
+        "Chinese + English",
+        "Offline reading"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Explain this line of poetry, show pinyin above the Chinese characters, and save the interpretation with my reading notes.",
+        "assistant_reply": "I’ll keep the selected line as context, explain its literal meaning and imagery, add pinyin in place, and save the answer to this reading record automatically."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "A small surface with depth when you ask for it",
+      "items": [
+        {
+          "title": "Progressive disclosure",
+          "description": "The page stays focused. Category-aware actions appear only after you select text, with no second chat interface to learn.",
+          "icon": "solar:layers-minimalistic-linear"
+        },
+        {
+          "title": "Bilingual study",
+          "description": "Read Chinese, English or mixed materials. Pinyin sits above the corresponding characters, while explanations and prompts follow the current language.",
+          "icon": "solar:translation-2-linear"
+        },
+        {
+          "title": "Records that travel with the copy",
+          "description": "Imported materials are copied into Shimo's private library. Highlights, thoughts, AI answers and revisions remain available offline.",
+          "icon": "solar:book-bookmark-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Start a reading session",
+      "items": [
+        {
+          "title": "Install Shimo and choose a document",
+          "description": "Open a PDF, Markdown or TXT file from the file explorer. Shimo creates a private copy before you begin."
+        },
+        {
+          "title": "Select when something catches",
+          "description": "Use the small category-aware action bar for explanation, poetry analysis, pinyin, translation, a note or a question to Vetta."
+        },
+        {
+          "title": "Return to the thought later",
+          "description": "Answers save automatically in the existing Vetta conversation and as a reading record. Export records using a filename based on the material's title."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "OCR is local by default",
+      "content": "Shimo uses Vetta's built-in local OCR Provider by default. Remote OCR is an optional future Provider Plugin protocol, not a bundled vendor integration; a remote Provider is never selected silently."
+    },
+    {
+      "type": "links",
+      "title": "Technical notes",
+      "items": [
+        {
+          "label": "Shimo integration notes",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/shimo/README.md"
+        },
+        {
+          "label": "Vetta official marketplace",
+          "href": "https://github.com/openvetta/vetta-official-marketplace"
+        }
+      ]
+    }
+  ]
+}

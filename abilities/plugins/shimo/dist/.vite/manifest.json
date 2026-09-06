@@ -1,0 +1,152 @@
+{
+  "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js": {
+    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+    "name": "_virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js"
+  },
+  "_index-0xf-q3zY.js": {
+    "file": "assets/index-0xf-q3zY.js",
+    "name": "index"
+  },
+  "_reader-CpzqxkKR.js": {
+    "file": "assets/reader-CpzqxkKR.js",
+    "name": "reader",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js",
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+      "_types-Kfr3vhsO.js"
+    ],
+    "dynamicImports": [
+      "src/reader/components/PdfReader.tsx",
+      "src/reader/components/MarkdownReader.tsx"
+    ]
+  },
+  "_types-Kfr3vhsO.js": {
+    "file": "assets/types-Kfr3vhsO.js",
+    "name": "types",
+    "imports": [
+      "src/index.tsx"
+    ]
+  },
+  "_vite-preload-helper-BXl3LOEh.js": {
+    "file": "assets/vite-preload-helper-BXl3LOEh.js",
+    "name": "vite-preload-helper"
+  },
+  "node_modules/pdfjs-dist/build/pdf.worker.min.mjs": {
+    "file": "assets/pdf.worker.min-iDqQPrd3.mjs",
+    "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
+  },
+  "src/activity-panel.tsx": {
+    "file": "assets/activity-panel-Dwjz7l-m.js",
+    "name": "activity-panel",
+    "src": "src/activity-panel.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+      "_types-Kfr3vhsO.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js"
+    ]
+  },
+  "src/index.tsx": {
+    "file": "assets/index-BFy-gKy9.js",
+    "name": "index",
+    "src": "src/index.tsx",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+      "_index-0xf-q3zY.js"
+    ],
+    "dynamicImports": [
+      "_reader-CpzqxkKR.js",
+      "src/activity-panel.tsx"
+    ],
+    "css": [
+      "style.css"
+    ]
+  },
+  "src/reader/components/MarkdownReader.tsx": {
+    "file": "assets/MarkdownReader-CSsuld78.js",
+    "name": "MarkdownReader",
+    "src": "src/reader/components/MarkdownReader.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+      "_reader-CpzqxkKR.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js",
+      "_types-Kfr3vhsO.js"
+    ]
+  },
+  "src/reader/components/PdfReader.tsx": {
+    "file": "assets/PdfReader-BgxBxl7G.js",
+    "name": "PdfReader",
+    "src": "src/reader/components/PdfReader.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-DtH0kdIQ.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js"
+    ],
+    "assets": [
+      "assets/pdf.worker.min-iDqQPrd3.mjs"
+    ]
+  },
+  "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js": {
+    "file": "remoteEntry.js",
+    "name": "remoteEntry",
+    "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
+      "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js"
+    ]
+  },
+  "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
+    "file": "assets/virtualExposes-BNB4GoP7.js",
+    "name": "virtualExposes",
+    "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
+      "src/index.tsx"
+    ]
+  },
+  "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1-DwYnecTi.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
+    "isDynamicEntry": true,
+    "imports": [
+      "_index-0xf-q3zY.js"
+    ]
+  },
+  "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-DaK7Clq2.js",
+    "name": "hostInit",
+    "src": "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1"
+    ]
+  }
+}

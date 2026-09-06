@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.06-02",
+  "marketplaceVersion": "2026.09.06-08",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -73,6 +73,35 @@
         }
       },
       "source": { "path": "abilities/mcp/notion" }
+    },
+    {
+      "type": "bundle",
+      "slug": "shimo",
+      "name": "Shimo",
+      "description": "An immersive bilingual reading workspace for books, poetry and study notes in Vetta, with Shimo reading Skills shipped inside the reader plugin.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Education",
+      "categoryI18n": { "zh": "学习", "en": "Education" },
+      "tags": ["reading", "poetry", "pdf", "pinyin", "notes", "bilingual"],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "拾墨",
+            "description": "在 Vetta 中沉浸式阅读书籍与诗歌，划选内容即可提问、解析、标注拼音并保存阅读记录。",
+            "tags": ["阅读", "诗歌", "PDF", "拼音", "笔记", "中英文"]
+          }
+        }
+      },
+      "source": { "path": "abilities/bundles/shimo" },
+      "config": {
+        "members": [
+          { "type": "plugin", "slug": "shimo-reader", "source": { "path": "abilities/plugins/shimo" } },
+          { "type": "skill", "slug": "pdf", "source": { "path": "abilities/skills/pdf" } }
+        ]
+      }
     },
     {
       "type": "bundle",

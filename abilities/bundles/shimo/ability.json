@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "type": "bundle",
+  "slug": "shimo",
+  "version": "1.0.0",
+  "icon": "solar:book-2-linear",
+  "name": "Shimo",
+  "description": "An immersive bilingual reading workspace for books, poetry and study notes in Vetta, with Shimo reading Skills shipped inside the reader plugin.",
+  "configVersion": 1,
+  "license": "MIT",
+  "author": "Vetta",
+  "category": "Education",
+  "categoryI18n": {
+    "zh": "学习",
+    "en": "Education"
+  },
+  "tags": [
+    "reading",
+    "poetry",
+    "pdf",
+    "pinyin",
+    "notes",
+    "bilingual"
+  ],
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "拾墨",
+        "description": "在 Vetta 中沉浸式阅读书籍与诗歌，划选内容即可提问、解析、标注拼音并保存阅读记录。"
+      }
+    }
+  }
+}

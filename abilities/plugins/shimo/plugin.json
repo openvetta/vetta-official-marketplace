@@ -1,0 +1,36 @@
+{
+  "id": "shimo-reader",
+  "name": "%name%",
+  "version": "1.0.0",
+  "pluginApiVersion": "^2.0.0",
+  "entry": "dist/mf-manifest.json",
+  "moduleFederation": {
+    "remoteName": "shimo_reader",
+    "expose": "./plugin"
+  },
+  "styles": [
+    "dist/style.css"
+  ],
+  "permissions": [
+    "ui.slot.workspace-view",
+    "ui.slot.activity-tab",
+    "ui.file-explorer.context-menu",
+    "agent.skills.control",
+    "fs.write",
+    "storage.read",
+    "storage.write",
+    "agent.session.read",
+    "ai.complete",
+    "ai.ocr.recognize"
+  ],
+  "agent": {
+    "skillPaths": [
+      "agent/skills/shimo-reading-coach",
+      "agent/skills/shimo-poetry-analysis",
+      "agent/skills/shimo-reading-records"
+    ]
+  },
+  "description": "%description%",
+  "author": "Vetta",
+  "defaultLocale": "en"
+}
