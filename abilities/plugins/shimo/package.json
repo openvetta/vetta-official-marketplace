@@ -1,6 +1,6 @@
 {
   "name": "@vetta-marketplace/shimo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@sinclair/typebox": "^0.34.41",
+    "lucide-react": "^1.24.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.149",
     "react-markdown": "^10.1.0"

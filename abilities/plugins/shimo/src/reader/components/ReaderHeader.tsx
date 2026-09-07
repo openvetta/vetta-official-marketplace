@@ -1,7 +1,7 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button } from "@vetta/ui";
+import { Button, Popover, PopoverTrigger } from "@vetta/ui";
+import { BookOpen, NotebookPen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
-import { LibraryIcon, RecordsIcon, SettingsIcon } from "./icons";
 
 interface ReaderHeaderProps {
   title: string;
@@ -12,10 +12,11 @@ interface ReaderHeaderProps {
   libraryOpen: boolean;
   recordsOpen: boolean;
   preferencesOpen: boolean;
+  preferencesPanel?: ReactElement;
   t: PluginTranslate;
   onToggleLibrary(): void;
   onToggleRecords(): void;
-  onTogglePreferences(): void;
+  onPreferencesOpenChange(open: boolean): void;
 }
 
 export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
@@ -28,10 +29,11 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
     libraryOpen,
     recordsOpen,
     preferencesOpen,
+    preferencesPanel,
     t,
     onToggleLibrary,
     onToggleRecords,
-    onTogglePreferences
+    onPreferencesOpenChange
   } = props;
 
   return (
@@ -44,7 +46,7 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
         aria-pressed={libraryOpen}
         onClick={onToggleLibrary}
       >
-        <LibraryIcon />
+        <BookOpen />
       </Button>
 
       <div className="min-w-0 flex-1">
@@ -61,21 +63,25 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
             aria-pressed={recordsOpen}
             onClick={onToggleRecords}
           >
-            <RecordsIcon />
+            <NotebookPen />
             {t("records.title")}
             <span className="tabular-nums text-muted-foreground">{recordCount}</span>
           </Button>
-          <Button
-            type="button"
-            size="icon-sm"
-            variant={preferencesOpen ? "secondary" : "ghost"}
-            aria-label={t("preferences.title")}
-            title={t("preferences.title")}
-            aria-pressed={preferencesOpen}
-            onClick={onTogglePreferences}
-          >
-            <SettingsIcon />
-          </Button>
+          <Popover open={preferencesOpen} onOpenChange={onPreferencesOpenChange}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant={preferencesOpen ? "secondary" : "ghost"}
+                aria-label={t("preferences.title")}
+                title={t("preferences.title")}
+                aria-pressed={preferencesOpen}
+              >
+                <Settings />
+              </Button>
+            </PopoverTrigger>
+            {preferencesPanel}
+          </Popover>
         </div>
       ) : null}
     </header>

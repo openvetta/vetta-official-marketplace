@@ -17,6 +17,7 @@ function memoryStorage(): PluginStorageApi {
     putBlobFromFile: async ({ id, mimeType }) => { const ref = { id: id ?? crypto.randomUUID(), url: "blob:test", mimeType }; blobs.set(ref.id, ref); return ref; },
     readBlob: async () => null,
     getBlobRef: async (id) => blobs.get(id) ?? null,
+    deleteBlob: async (id) => { blobs.delete(id); },
   } as PluginStorageApi;
 }
 

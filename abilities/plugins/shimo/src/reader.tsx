@@ -1,3 +1,4 @@
+import { Spin } from "@vetta/ui";
 import { lazy, Suspense, useState, type DragEvent, type ReactElement } from "react";
 import { EmptyLibrary } from "./reader/components/EmptyLibrary";
 import { LibrarySidebar } from "./reader/components/LibrarySidebar";
@@ -55,15 +56,26 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
           libraryOpen={reader.libraryOpen}
           recordsOpen={reader.recordsOpen}
           preferencesOpen={reader.preferencesOpen}
+          preferencesPanel={reader.manifest ? (
+            <PreferencesPopover
+              preferences={reader.preferences}
+              canExportPdf={reader.manifest.kind === "pdf"}
+              t={reader.t}
+              onClose={() => reader.setPreferencesOpen(false)}
+              onChange={reader.changePreferences}
+              onExport={reader.exportFormat}
+              onExportPdf={reader.exportPdf}
+            />
+          ) : undefined}
           t={reader.t}
           onToggleLibrary={() => reader.setLibraryOpen(!reader.libraryOpen)}
           onToggleRecords={() => {
             reader.setRecordsOpen(!reader.recordsOpen);
             reader.setPreferencesOpen(false);
           }}
-          onTogglePreferences={() => {
-            reader.setPreferencesOpen(!reader.preferencesOpen);
-            reader.setRecordsOpen(false);
+          onPreferencesOpenChange={(open) => {
+            reader.setPreferencesOpen(open);
+            if (open) reader.setRecordsOpen(false);
           }}
         />
 
@@ -79,18 +91,6 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
 
         {reader.manifest?.kind === "pdf" ? (
           <PdfPagination page={reader.page} pageCount={reader.pageCount} t={reader.t} onPage={reader.setPage} />
-        ) : null}
-
-        {reader.preferencesOpen && reader.manifest ? (
-          <PreferencesPopover
-            preferences={reader.preferences}
-            canExportPdf={reader.manifest.kind === "pdf"}
-            t={reader.t}
-            onClose={() => reader.setPreferencesOpen(false)}
-            onChange={reader.changePreferences}
-            onExport={reader.exportFormat}
-            onExportPdf={reader.exportPdf}
-          />
         ) : null}
 
         {reader.notice ? <StatusToast notice={reader.notice} /> : null}
@@ -139,15 +139,24 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
 }
 
 function ReadingSurface({ reader, runtime }: { reader: ReturnType<typeof useReaderController>; runtime: ShimoRuntime }): ReactElement {
+  const opening = (
+    <div className="grid min-h-[30rem] place-items-center text-xs text-muted-foreground">
+      <div className="flex items-center gap-2">
+        <Spin size="sm" />
+        <span>{reader.t("status.opening")}</span>
+      </div>
+    </div>
+  );
+
   if (reader.loading && !reader.manifest) {
-    return <div className="grid min-h-[30rem] place-items-center text-xs text-muted-foreground">{reader.t("status.opening")}</div>;
+    return opening;
   }
   if (!reader.manifest) {
     return <EmptyLibrary t={reader.t} onFiles={reader.importFiles} />;
   }
   if (reader.manifest.kind === "markdown") {
     return (
-      <Suspense fallback={<div className="grid min-h-[30rem] place-items-center text-xs text-muted-foreground">{reader.t("status.opening")}</div>}>
+      <Suspense fallback={opening}>
         <MarkdownReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
       </Suspense>
     );
@@ -157,7 +166,7 @@ function ReadingSurface({ reader, runtime }: { reader: ReturnType<typeof useRead
   }
 
   return (
-    <Suspense fallback={<div className="grid min-h-[30rem] place-items-center text-xs text-muted-foreground">{reader.t("status.opening")}</div>}>
+    <Suspense fallback={opening}>
       <PdfReader
         runtime={runtime}
         manifest={reader.manifest}

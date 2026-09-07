@@ -5,11 +5,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Switch
 } from "@vetta/ui";
+import { Ellipsis, X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingPreferences } from "../../domain";
-import { CloseIcon, MoreIcon } from "./icons";
 
 interface PreferencesPopoverProps {
   preferences: ReadingPreferences;
@@ -21,58 +30,70 @@ interface PreferencesPopoverProps {
   onExportPdf(): Promise<void>;
 }
 
-const SELECT_CLASS = "h-8 rounded-lg border border-border/70 bg-background px-2 text-xs text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/20";
-
 export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement {
   const { preferences, canExportPdf, t, onClose, onChange, onExport, onExportPdf } = props;
 
   return (
-    <section
+    <PopoverContent
+      align="end"
+      sideOffset={10}
       aria-label={t("preferences.title")}
-      className="absolute right-4 top-[4.5rem] z-30 w-[21rem] max-w-[calc(100%-2rem)] rounded-2xl border border-border/60 bg-popover/95 p-4 text-popover-foreground shadow-2xl backdrop-blur-xl"
+      className="w-[21rem] max-w-[calc(100vw-2rem)] gap-0 p-4 shadow-xl"
     >
-      <header className="mb-4 flex items-center justify-between">
+      <PopoverHeader className="mb-4 flex-row items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold">{t("preferences.title")}</h2>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{t("preferences.description")}</p>
+          <PopoverTitle>{t("preferences.title")}</PopoverTitle>
+          <PopoverDescription className="mt-0.5 text-[11px]">{t("preferences.description")}</PopoverDescription>
         </div>
         <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")} onClick={onClose}>
-          <CloseIcon />
+          <X />
         </Button>
-      </header>
+      </PopoverHeader>
 
       <div className="space-y-3">
-        <SettingRow label={t("preferences.pinyin")}>
-          <select
-            className={SELECT_CLASS}
+        <div className="flex min-h-10 items-center justify-between gap-4 rounded-xl bg-muted/40 px-3 py-2 text-xs">
+          <span>{t("preferences.pinyin")}</span>
+          <Select
             value={preferences.pinyin}
-            onChange={(event) => void onChange({ pinyin: event.target.value as ReadingPreferences["pinyin"] })}
+            onValueChange={(value) => void onChange({ pinyin: value as ReadingPreferences["pinyin"] })}
           >
-            <option value="hidden">{t("preferences.hidden")}</option>
-            <option value="on-demand">{t("preferences.onDemand")}</option>
-            <option value="visible">{t("preferences.visible")}</option>
-          </select>
-        </SettingRow>
+            <SelectTrigger size="sm" className="w-32" aria-label={t("preferences.pinyin")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="hidden">{t("preferences.hidden")}</SelectItem>
+              <SelectItem value="on-demand">{t("preferences.onDemand")}</SelectItem>
+              <SelectItem value="visible">{t("preferences.visible")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <SettingRow label={t("preferences.ocr")}>
-          <select
-            className={SELECT_CLASS}
+        <div className="flex min-h-10 items-center justify-between gap-4 rounded-xl bg-muted/40 px-3 py-2 text-xs">
+          <span>{t("preferences.ocr")}</span>
+          <Select
             value={preferences.scannedPdfOcr}
-            onChange={(event) => void onChange({ scannedPdfOcr: event.target.value as ReadingPreferences["scannedPdfOcr"] })}
+            onValueChange={(value) => void onChange({ scannedPdfOcr: value as ReadingPreferences["scannedPdfOcr"] })}
           >
-            <option value="never">{t("preferences.never")}</option>
-            <option value="on-demand">{t("preferences.onDemand")}</option>
-            <option value="visible-pages">{t("preferences.visiblePages")}</option>
-          </select>
-        </SettingRow>
+            <SelectTrigger size="sm" className="w-32" aria-label={t("preferences.ocr")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="never">{t("preferences.never")}</SelectItem>
+              <SelectItem value="on-demand">{t("preferences.onDemand")}</SelectItem>
+              <SelectItem value="visible-pages">{t("preferences.visiblePages")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <SettingRow label={t("preferences.remember") }>
+        <div className="flex min-h-10 items-center justify-between gap-4 rounded-xl bg-muted/40 px-3 py-2 text-xs">
+          <span>{t("preferences.remember")}</span>
           <Switch
             size="sm"
             checked={preferences.rememberPosition}
+            aria-label={t("preferences.remember")}
             onCheckedChange={(checked) => void onChange({ rememberPosition: checked })}
           />
-        </SettingRow>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
@@ -84,7 +105,7 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
           <DropdownMenuTrigger asChild>
             <Button type="button" size="sm" variant="secondary">
               {t("export.action")}
-              <MoreIcon />
+              <Ellipsis />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -97,15 +118,6 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </section>
-  );
-}
-
-function SettingRow({ label, children }: { label: string; children: ReactElement }): ReactElement {
-  return (
-    <label className="flex min-h-10 items-center justify-between gap-4 rounded-xl bg-muted/40 px-3 py-2 text-xs">
-      <span>{label}</span>
-      {children}
-    </label>
+    </PopoverContent>
   );
 }

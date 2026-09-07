@@ -1,9 +1,17 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button } from "@vetta/ui";
+import {
+  Button,
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle
+} from "@vetta/ui";
+import { X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import type { Locale } from "../types";
-import { CloseIcon } from "./icons";
 import { RecordList } from "./RecordList";
 
 interface RecordsDrawerProps {
@@ -15,30 +23,27 @@ interface RecordsDrawerProps {
 
 export function RecordsDrawer({ records, locale, t, onClose }: RecordsDrawerProps): ReactElement {
   return (
-    <>
-      <button
-        type="button"
-        className="absolute inset-0 z-20 cursor-default bg-background/20 backdrop-blur-[1px]"
-        aria-label={t("common.close")}
-        onClick={onClose}
-      />
-      <aside
+    <Drawer open direction="right" onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DrawerContent
         aria-label={t("records.title")}
-        className="shimo-drawer-in absolute inset-y-0 right-0 z-30 flex w-[23rem] max-w-[86vw] flex-col border-l border-border/60 bg-popover/97 shadow-2xl backdrop-blur-xl"
+        className="w-[23rem] max-w-[86vw] rounded-none bg-popover/97 shadow-2xl backdrop-blur-xl sm:max-w-[23rem]"
+        overlayClassName="bg-background/20"
       >
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border/50 px-4">
+        <DrawerHeader className="flex h-16 shrink-0 flex-row items-center justify-between gap-3 border-b border-border/50 px-4 py-0">
           <div>
-            <h2 className="text-sm font-semibold">{t("records.title")}</h2>
-            <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+            <DrawerTitle className="text-sm font-semibold">{t("records.title")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5 text-[10px] tabular-nums">
               {t("records.count", { count: records.length })}
-            </p>
+            </DrawerDescription>
           </div>
-          <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")} onClick={onClose}>
-            <CloseIcon />
-          </Button>
-        </header>
+          <DrawerClose asChild>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")}>
+              <X />
+            </Button>
+          </DrawerClose>
+        </DrawerHeader>
         <RecordList records={records} locale={locale} t={t} />
-      </aside>
-    </>
+      </DrawerContent>
+    </Drawer>
   );
 }

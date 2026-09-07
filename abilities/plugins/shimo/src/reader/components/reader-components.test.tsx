@@ -1,21 +1,61 @@
 // @vitest-environment happy-dom
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { act, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from "react";
+import {
+  act,
+  type ButtonHTMLAttributes,
+  type HTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes
+} from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACTIONS } from "../../classification";
 import { NoteComposer } from "./NoteComposer";
+import { PreferencesPopover } from "./PreferencesPopover";
 import { ReaderHeader } from "./ReaderHeader";
+import { RecordsDrawer } from "./RecordsDrawer";
 import { SelectionToolbar } from "./SelectionToolbar";
 
 vi.mock("@vetta/ui", () => ({
   Button: ({ children, size: _size, variant: _variant, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { size?: string; variant?: string }) => <button {...props}>{children}</button>,
   Dialog: ({ children }: { children: ReactNode }) => <>{children}</>,
-  DialogContent: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  DialogContent: ({ children, showCloseButton: _showCloseButton, ...props }: HTMLAttributes<HTMLDivElement> & { showCloseButton?: boolean }) => <div {...props}>{children}</div>,
   DialogDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
   DialogFooter: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
   DialogHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
-  DialogTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>
+  DialogTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
+  Drawer: ({ children, onOpenChange }: { children: ReactNode; onOpenChange?(open: boolean): void }) => (
+    <div>
+      {children}
+      <button type="button" data-testid="drawer-dismiss" onClick={() => onOpenChange?.(false)} />
+    </div>
+  ),
+  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DrawerContent: ({ children, overlayClassName: _overlayClassName, ...props }: HTMLAttributes<HTMLDivElement> & { overlayClassName?: string }) => <div {...props}>{children}</div>,
+  DrawerDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
+  DrawerHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  DrawerTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
+  DropdownMenu: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DropdownMenuContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+  DropdownMenuItem: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
+  PopoverContent: ({ children, align: _align, sideOffset: _sideOffset, ...props }: HTMLAttributes<HTMLDivElement> & { align?: string; sideOffset?: number }) => <div {...props}>{children}</div>,
+  PopoverDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
+  PopoverHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  PopoverTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
+  PopoverTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  Select: ({ children, onValueChange, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { onValueChange?(value: string): void }) => (
+    <select {...props} onChange={(event) => onValueChange?.(event.target.value)}>{children}</select>
+  ),
+  SelectContent: ({ children }: { children: ReactNode }) => <>{children}</>,
+  SelectItem: ({ children, value }: { children: ReactNode; value: string }) => <option value={value}>{children}</option>,
+  SelectTrigger: () => null,
+  SelectValue: () => null,
+  Switch: ({ checked, onCheckedChange, ...props }: InputHTMLAttributes<HTMLInputElement> & { onCheckedChange?(checked: boolean): void }) => (
+    <input type="checkbox" checked={checked} onChange={(event) => onCheckedChange?.(event.target.checked)} {...props} />
+  )
 }));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -25,6 +65,19 @@ const messages: Record<string, string> = {
   "library.expand": "Expand library",
   "records.title": "Reading records",
   "preferences.title": "Reading preferences",
+  "preferences.description": "Tune the reader",
+  "preferences.pinyin": "Pinyin",
+  "preferences.ocr": "OCR",
+  "preferences.remember": "Remember position",
+  "preferences.hidden": "Hidden",
+  "preferences.onDemand": "On demand",
+  "preferences.visible": "Visible",
+  "preferences.never": "Never",
+  "preferences.visiblePages": "Visible pages",
+  "export.title": "Export",
+  "export.description": "Export records",
+  "export.action": "Export",
+  "export.annotatedPdf": "Annotated PDF",
   "selection.actions": "Selection actions",
   "composer.reflectionTitle": "Capture this reflection",
   "composer.noteTitle": "Write a note",
@@ -33,6 +86,7 @@ const messages: Record<string, string> = {
   "composer.inputLabel": "Record text",
   "composer.shortcut": "Ctrl + Enter to save",
   "common.cancel": "Cancel",
+  "common.close": "Close",
   "common.save": "Save",
   "common.saving": "Saving"
 };
@@ -71,7 +125,7 @@ describe("Shimo progressive disclosure", () => {
       t,
       onToggleLibrary: vi.fn(),
       onToggleRecords: vi.fn(),
-      onTogglePreferences: vi.fn()
+      onPreferencesOpenChange: vi.fn()
     };
     const container = await render(<ReaderHeader {...baseProps} active={false} />);
     expect(container.querySelectorAll("button")).toHaveLength(1);
@@ -133,5 +187,49 @@ describe("Shimo note composer", () => {
     });
 
     expect(onSave).toHaveBeenCalledWith("雨后的静谧让山更显空灵");
+  });
+});
+
+describe("Shimo reading preferences", () => {
+  it("writes shared Select and Switch changes through the preferences contract", async () => {
+    const onChange = vi.fn(async () => undefined);
+    const onClose = vi.fn();
+    const container = await render(
+      <PreferencesPopover
+        preferences={{ schemaVersion: 1, pinyin: "hidden", scannedPdfOcr: "never", rememberPosition: true }}
+        canExportPdf={false}
+        t={t}
+        onClose={onClose}
+        onChange={onChange}
+        onExport={vi.fn(async () => undefined)}
+        onExportPdf={vi.fn(async () => undefined)}
+      />
+    );
+
+    const selects = container.querySelectorAll("select");
+    await act(async () => {
+      const pinyin = selects[0];
+      if (!pinyin) return;
+      pinyin.value = "visible";
+      pinyin.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await act(async () => container.querySelector<HTMLInputElement>('input[type="checkbox"]')?.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('button[aria-label="Close"]')?.click());
+
+    expect(onChange).toHaveBeenCalledWith({ pinyin: "visible" });
+    expect(onChange).toHaveBeenCalledWith({ rememberPosition: false });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Shimo reading records", () => {
+  it("closes through the shared Drawer state contract", async () => {
+    const onClose = vi.fn();
+    const container = await render(<RecordsDrawer records={[]} locale="en" t={t} onClose={onClose} />);
+
+    expect(container.querySelector('[aria-label="Reading records"]')).not.toBeNull();
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="drawer-dismiss"]')?.click());
+
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

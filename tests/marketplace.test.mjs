@@ -157,6 +157,8 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   const ability = bySlug.get("shimo-reader");
   assert.equal(ability?.type, "plugin");
   const directory = packageFile(root, ability.source.path);
+  const packageJson = readJson(packageFile(directory, "package.json"));
+  assert.equal(packageJson.devDependencies["@vetta/ui"], "^0.1.0");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.ok(plugin.permissions.includes("agent.skills.control"));
   assert.deepEqual(plugin.styles, ["dist/style.css"]);
@@ -172,10 +174,13 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
     packageFile(directory, "src/reader/components/NoteComposer.tsx");
     packageFile(directory, "src/reader/components/PdfReader.tsx");
     const readerSources = readdirSync(packageFile(directory, "src/reader/components"))
-      .filter((name) => name.endsWith(".tsx"))
+      .filter((name) => name.endsWith(".tsx") && !name.endsWith(".test.tsx"))
       .map((name) => readFileSync(packageFile(directory, `src/reader/components/${name}`), "utf8"))
       .join("\n");
     assert.doesNotMatch(readerSources, /window\.prompt/u);
+    assert.match(readerSources, /from "@vetta\/ui"/u);
+    assert.doesNotMatch(readerSources, /<(?:button|input|select)\b/u);
+    assert.equal(existsSync(resolve(directory, "src/reader/components/icons.tsx")), false);
 
   const skillContracts = [
     ["agent/skills/shimo-reading-coach/SKILL.md", /existing Vetta conversation/u],

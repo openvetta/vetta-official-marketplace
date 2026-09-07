@@ -1,8 +1,9 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta/ui";
+import { BookOpen } from "lucide-react";
 import type { ReactElement } from "react";
 import type { LibraryEntry } from "../../domain";
 import { ImportButton } from "./ImportButton";
-import { LibraryIcon } from "./icons";
 
 interface LibrarySidebarProps {
   entries: LibraryEntry[];
@@ -24,7 +25,7 @@ export function LibrarySidebar({ entries, selectedId, open, t, onSelect, onFiles
       <div className="flex h-full w-56 flex-col px-3 pb-3 pt-4">
         <div className="mb-4 flex items-center justify-between gap-2 px-1">
           <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-            <LibraryIcon className="size-[18px] text-primary" />
+            <BookOpen className="size-[18px] text-primary" />
             <span className="truncate">{t("library.title")}</span>
           </div>
           <ImportButton t={t} onFiles={onFiles} />
@@ -34,17 +35,19 @@ export function LibrarySidebar({ entries, selectedId, open, t, onSelect, onFiles
           {entries.map((entry) => {
             const active = selectedId === entry.id;
             return (
-              <button
+              <Button
                 key={entry.id}
                 type="button"
+                size="lg"
+                variant={active ? "secondary" : "ghost"}
                 aria-current={active ? "page" : undefined}
                 onClick={() => void onSelect(entry.id)}
-                className={`group relative grid w-full gap-1 rounded-xl px-3 py-2.5 text-left transition ${active ? "bg-accent text-accent-foreground shadow-sm" : "text-foreground/80 hover:bg-accent/55 hover:text-foreground"}`}
+                className="relative grid h-auto w-full justify-start gap-1 rounded-xl px-3 py-2.5 text-left whitespace-normal"
               >
                 {active ? <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" aria-hidden="true" /> : null}
                 <span className="truncate text-[13px] font-medium">{entry.title}</span>
                 <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{entry.kind}</span>
-              </button>
+              </Button>
             );
           })}
         </nav>

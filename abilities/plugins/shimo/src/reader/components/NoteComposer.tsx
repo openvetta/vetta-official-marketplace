@@ -49,7 +49,7 @@ export function NoteComposer({ pending, locale, t, onCancel, onSave }: NoteCompo
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open && !saving) onCancel(); }}>
-      <DialogContent className="overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent className="overflow-hidden p-0 sm:max-w-lg" showCloseButton={false}>
         <DialogHeader className="px-5 pb-0 pt-5">
           <DialogTitle className="shimo-serif text-lg">{t(kindKey)}</DialogTitle>
           <DialogDescription>{t("composer.description")}</DialogDescription>

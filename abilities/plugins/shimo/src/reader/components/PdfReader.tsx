@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button } from "@vetta/ui";
+import { Button, Spin } from "@vetta/ui";
 import { useCallback, useEffect, useState, type ReactElement, type RefObject } from "react";
 import type { MaterialManifest, OcrPageCache, ReadingPreferences, ReadingRecord } from "../../domain";
 import type { ShimoRuntime } from "../../runtime";
@@ -109,7 +109,12 @@ export function PdfReader(props: PdfReaderProps): ReactElement {
       <PdfPinyin records={pagePinyin} />
 
       {pdfPage.loading ? (
-        <div className="absolute inset-0 grid place-items-center bg-white/75 text-xs text-stone-500 backdrop-blur-sm">{t("status.opening")}</div>
+        <div className="absolute inset-0 grid place-items-center bg-white/75 text-xs text-stone-500 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <Spin size="sm" />
+            <span>{t("status.opening")}</span>
+          </div>
+        </div>
       ) : null}
       {pdfPage.error ? (
         <div role="alert" className="absolute inset-x-5 top-5 rounded-xl bg-red-950/90 px-4 py-3 text-xs text-red-50 shadow-lg">
@@ -181,6 +186,7 @@ function OcrPrompt({ enabled, running, error, t, onRecognize }: { enabled: boole
       <span>{error ? `${t("pdf.ocrFailed")}: ${error}` : enabled ? t("pdf.noTextLayer") : t("pdf.ocrUnavailable")}</span>
       {enabled ? (
         <Button type="button" size="xs" variant="secondary" disabled={running} onClick={() => void onRecognize()}>
+          {running ? <Spin size="sm" /> : null}
           {running ? t("pdf.ocrRunning") : t("pdf.ocrRun")}
         </Button>
       ) : null}
