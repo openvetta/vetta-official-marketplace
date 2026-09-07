@@ -446,6 +446,8 @@ async function readPublishedModels(): Promise<PublishedModel[] | undefined> {
  */
 async function loadPublishableModels(): Promise<{
   models: PublishedModel[];
+  /** False while the gateway has not registered everything the credentials claim. */
+  complete: boolean;
   routable: ProxyModel[];
   accounts: ProxyAccount[];
   catalog: ModelCatalog;
@@ -458,7 +460,8 @@ async function loadPublishableModels(): Promise<{
     readPublishedModels()
   ]);
   const accounts = readAccounts(accountPayload);
-  return { models: reconcileModels({ published, routable, accounts, catalog }), routable, accounts, catalog };
+  const { models, complete } = reconcileModels({ published, routable, accounts, catalog });
+  return { models, complete, routable, accounts, catalog };
 }
 
 /** Switches one credential in or out of the routing pool. */

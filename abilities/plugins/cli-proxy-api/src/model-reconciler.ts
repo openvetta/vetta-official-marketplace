@@ -1,6 +1,12 @@
 import { PROTOCOL_GROUPS, modelChannelFor, protocolGroupFor, type ProtocolGroup } from "./provider-contract";
 import type { ProxyAccount, ProxyModel, ModelCatalog, PublishedModel } from "./proxy-client";
 
+export type ReconcileResult = {
+  models: PublishedModel[];
+  /** False while an enabled credential claims models the gateway has not registered yet. */
+  complete: boolean;
+};
+
 /**
  * What one reconciliation pass gets to look at.
  *
@@ -33,11 +39,20 @@ export type ReconcileSources = {
  * Anything else — a channel that answered nothing, a credential whose provider
  * this plugin does not recognise — is missing evidence, not evidence of
  * absence, and the previously published model stays.
+ *
+ * `complete` reports whether this pass saw everything the enabled credentials
+ * claim. Retention alone cannot bring back a model that was never published —
+ * a fresh install starts with nothing to retain — so the caller must observe
+ * again while the answer is false, and may stop as soon as it is true. That is
+ * a statement about evidence, not a guess at how long registration takes.
  */
-export function reconcileModels({ published, routable, accounts, catalog }: ReconcileSources): PublishedModel[] {
+export function reconcileModels({ published, routable, accounts, catalog }: ReconcileSources): ReconcileResult {
   const next = new Map<string, PublishedModel>();
-  for (const model of groupModels(routable)) next.set(`${model.group}/${model.id}`, model);
-  if (!published) return sortModels([...next.values()]);
+  const registered = new Set<string>();
+  for (const model of groupModels(routable)) {
+    next.set(`${model.group}/${model.id}`, model);
+    registered.add(`${model.group}/${model.id}`);
+  }
 
   // What the enabled credentials say they can route. `backed` answers "may this
   // group exist at all", `claimed` answers "is this specific model still on
@@ -67,13 +82,20 @@ export function reconcileModels({ published, routable, accounts, catalog }: Reco
     }
   }
 
-  for (const model of published) {
+  for (const model of published ?? []) {
     const key = `${model.group}/${model.id}`;
     if (next.has(key)) continue;
     if (!backed.has(model.group)) continue;
     if (claimed.get(model.group)?.has(model.id) || unproven.has(model.group)) next.set(key, model);
   }
-  return sortModels([...next.values()]);
+
+  // Incomplete while a channel could not be asked, or while it names a model
+  // the gateway has not registered: both mean a later pass will see more.
+  let complete = unproven.size === 0;
+  for (const [group, ids] of claimed) {
+    for (const id of ids) if (!registered.has(`${group}/${id}`)) complete = false;
+  }
+  return { models: sortModels([...next.values()]), complete };
 }
 
 /** Attaches the protocol group each model is published under. */

@@ -33,45 +33,61 @@ describe("model reconciliation", () => {
     // The reported cold start: /v1/models answers with codex a second or two
     // before antigravity finishes registering, and publishing that read as the
     // whole truth is what used to erase the antigravity models on every launch.
-    expect(reconcileModels(sources()).map((model) => `${model.group}/${model.id}`)).toEqual([
+    expect(reconcileModels(sources()).models.map((model) => `${model.group}/${model.id}`)).toEqual([
       "anthropic/claude-sonnet-4-6", "google/gemini-3-flash", "responses/gpt-5.5"
     ]);
   });
 
   it("drops the models of a credential that is gone or switched off", () => {
-    expect(reconcileModels(sources({ accounts: [account("codex")] })).map((model) => model.id)).toEqual(["gpt-5.5"]);
+    expect(reconcileModels(sources({ accounts: [account("codex")] })).models.map((model) => model.id)).toEqual(["gpt-5.5"]);
     const disabled = [account("antigravity", { active: false, disabled: true }), account("codex")];
-    expect(reconcileModels(sources({ accounts: disabled })).map((model) => model.id)).toEqual(["gpt-5.5"]);
+    expect(reconcileModels(sources({ accounts: disabled })).models.map((model) => model.id)).toEqual(["gpt-5.5"]);
   });
 
   it("drops a model its own channel answered without", () => {
     const catalog = catalogOf({ antigravity: [{ id: "gemini-3-flash" }], codex: CODEX_CHANNEL });
-    expect(reconcileModels(sources({ catalog })).map((model) => model.id)).toEqual(["gemini-3-flash", "gpt-5.5"]);
+    expect(reconcileModels(sources({ catalog })).models.map((model) => model.id)).toEqual(["gemini-3-flash", "gpt-5.5"]);
   });
 
   it("keeps everything when a backing channel answered nothing at all", () => {
     // Unknown is not denial: the credential is there, this pass just could not
     // ask it. Dropping here would be the same defect with a different trigger.
     const catalog = catalogOf({ codex: CODEX_CHANNEL });
-    expect(reconcileModels(sources({ catalog })).map((model) => model.id)).toEqual([
+    expect(reconcileModels(sources({ catalog })).models.map((model) => model.id)).toEqual([
       "claude-sonnet-4-6", "gemini-3-flash", "gpt-5.5"
     ]);
   });
 
   it("keeps everything for a credential whose provider the plugin does not model", () => {
     const accounts = [account("openai-compatibility"), account("codex")];
-    expect(reconcileModels(sources({ accounts })).map((model) => model.id)).toEqual([
+    expect(reconcileModels(sources({ accounts })).models.map((model) => model.id)).toEqual([
       "claude-sonnet-4-6", "gemini-3-flash", "gpt-5.5"
     ]);
   });
 
   it("publishes only what is routable when the host offers no read-back", () => {
-    expect(reconcileModels(sources({ published: undefined })).map((model) => model.id)).toEqual(["gpt-5.5"]);
+    expect(reconcileModels(sources({ published: undefined })).models.map((model) => model.id)).toEqual(["gpt-5.5"]);
+  });
+
+  it("reports the pass incomplete until every claimed model is registered", () => {
+    // The signal that stops the cold-start loop: retention alone cannot bring
+    // back models a fresh install never published, so the caller has to look
+    // again — and this says when looking again is still worth it.
+    expect(reconcileModels(sources()).complete).toBe(false);
+    const routable = [
+      codexModel,
+      { id: "gemini-3-flash", ownedBy: "antigravity" },
+      { id: "claude-sonnet-4-6", ownedBy: "antigravity" }
+    ];
+    expect(reconcileModels(sources({ routable })).complete).toBe(true);
+    // A channel that answered nothing is unproven, so the pass is not complete
+    // even though everything it could name is registered.
+    expect(reconcileModels(sources({ routable, catalog: catalogOf({ codex: CODEX_CHANNEL }) })).complete).toBe(false);
   });
 
   it("prefers the freshly read capabilities over the published copy", () => {
     const routable: ProxyModel[] = [{ id: "gemini-3-flash", ownedBy: "antigravity", contextWindow: 1_048_576 }];
-    const reconciled = reconcileModels(sources({ routable }));
+    const { models: reconciled } = reconcileModels(sources({ routable }));
     expect(reconciled.find((model) => model.id === "gemini-3-flash")).toMatchObject({ contextWindow: 1_048_576 });
   });
 });

@@ -223,6 +223,52 @@ describe("CLIProxyAPI contracts", () => {
     await connection.dispose();
   });
 
+  it("picks up a channel the gateway registers after the first publish", async () => {
+    // A fresh install has nothing published to retain, so retention alone cannot
+    // save it: the pass has to look again until the credentials' claims are all
+    // registered. This is the case that leaves the model picker empty.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    let registered = false;
+    const stable = f.handle.getMockImplementation();
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      if (request.path === "/v1/models") {
+        return { data: registered
+          ? [{ id: "gpt-5.5", owned_by: "openai" }, { id: "gemini-3-flash", owned_by: "antigravity" }]
+          : [{ id: "gpt-5.5", owned_by: "openai" }] };
+      }
+      if (request.path === "/v0/management/auth-files") {
+        return { files: [
+          { auth_index: "ag-1", name: "ag.json", provider: "antigravity" },
+          { auth_index: "codex-1", name: "codex.json", provider: "codex" }
+        ] };
+      }
+      if (request.path === "/v0/management/model-definitions/antigravity") {
+        return { models: [{ id: "gemini-3-flash", owned_by: "antigravity" }] };
+      }
+      if (request.path === "/v0/management/model-definitions/codex") {
+        return { models: [{ id: "gpt-5.5", owned_by: "openai" }] };
+      }
+      if (!stable) throw new Error("missing fixture handler");
+      return stable(request);
+    });
+
+    const connection = maintainModelConnection(f.context);
+
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
+    expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith({
+      responses: expect.objectContaining({ models: [{ id: "gpt-5.5", api: "openai-responses" }] })
+    });
+
+    registered = true;
+    await vi.advanceTimersByTimeAsync(500);
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith(expect.objectContaining({
+      google: expect.objectContaining({ models: [{ id: "gemini-3-flash", api: "google-generative-ai" }] }),
+      responses: expect.objectContaining({ models: [{ id: "gpt-5.5", api: "openai-responses" }] })
+    })));
+    await connection.dispose();
+  });
+
   it("drops published models once no credential backs them any more", async () => {
     const f = fixture();
     f.setOwnedProviders({ google: { models: [{ id: "gemini-test" }] } });
