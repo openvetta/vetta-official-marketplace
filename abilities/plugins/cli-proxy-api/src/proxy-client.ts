@@ -1,4 +1,5 @@
-import { MODEL_DEFINITION_CHANNELS, protocolGroupFor, type ProtocolGroup } from "./provider-contract";
+import { MODEL_DEFINITION_CHANNELS, isProtocolGroup, protocolGroupFor, type ProtocolGroup } from "./provider-contract";
+import { reconcileModels } from "./model-reconciler";
 import { selectModels, type ModelSelection } from "./model-selection";
 import type { ManagedPluginContext } from "./runtime-contract";
 
@@ -15,6 +16,9 @@ export type JsonRecord = Record<string, unknown>;
  */
 export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
+
+/** A model together with the protocol group it is published under. */
+export type PublishedModel = ProxyModel & { group: ProtocolGroup };
 
 /** One model as the upstream channel catalog describes it, before any account is connected. */
 export type ChannelModel = { id: string; displayName?: string } & ModelMetadata;
@@ -355,16 +359,15 @@ const PROVIDER_CONFIG: Record<ProtocolGroup, { basePath: string; api: string; ti
  * the same transaction as the groups that remain.
  */
 async function publishModels(
-  models: ProxyModel[],
+  models: readonly PublishedModel[],
   isCurrent = () => true,
   selection: ModelSelection = null
 ): Promise<void> {
   const connection = await pluginContext.services.connection(SERVICE_ID, API_CREDENTIAL);
   if (!connection.credential) throw new Error("The managed API credential is unavailable");
-  const groups = new Map<ProtocolGroup, ProxyModel[]>();
+  const groups = new Map<ProtocolGroup, PublishedModel[]>();
   for (const model of selectModels(models, selection)) {
-    const group = protocolGroupFor(model.ownedBy, model.id);
-    groups.set(group, [...(groups.get(group) ?? []), model]);
+    groups.set(model.group, [...(groups.get(model.group) ?? []), model]);
   }
   if (!isCurrent()) return;
   const providers = Object.fromEntries(
@@ -401,6 +404,61 @@ async function loadModels(): Promise<{ models: ProxyModel[]; catalog: ModelCatal
     fetchModelCatalog()
   ]);
   return { models: readModels(payload, catalog), catalog };
+}
+
+/**
+ * What the host currently holds for this plugin, as the reconciler's baseline.
+ *
+ * `undefined` on a host without the read-back capability: there is nothing to
+ * reconcile against, so the caller publishes what it can see and accepts that
+ * an unregistered model stays missing until the next pass.
+ */
+async function readPublishedModels(): Promise<PublishedModel[] | undefined> {
+  const read = pluginContext.models.listOwnedProviders;
+  if (typeof read !== "function") return undefined;
+  const providers = await read.call(pluginContext.models);
+  const models: PublishedModel[] = [];
+  for (const [group, provider] of Object.entries(providers)) {
+    if (!isProtocolGroup(group)) continue;
+    for (const model of provider.models ?? []) {
+      models.push({
+        id: model.id,
+        // Only the group survives a publish, and the group is all the reconciler needs.
+        ownedBy: "",
+        group,
+        ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
+        ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
+        ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
+      });
+    }
+  }
+  return models;
+}
+
+/**
+ * Everything a publish decision needs, read in one round trip and already
+ * reconciled against what the host holds.
+ *
+ * The raw pieces come back too because the workspace view renders them: the
+ * routable list is what the gateway will serve right now, while `models` is
+ * what may be published without dropping a credential's models that the
+ * gateway has not finished registering.
+ */
+async function loadPublishableModels(): Promise<{
+  models: PublishedModel[];
+  routable: ProxyModel[];
+  accounts: ProxyAccount[];
+  catalog: ModelCatalog;
+}> {
+  const [{ models: routable, catalog }, accountPayload, published] = await Promise.all([
+    loadModels(),
+    serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL }),
+    // A failed read-back must not degrade into a destructive publish: let it
+    // throw so the caller retries instead of replacing the namespace blind.
+    readPublishedModels()
+  ]);
+  const accounts = readAccounts(accountPayload);
+  return { models: reconcileModels({ published, routable, accounts, catalog }), routable, accounts, catalog };
 }
 
 /** Switches one credential in or out of the routing pool. */
@@ -456,6 +514,7 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
 
 return {
   serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels,
+  readPublishedModels, loadPublishableModels,
   setAccountDisabled, resetAccountQuota, fetchAccountModels
 };
 }

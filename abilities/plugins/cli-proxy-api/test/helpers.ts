@@ -16,7 +16,13 @@ export function fixture() {
     if (request.method === "DELETE") return { status: "ok", cancelled: true };
     return { status: "wait" };
   });
-  const replaceOwnedProviders = vi.fn(async () => undefined);
+  // The host persists what a plugin publishes and hands it back on request, so
+  // the fixture has to as well: reconciliation is defined against that state.
+  let owned: Record<string, unknown> = {};
+  const replaceOwnedProviders = vi.fn(async (providers: Record<string, unknown>) => {
+    owned = providers;
+  });
+  const listOwnedProviders = vi.fn(async () => owned);
   const reportReady = vi.fn(async () => ready);
   const openExternal = vi.fn(async () => undefined);
   const setWorkspaceViewHeader = vi.fn();
@@ -38,12 +44,14 @@ export function fixture() {
         listeners.add(listener); return { dispose: () => { listeners.delete(listener); } };
       }
     },
-    models: { replaceOwnedProviders },
+    models: { replaceOwnedProviders, listOwnedProviders },
     network: { request: vi.fn() },
     storage: { readFile, writeFile },
     ui: { openExternal, setWorkspaceViewHeader, openWorkspaceView }
   } as unknown as ManagedPluginContext;
-  return { context, ready, handle, replaceOwnedProviders, reportReady, openExternal, setWorkspaceViewHeader, openWorkspaceView, writeFile, readFile, reload,
+  return { context, ready, handle, replaceOwnedProviders, listOwnedProviders,
+    setOwnedProviders: (providers: Record<string, unknown>) => { owned = providers; },
+    reportReady, openExternal, setWorkspaceViewHeader, openWorkspaceView, writeFile, readFile, reload,
     emit: (status: ServiceStatus) => { for (const listener of listeners) listener(status); },
     setBaseUrl: (url: string) => { baseUrl = url; }
   };

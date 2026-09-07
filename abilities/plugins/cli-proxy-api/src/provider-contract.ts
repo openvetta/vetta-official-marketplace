@@ -27,6 +27,13 @@ export const CONFIGURED_PROVIDER_ROUTES = [
   "/v0/management/vertex/import"
 ] as const;
 
+/** Every protocol group, in the order providers are published. */
+export const PROTOCOL_GROUPS = ["google", "anthropic", "responses", "completions"] as const satisfies readonly ProtocolGroup[];
+
+export function isProtocolGroup(value: string): value is ProtocolGroup {
+  return (PROTOCOL_GROUPS as readonly string[]).includes(value);
+}
+
 export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup {
   const source = owner.trim().toLowerCase();
   if (source === "antigravity" && /claude|anthropic/u.test(modelId.toLowerCase())) return "anthropic";
@@ -62,3 +69,8 @@ export const MODEL_CHANNEL_BY_PROVIDER: Record<OAuthProviderId, string> = {
   kimi: "kimi",
   xai: "xai"
 };
+
+/** The channel backing a credential, or `undefined` for providers this plugin does not model. */
+export function modelChannelFor(provider: string): string | undefined {
+  return MODEL_CHANNEL_BY_PROVIDER[provider as OAuthProviderId];
+}

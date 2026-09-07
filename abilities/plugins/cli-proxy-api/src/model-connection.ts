@@ -19,6 +19,7 @@ export function maintainModelConnection(context: ManagedPluginContext) {
     clearTimeout(retryTimer);
     retryTimer = undefined;
   };
+  /** Only failures come back here: a successful pass needs no re-read. */
   const scheduleRetry = (current: number) => {
     if (!active || current !== generation || phase !== "ready" || retryTimer !== undefined) return;
     retryTimer = setTimeout(() => {
@@ -29,18 +30,11 @@ export function maintainModelConnection(context: ManagedPluginContext) {
   const synchronize = (current: number) => {
     pending = pending.then(async () => {
       if (!active || current !== generation || phase !== "ready") return;
-      const [{ models }, selection] = await Promise.all([client.loadModels(), readModelSelection(context)]);
+      const [{ models }, selection] = await Promise.all([client.loadPublishableModels(), readModelSelection(context)]);
       if (!active || current !== generation || phase !== "ready") return;
-      // An empty catalog is never an authoritative deletion on the background
-      // reconciliation path. The gateway can answer its health endpoint before
-      // rebuilding routes, and an empty first response would otherwise erase a
-      // previously valid provider (or make a fresh install look permanently
-      // unconfigured). Explicit user actions use publishModels directly when a
-      // deliberate clear is required.
-      if (models.length === 0) {
-        scheduleRetry(current);
-        return;
-      }
+      // `loadPublishableModels` has already reconciled against what the host
+      // holds, so this set never drops a model merely because the gateway had
+      // not finished registering its credential when the read went out.
       await client.publishModels(models, () => active && current === generation && phase === "ready", selection);
       lastError = undefined;
     }).catch((error: unknown) => {

@@ -1,5 +1,4 @@
 import { API_CREDENTIAL, MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient } from "./proxy-client";
-import { readModelSelection } from "./model-selection";
 import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 
 const READINESS_RETRY_DELAYS_MS = [250, 500, 1_000, 2_000, 5_000, 10_000] as const;
@@ -8,8 +7,12 @@ const STATUS_RECONCILE_INTERVAL_MS = 500;
 /**
  * The gateway can answer its transport health endpoint before its account-backed
  * model catalog has been rebuilt. Keep the host in `starting` until the plugin
- * can prove the catalog is semantically usable. A persisted non-empty selection
- * is also evidence that an empty cold-start response is not a settled state.
+ * can prove the catalog is semantically usable, so the page does not flash a
+ * ready gateway with nothing to route.
+ *
+ * This is a status concern only. Publishing no longer depends on the catalog
+ * being complete here — the reconciler decides that from evidence — so nothing
+ * is lost if readiness arrives while a channel is still registering.
  */
 export function maintainServiceReadiness(context: ManagedPluginContext) {
   const client = createProxyClient(context);
@@ -47,9 +50,8 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
         const activeAccounts = accounts.some((account) => account.active);
         const modelsResponse = await client.serviceRequest("/v1/models", { credentialId: API_CREDENTIAL });
         const models = client.readModels(modelsResponse);
-        const selection = await readModelSelection(context);
         if (!active || current !== generation || phase !== "starting") return;
-        if (models.length === 0 && (activeAccounts || (selection !== null && selection.size > 0))) {
+        if (models.length === 0 && activeAccounts) {
           schedule(current, attempt);
           return;
         }

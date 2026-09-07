@@ -38,7 +38,7 @@ export function providerForAccount(account: ProxyAccount): OAuthProviderId | und
  */
 export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
-  const { serviceRequest, loadModels, readAccounts, publishModels, setAccountDisabled, resetAccountQuota } = client;
+  const { serviceRequest, loadPublishableModels, publishModels, setAccountDisabled, resetAccountQuota } = client;
   const { t } = useTranslation();
   const [status, setStatus] = useState<ServiceStatus>({
     serviceId: SERVICE_ID,
@@ -82,31 +82,26 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       console.info("[cli-proxy-api] Model sync started.");
     }
     try {
-      const [{ models: nextModels, catalog: nextCatalog }, accountPayload] = await Promise.all([
-        loadModels(),
-        serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL })
-      ]);
-      const nextAccounts = readAccounts(accountPayload);
-      setModels(nextModels);
-      routesRef.current = nextModels.length;
+      const { models: publishable, routable, accounts: nextAccounts, catalog: nextCatalog } =
+        await loadPublishableModels();
+      // The page reports what the gateway routes right now; what gets published
+      // is the reconciled set, which also carries models a credential still
+      // claims but the gateway has not registered yet.
+      setModels(routable);
+      routesRef.current = routable.length;
       setCatalog(nextCatalog);
       setAccounts(nextAccounts);
       accountsRef.current = nextAccounts;
-      if (publish && nextModels.length > 0) {
+      if (publish) {
         // Publishing outside the picker must still honour what the user chose:
         // the post-authorization poll runs this several times, and publishing
         // everything there would quietly undo their curation.
         const selection = await readModelSelection(pluginContext);
-        const published = selection ? nextModels.filter((model) => selection.has(model.id)) : nextModels;
+        const published = selection ? publishable.filter((model) => selection.has(model.id)) : publishable;
         probedRef.current.clear();
-        await publishModels(nextModels, () => true, selection);
+        await publishModels(publishable, () => true, selection);
         setSyncedModelCount(published.length);
         console.info(`[cli-proxy-api] Model sync completed: ${published.length} model(s).`);
-      } else if (publish) {
-        // A manual refresh is still a read operation. Do not interpret a
-        // temporary empty gateway response as the user's request to clear all
-        // published providers; only the explicit selection apply path clears.
-        console.info("[cli-proxy-api] Model sync skipped: gateway returned an empty catalog.");
       }
     } catch (reason) {
       const details = toDisplayErrorMessage(reason);
@@ -121,7 +116,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       if (publish) setSyncing(false);
     }
     return accountsRef.current;
-  }, [loadModels, publishModels, readAccounts, serviceRequest, t]);
+  }, [loadPublishableModels, publishModels, t]);
 
   /**
    * Keeps refreshing until the gateway actually reports the new credential.

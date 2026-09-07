@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createProxyClient, safeExternalUrl } from "../src/proxy-client";
 import { OAUTH_PROVIDERS, protocolGroupFor } from "../src/provider-contract";
 import { maintainModelConnection } from "../src/model-connection";
+import { groupModels } from "../src/model-reconciler";
 import { fixture } from "./helpers";
 
 afterEach(() => vi.useRealTimers());
@@ -24,10 +25,10 @@ describe("CLIProxyAPI contracts", () => {
     const f = fixture();
     const client = createProxyClient(f.context);
     expect(() => client.readModels({ unexpected: [] })).toThrow("model catalog");
-    await client.publishModels(client.readModels({ data: [
+    await client.publishModels(groupModels(client.readModels({ data: [
       { id: "g", owned_by: "google" }, { id: "g", owned_by: "google" },
       { id: "c", owned_by: "claude" }, { id: "o", owned_by: "codex" }, { id: "x", owned_by: "unknown" }
-    ] }));
+    ] })));
     expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
       google: expect.objectContaining({ baseUrl: "http://127.0.0.1:12345/v1beta", apiKey: "local-api-key", api: "google-generative-ai", models: [{ id: "g", api: "google-generative-ai" }] }),
       anthropic: expect.objectContaining({ baseUrl: "http://127.0.0.1:12345", api: "anthropic-messages" }),
@@ -45,7 +46,7 @@ describe("CLIProxyAPI contracts", () => {
     expect(catalog.channels.get("gemini")).toEqual([
       { id: "gemini-test", contextWindow: 1048576, maxTokens: 65536, reasoning: true }
     ]);
-    await client.publishModels(models);
+    await client.publishModels(groupModels(models));
     expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
       google: expect.objectContaining({
         models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }]
@@ -65,7 +66,7 @@ describe("CLIProxyAPI contracts", () => {
     const client = createProxyClient(f.context);
     const { models } = await client.loadModels();
     expect(models).toEqual([{ id: "mystery", ownedBy: "kimi" }]);
-    await client.publishModels(models);
+    await client.publishModels(groupModels(models));
     expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
       anthropic: expect.objectContaining({ models: [{ id: "mystery", api: "anthropic-messages" }] })
     }));
@@ -182,48 +183,60 @@ describe("CLIProxyAPI contracts", () => {
     f.emit(f.ready);
     expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(2);
   });
-  it("does not clear a selected provider while the gateway catalog is still warming up", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+  it("keeps an authorized channel's models through a cold start that has not registered them", async () => {
     const f = fixture();
-    const stableHandle = f.handle.getMockImplementation();
-    let modelRequests = 0;
-    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v1/models" && modelRequests++ === 0) return { data: [] };
-      if (!stableHandle) throw new Error("missing fixture handler");
-      return stableHandle(request);
+    // What last session published, as the host still holds it.
+    f.setOwnedProviders({
+      google: { models: [{ id: "gemini-3-flash", contextWindow: 1048576 }] },
+      responses: { models: [{ id: "gpt-5.5" }] }
     });
-    f.readFile.mockResolvedValue(JSON.stringify({ schemaVersion: 1, models: ["gemini-test"] }));
+    const stable = f.handle.getMockImplementation();
+    f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
+      // The gateway answers for codex a beat before antigravity finishes
+      // registering — the cold start that used to erase the antigravity models.
+      if (request.path === "/v1/models") return { data: [{ id: "gpt-5.5", owned_by: "openai" }] };
+      if (request.path === "/v0/management/auth-files") {
+        return { files: [
+          { auth_index: "ag-1", name: "ag.json", provider: "antigravity" },
+          { auth_index: "codex-1", name: "codex.json", provider: "codex" }
+        ] };
+      }
+      if (request.path === "/v0/management/model-definitions/antigravity") {
+        return { models: [{ id: "gemini-3-flash", owned_by: "antigravity" }] };
+      }
+      if (request.path === "/v0/management/model-definitions/codex") {
+        return { models: [{ id: "gpt-5.5", owned_by: "openai" }] };
+      }
+      if (!stable) throw new Error("missing fixture handler");
+      return stable(request);
+    });
 
     const connection = maintainModelConnection(f.context);
 
-    await vi.waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ path: "/v1/models" })));
-    expect(modelRequests).toBe(1);
-    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(10_000);
     await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
     expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
-      google: expect.objectContaining({ models: [{ id: "gemini-test", api: "google-generative-ai", contextWindow: 1048576, maxTokens: 65536, reasoning: true }] })
+      google: expect.objectContaining({
+        models: [{ id: "gemini-3-flash", api: "google-generative-ai", contextWindow: 1048576 }]
+      }),
+      responses: expect.objectContaining({ models: [{ id: "gpt-5.5", api: "openai-responses" }] })
     }));
     await connection.dispose();
   });
 
-  it("does not clear providers on an initially empty catalog without a selection", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+  it("drops published models once no credential backs them any more", async () => {
     const f = fixture();
-    const stableHandle = f.handle.getMockImplementation();
-    let modelRequests = 0;
-    f.context.services.getStatus = vi.fn(async () => f.ready);
+    f.setOwnedProviders({ google: { models: [{ id: "gemini-test" }] } });
+    const stable = f.handle.getMockImplementation();
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v1/models" && modelRequests++ === 0) return { data: [] };
-      if (!stableHandle) throw new Error("missing fixture handler");
-      return stableHandle(request);
+      // No credentials left, so an empty catalog is a settled state, not a race.
+      if (request.path === "/v1/models") return { data: [] };
+      if (!stable) throw new Error("missing fixture handler");
+      return stable(request);
     });
 
     const connection = maintainModelConnection(f.context);
-    await vi.waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ path: "/v1/models" })));
-    expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(10_000);
-    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledTimes(1));
+
+    await vi.waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith({}));
     await connection.dispose();
   });
 

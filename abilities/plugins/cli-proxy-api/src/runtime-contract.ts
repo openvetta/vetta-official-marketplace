@@ -38,7 +38,19 @@ export interface ManagedServiceApi {
   onStatusChange(listener: (status: ServiceStatus) => void): Disposable;
 }
 
-export type ManagedModelsApi = PluginModelsApi;
+/** One published provider as the host hands it back. */
+export interface OwnedProviderSnapshot {
+  models?: Array<{ id: string; contextWindow?: number; maxTokens?: number; reasoning?: boolean }>;
+}
+
+/**
+ * The read-back is declared optional even though newer SDKs require it: this
+ * plugin also runs on hosts released before the capability existed, and there
+ * the property is simply absent. Callers must probe before using it.
+ */
+export type ManagedModelsApi = Omit<PluginModelsApi, "listOwnedProviders"> & {
+  listOwnedProviders?: () => Promise<Record<string, OwnedProviderSnapshot>>;
+};
 
 export type ManagedPluginContext = PluginContext & {
   services: ManagedServiceApi;

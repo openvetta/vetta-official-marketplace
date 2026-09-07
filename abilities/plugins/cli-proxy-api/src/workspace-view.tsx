@@ -873,7 +873,10 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     setApplying(true);
     try {
       await writeModelSelection(pluginContext, selected);
-      await client.publishModels(models, () => true, selected);
+      // Re-read rather than publish the page's routable list: applying a choice
+      // must not double as a deletion of models the gateway has not registered.
+      const { models: publishable } = await client.loadPublishableModels();
+      await client.publishModels(publishable, () => true, selected);
       // The picker is only true once the window re-reads the model settings.
       window.location.reload();
     } catch (reason) {
@@ -881,7 +884,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       // Surfaced on the page, not in the model dialog: apply is a page-level action.
       setError(t("console.applyFailed", { details: toDisplayErrorMessage(reason) }));
     }
-  }, [client, models, pluginContext, selected, setError, t]);
+  }, [client, pluginContext, selected, setError, t]);
 
   const openModels = useCallback((account: ProxyAccount): void => {
     setModelAccount(account);
