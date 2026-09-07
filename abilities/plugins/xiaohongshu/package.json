@@ -1,6 +1,6 @@
 {
   "name": "@vetta-marketplace/xiaohongshu",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -18,11 +18,12 @@
     "@types/react-dom": "^19.1.1",
     "@vetta-org/plugin-sdk": "^0.2.0",
     "@vetta-org/plugin-vite": "^0.0.5",
+    "jsdom": "^26.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "jsdom": "^26.1.0",
-    "vitest": "^3.2.6",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vitest": "^3.2.6"
   }
 }

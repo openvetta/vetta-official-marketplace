@@ -14,8 +14,11 @@ function context() {
   };
   const ctx = {
     storage: {
-      readJson: vi.fn(async () => files.get("accounts.json") ?? null),
-      writeJson: vi.fn(async (_path: string, value: unknown) => { files.set("accounts.json", value); }),
+      readFile: vi.fn(async (path: string) => {
+        const value = files.get(path);
+        return value === undefined ? null : JSON.stringify(value);
+      }),
+      writeFile: vi.fn(async (path: string, value: string) => { files.set(path, JSON.parse(value)); }),
     },
     secrets: {
       get: vi.fn(async (key: string) => secrets.get(key)),

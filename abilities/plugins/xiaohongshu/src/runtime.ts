@@ -7,6 +7,11 @@ type RuntimeAsset = { destination: string; url: string; sha256: string };
 
 const assetsByPlatform = runtimeLock.platforms as Record<PlatformTag, RuntimeAsset[]>;
 
+// Activation can be replayed while the host refreshes plugin contributions.
+// Share one in-flight startup so two activations cannot both decide that the
+// runtime is missing and start competing downloads/installs.
+let startup: Promise<void> | undefined;
+
 function sha256(value: string): Promise<string> {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
@@ -15,8 +20,45 @@ function sha256(value: string): Promise<string> {
 }
 
 export async function ensureServiceStarted(ctx: ManagedPluginContext): Promise<void> {
+  if (startup) return startup;
+  startup = ensureServiceStartedOnce(ctx).finally(() => {
+    startup = undefined;
+  });
+  return startup;
+}
+
+async function ensureServiceStartedOnce(ctx: ManagedPluginContext): Promise<void> {
   let status = await ctx.services.getStatus(SERVICE_ID);
   if (status.phase === "ready" || status.phase === "starting") return;
+  if (status.phase === "installing" || status.phase === "stopping") {
+    // A concurrent activation owns the transition; wait for its status to
+    // settle instead of starting a second network/install operation.
+    await new Promise<void>((resolve, reject) => {
+      let timer: ReturnType<typeof setInterval> | undefined;
+      let timeout: ReturnType<typeof setTimeout>;
+      const finish = (error?: unknown) => {
+        if (timer) clearInterval(timer);
+        clearTimeout(timeout);
+        unsubscribe?.dispose();
+        error ? reject(error) : resolve();
+      };
+      const unsubscribe = ctx.services.onStatusChange((next) => {
+        if (next.phase === "ready" || next.phase === "starting") finish();
+        else if (next.phase === "failed") finish(new Error(next.message ?? "Service startup failed"));
+      });
+      timer = setInterval(async () => {
+        try {
+          const next = await ctx.services.getStatus(SERVICE_ID);
+          if (next.phase === "ready" || next.phase === "starting") finish();
+          else if (next.phase === "failed") finish(new Error(next.message ?? "Service startup failed"));
+        } catch (error) {
+          finish(error);
+        }
+      }, 250);
+      timeout = setTimeout(() => finish(new Error("Service startup timed out")), 120_000);
+    });
+    return;
+  }
   if (!status.installed) {
     const { tag } = await ctx.services.getPlatform();
     const assets = assetsByPlatform[tag as PlatformTag];

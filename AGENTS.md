@@ -240,6 +240,13 @@ version: 1.0.0           # 必须 === 条目的 version
 - `name`、`pluginApiVersion`、`entry` 必填非空
 - `entry` 以及 `styles[]` 里的每个路径都必须是包内**真实存在的文件**，否则报 missing or outside the package
 - 构建产物要提交进仓库（桌面端不会替你构建）
+- 插件需要成熟的通用能力时应把依赖显式安装进自己的 `package.json`，不要依赖宿主或开发机偶然存在的包，
+  也不要手写低质量替代实现。UI 样式优先使用 `tailwindcss` + `@tailwindcss/vite`；外部输入、
+  持久化数据和协议响应的运行时校验按插件现有技术栈选择 `zod` 或 `@sinclair/typebox`；React 交互测试使用
+  `@testing-library/react`、`@testing-library/user-event` 与 `jsdom`/`happy-dom`。只安装实际使用的依赖，
+  不为假设中的未来需求预装工具。
+- 使用 Tailwind 时在 Vite 中接入 `@tailwindcss/vite`，样式入口导入 `tailwindcss`，组件优先使用 utility class；
+  仅宿主主题变量映射、第三方内容适配或 utility 难以清晰表达的规则保留业务 CSS。依赖版本与锁文件必须随源码提交。
 
 ### bundle
 

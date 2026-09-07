@@ -13,13 +13,34 @@ import {
   type XhsAccount,
 } from "./xhs";
 
+type UiStatus = "starting" | "notLoggedIn" | "waitingQr" | "waitingScan" | "verifying" | "connected" | "failed";
+
+const BUTTON_CLASS = "cursor-pointer rounded-lg border border-border/70 bg-primary/10 px-3 py-2 text-xs text-foreground transition-colors hover:bg-primary/20 disabled:cursor-wait disabled:opacity-50";
+const STATUS_BASE_CLASS = "rounded-full bg-primary/15 px-2 py-1 text-[11px]";
+const STATUS_CLASSES: Record<UiStatus, string> = {
+  starting: STATUS_BASE_CLASS,
+  notLoggedIn: STATUS_BASE_CLASS,
+  waitingQr: STATUS_BASE_CLASS,
+  waitingScan: STATUS_BASE_CLASS,
+  verifying: STATUS_BASE_CLASS,
+  connected: `${STATUS_BASE_CLASS} text-emerald-400`,
+  failed: `${STATUS_BASE_CLASS} text-destructive`,
+};
+
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export function XhsSetupSlot({ context }: { context: ManagedPluginContext }): ReactElement {
+function errorText(t: (key: string, params?: Record<string, string | number>) => string, key: string, details: string): string {
+  const translated = t(key, { details });
+  // Older host bridges returned the catalog string without applying params.
+  // Resolve the placeholder locally so users never see `{{details}}`.
+  return translated.replaceAll("{{details}}", details);
+}
+
+export function XhsSetupSlot({ context, compact = false }: { context: ManagedPluginContext; compact?: boolean }): ReactElement {
   const { t } = useTranslation();
-  const [status, setStatus] = useState("starting");
+  const [status, setStatus] = useState<UiStatus>("starting");
   const [account, setAccount] = useState<XhsAccount | undefined>();
   const [qr, setQr] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -89,21 +110,23 @@ export function XhsSetupSlot({ context }: { context: ManagedPluginContext }): Re
   }, [context]);
 
   return (
-    <section className="xhs-card" aria-live="polite">
-      <div className="xhs-card-heading">
-        <div>
-          <h3>{t("setup.title")}</h3>
-          <p>{t("setup.subtitle")}</p>
+    <section className="flex flex-col gap-3 rounded-[14px] border border-border/70 bg-card/80 p-4 text-foreground" aria-live="polite">
+      {compact ? <div className="flex flex-wrap items-center justify-between gap-2.5"><span className={STATUS_CLASSES[status]}>{t(`setup.${status}`)}</span></div> : (
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div>
+            <h3 className="m-0 text-[15px] font-semibold">{t("setup.title")}</h3>
+            <p className="m-0 text-xs leading-6 text-muted-foreground">{t("setup.subtitle")}</p>
+          </div>
+          <span className={STATUS_CLASSES[status]}>{t(`setup.${status}`)}</span>
         </div>
-        <span className={`xhs-status xhs-status-${status}`}>{t(`setup.${status}`)}</span>
-      </div>
-      {account && status === "connected" ? <p className="xhs-success">{t("setup.loggedIn", { name: account.name })}</p> : null}
-      {qr ? <div className="xhs-qr"><img src={qr} alt={t("setup.qrAlt")} /><p>{t("setup.waitingScan")}</p></div> : null}
-      {error ? <p className="xhs-error" role="alert">{t("setup.failed", { details: error })}</p> : null}
-      <div className="xhs-actions">
-        <button type="button" onClick={() => void login()} disabled={busy}>{busy ? t("setup.waitingQr") : t("setup.login")}</button>
-        <button type="button" onClick={() => void refresh()} disabled={busy}>{t("setup.refresh")}</button>
-        <button type="button" onClick={() => context.ui.openWorkspaceView("accounts")}>{t("setup.openAccounts")}</button>
+      )}
+      {account && status === "connected" ? <p className="m-0 text-xs text-emerald-400">{t("setup.loggedIn", { name: account.name })}</p> : null}
+      {qr ? <div className="flex flex-col items-center gap-2 rounded-[10px] bg-white p-3"><img className="size-[280px]" src={qr} alt={t("setup.qrAlt")} /><p className="m-0 text-xs leading-6 text-slate-600">{t("setup.waitingScan")}</p></div> : null}
+      {error ? <p className="m-0 text-xs leading-6 text-destructive" role="alert">{errorText(t, "setup.failed", error)}</p> : null}
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <button className={BUTTON_CLASS} type="button" onClick={() => void login()} disabled={busy}>{busy ? t("setup.waitingQr") : t("setup.login")}</button>
+        <button className={BUTTON_CLASS} type="button" onClick={() => void refresh()} disabled={busy}>{t("setup.refresh")}</button>
+        {!compact ? <button className={BUTTON_CLASS} type="button" onClick={() => context.ui.openWorkspaceView("accounts")}>{t("setup.openAccounts")}</button> : null}
       </div>
     </section>
   );
@@ -151,17 +174,17 @@ export function XhsAccountsView({ context }: { context: ManagedPluginContext }):
   }, [context, refresh, t]);
 
   return (
-    <main className="xhs-workspace" aria-live="polite">
-      <h1>{t("accounts.title")}</h1>
-      <p>{t("accounts.subtitle")}</p>
-      <XhsSetupSlot context={context} />
-      {error ? <p className="xhs-error" role="alert">{t("accounts.error", { details: error })}</p> : null}
-      {accounts.length === 0 ? <p className="xhs-empty">{t("accounts.empty")}</p> : accounts.map((account) => (
-        <article className="xhs-account" key={account.id}>
-          <div><strong>{account.name}</strong>{activeId === account.id ? <span className="xhs-active">{t("accounts.active")}</span> : null}</div>
-          <div className="xhs-actions">
-            {activeId !== account.id ? <button type="button" onClick={() => void activate(account.id)} disabled={busy}>{t("accounts.switch")}</button> : null}
-            <button type="button" onClick={() => void remove(account)} disabled={busy}>{t("accounts.remove")}</button>
+    <main className="flex flex-col gap-3 rounded-[14px] border border-border/70 bg-card/80 p-4 text-foreground" aria-live="polite">
+      <h1 className="m-0 text-[15px] font-semibold">{t("accounts.title")}</h1>
+      <p className="m-0 text-xs leading-6 text-muted-foreground">{t("accounts.subtitle")}</p>
+      <XhsSetupSlot context={context} compact />
+      {error ? <p className="m-0 text-xs leading-6 text-destructive" role="alert">{errorText(t, "accounts.error", error)}</p> : null}
+      {accounts.length === 0 ? <p className="rounded-[10px] border border-dashed border-border p-4 text-center text-xs text-muted-foreground">{t("accounts.empty")}</p> : accounts.map((account) => (
+        <article className="flex flex-wrap items-center justify-between gap-2.5 border-t border-border/50 p-3" key={account.id}>
+          <div className="flex items-center gap-2"><strong>{account.name}</strong>{activeId === account.id ? <span className="rounded-full bg-primary/15 px-2 py-1 text-[11px]">{t("accounts.active")}</span> : null}</div>
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            {activeId !== account.id ? <button className={BUTTON_CLASS} type="button" onClick={() => void activate(account.id)} disabled={busy}>{t("accounts.switch")}</button> : null}
+            <button className={BUTTON_CLASS} type="button" onClick={() => void remove(account)} disabled={busy}>{t("accounts.remove")}</button>
           </div>
         </article>
       ))}

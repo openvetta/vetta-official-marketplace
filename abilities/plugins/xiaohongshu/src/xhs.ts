@@ -22,6 +22,16 @@ interface AccountState {
   accounts: XhsAccount[];
 }
 
+/**
+ * Plugin API 2.0 exposes storage as explicit file/encoding primitives.  Keep
+ * the cast local so the plugin can still be built with the currently cached
+ * SDK package while the host bridge is being updated in lockstep.
+ */
+type FileStorage = {
+  readFile(path: string, encoding?: "utf8" | "base64"): Promise<string | null>;
+  writeFile(path: string, data: string, encoding?: "utf8" | "base64"): Promise<unknown>;
+};
+
 export interface LoginStatus {
   loggedIn: boolean;
   nickname?: string;
@@ -40,7 +50,8 @@ function newId(): string {
 }
 
 export async function readAccountState(ctx: PluginContext): Promise<AccountState> {
-  const parsed = await ctx.storage.readJson<Partial<AccountState>>(ACCOUNTS_FILE);
+  const raw = await (ctx.storage as unknown as FileStorage).readFile(ACCOUNTS_FILE, "utf8");
+  const parsed = raw ? JSON.parse(raw) as Partial<AccountState> : null;
   if (!parsed) return { schemaVersion: 1, accounts: [] };
   try {
     if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.accounts)) throw new Error("invalid account state");
@@ -57,7 +68,7 @@ export async function readAccountState(ctx: PluginContext): Promise<AccountState
 }
 
 async function writeAccountState(ctx: PluginContext, state: AccountState): Promise<void> {
-  await ctx.storage.writeJson(ACCOUNTS_FILE, state);
+  await (ctx.storage as unknown as FileStorage).writeFile(ACCOUNTS_FILE, JSON.stringify(state, null, 2), "utf8");
 }
 
 export async function readSession(ctx: PluginContext, accountId: string): Promise<string | undefined> {

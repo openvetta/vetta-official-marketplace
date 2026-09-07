@@ -9,12 +9,3 @@
   --color-primary: var(--primary);
   --color-destructive: var(--destructive);
 }
-
-.xhs-card,.xhs-workspace{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-radius:14px;background:color-mix(in srgb,var(--card) 80%,transparent);color:var(--foreground)}
-.xhs-card-heading,.xhs-account,.xhs-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.xhs-card h3,.xhs-workspace h1{margin:0;font-size:15px;font-weight:650}.xhs-card p,.xhs-workspace>p{margin:0;color:var(--muted-foreground);font-size:12px;line-height:1.5}
-.xhs-status,.xhs-active{padding:4px 8px;border-radius:999px;background:color-mix(in srgb,var(--primary) 15%,transparent);font-size:11px}.xhs-status-connected,.xhs-success{color:#34d399}.xhs-status-failed,.xhs-error{color:var(--destructive)}
-.xhs-qr{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:10px;background:white}.xhs-qr img{width:280px;height:280px;image-rendering:auto}
-.xhs-account{padding:12px;border-top:1px solid color-mix(in srgb,var(--border) 50%,transparent)}
-.xhs-actions button,.xhs-workspace>button{border:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-radius:8px;padding:7px 11px;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--foreground);font-size:12px;cursor:pointer}.xhs-actions button:disabled{opacity:.5;cursor:wait}
-.xhs-empty{padding:16px;border:1px dashed var(--border);border-radius:10px;text-align:center}
