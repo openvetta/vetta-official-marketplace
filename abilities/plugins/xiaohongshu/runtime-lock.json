@@ -1,0 +1,8 @@
+{
+  "version": "2.5.0",
+  "platforms": {
+    "win32-x64": [{ "destination": "xiaohongshu-mcp-windows-amd64.exe", "url": "https://github.com/xpzouying/xiaohongshu-mcp/releases/download/v2.5.0/xiaohongshu-mcp-windows-amd64.exe", "sha256": "3578c9fcf3e7be0b79564aeceef8c4f38e0072d9357ca1f911ee14cd37bd454c" }],
+    "darwin-arm64": [{ "destination": "xiaohongshu-mcp-darwin-arm64", "url": "https://github.com/xpzouying/xiaohongshu-mcp/releases/download/v2.5.0/xiaohongshu-mcp-darwin-arm64", "sha256": "3e32e08c3403d22a5efef2f06aa52630b458819fc54474cba23e896c7092c38e" }],
+    "linux-x64": [{ "destination": "xiaohongshu-mcp-linux-amd64", "url": "https://github.com/xpzouying/xiaohongshu-mcp/releases/download/v2.5.0/xiaohongshu-mcp-linux-amd64", "sha256": "2695820af3a924412c0e555042b81a2598d144342539d4ebea18b17d56c85fbf" }]
+  }
+}

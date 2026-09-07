@@ -493,27 +493,27 @@ test("Zhihu research combines its guide with a pinned, credential-parameterized 
   assert.equal("runtime" in mcp, false);
 });
 
-test("Xiaohongshu uses direct managed HTTP and upstream QR login endpoints", () => {
-  const ability = bySlug.get("xiaohongshu-mcp");
+test("Xiaohongshu plugin owns its managed service, account UI and service-backed MCP", () => {
+  const ability = bySlug.get("xiaohongshu");
   assert.ok(ability);
-  assert.equal(ability.configVersion, 6);
-  const mcp = readJson(packageFile(root, `${ability.source.path}/mcp.json`));
-  assert.equal(mcp.schemaVersion, 3);
-  assert.deepEqual(mcp.runtime.process, {
-    args: ["-port=:${VETTA_MCP_PORT}"],
-    env: { COOKIES_PATH: "${VETTA_MCP_DATA_DIR}/cookies.json" },
+  assert.equal(ability.type, "plugin");
+  assert.equal(ability.configVersion, 1);
+  const plugin = readJson(packageFile(root, `${ability.source.path}/plugin.json`));
+  assert.equal(plugin.id, "xiaohongshu");
+  assert.deepEqual(plugin.providers.services[0].process, {
+    args: ["-port=:${VETTA_SERVICE_PORT}"],
+    env: { COOKIES_PATH: "${VETTA_SERVICE_DATA_DIR}/cookies.json" },
   });
-  assert.deepEqual(mcp.runtime.service, { kind: "http-mcp", path: "/mcp", readyTimeoutMs: 300000 });
-  assert.deepEqual(mcp.server, {
-    type: "http",
-    url: "${VETTA_MCP_URL}",
+  assert.deepEqual(plugin.agent.mcpServers.xiaohongshu, {
+    type: "service",
+    serviceId: "xhs",
+    path: "/mcp",
+    displayName: "%mcp.name%",
+    description: "%mcp.description%",
   });
-  assert.deepEqual(mcp.setup, {
-    kind: "http-qrcode",
-    statusPath: "/api/v1/login/status",
-    qrcodePath: "/api/v1/login/qrcode",
-    logoutPath: "/api/v1/login/cookies",
-  });
+  const qrSource = readFileSync(packageFile(root, `${ability.source.path}/src/qr.ts`), "utf8");
+  assert.match(qrSource, /from "qrcode"/);
+  assert.doesNotMatch(qrSource, /createQrCode/);
 });
 
 test("only the Zhihu bundle is independently listed; both members retain bilingual metadata and stable identities", () => {

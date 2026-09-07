@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.07-6",
+  "marketplaceVersion": "2026.09.07-7",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -219,26 +219,26 @@
       "source": { "path": "abilities/skills/remotion-best-practices" }
     },
     {
-      "type": "mcp",
-      "slug": "xiaohongshu-mcp",
-      "name": "Xiaohongshu",
-      "description": "Search, read, publish and interact with Xiaohongshu through an official MCP server.",
-      "version": "2.5.0",
-      "configVersion": 6,
+      "type": "plugin",
+      "slug": "xiaohongshu",
+      "name": "Xiaohongshu Accounts",
+      "description": "Sign in, switch and manage Xiaohongshu accounts, then use the built-in MCP through the active account.",
+      "version": "1.0.0",
+      "configVersion": 1,
       "license": "Apache-2.0",
-      "author": "xpzouying",
+      "author": "Vetta / xpzouying",
       "category": "Social",
       "categoryI18n": { "zh": "社交", "en": "Social" },
       "tags": ["xiaohongshu", "rednote", "social", "content", "automation"],
       "detail": {
         "i18n": {
           "zh": {
-            "name": "小红书",
-            "description": "通过官方 MCP 服务搜索、阅读、发布和互动小红书内容。"
+            "name": "小红书账号",
+            "description": "在 Vetta 中扫码登录、保存和切换多个小红书账号，并通过当前账号使用内置 MCP。"
           }
         }
       },
-      "source": { "path": "abilities/mcp/xiaohongshu-mcp" }
+      "source": { "path": "abilities/plugins/xiaohongshu" }
     },
     {
       "type": "mcp",
