@@ -2,7 +2,7 @@ import { useTranslation } from "@vetta-org/plugin-sdk";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import type { ManagedPluginContext } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime";
-import { renderQrCode } from "./qr";
+import { renderQrPayload } from "./qr";
 import {
   beginLogin,
   loginStatus,
@@ -45,6 +45,10 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
   const [qr, setQr] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const statusText = status === "failed" ? t("setup.failedStatus") : t(`setup.${status}`);
+  const actionText = busy
+    ? t(`setup.${status === "waitingScan" ? "waitingScan" : status === "verifying" ? "verifying" : "waitingQr"}`)
+    : t("setup.login");
 
   const refresh = useCallback(async () => {
     try {
@@ -61,7 +65,6 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
 
   useEffect(() => {
     void ensureServiceStarted(context)
-      .then(() => context.services.reportReady("xhs", true))
       .then(() => refresh())
       .catch((reason: unknown) => {
         setStatus("failed");
@@ -75,17 +78,22 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
     setQr(undefined);
     try {
       await ensureServiceStarted(context);
+      const existing = await loginStatus(context);
+      if (existing.loggedIn) {
+        await refresh();
+        return;
+      }
       const next = await beginLogin(context);
       setStatus("waitingQr");
-      const payload = await context.services.request<{ data?: Record<string, unknown>; url?: string; qrcode?: string }>("xhs", {
+      const payload = await context.services.request<{ data?: Record<string, unknown>; url?: string; qrcode?: string; qr_code?: string; img?: string }>("xhs", {
         path: "/api/v1/login/qrcode",
         responseType: "json",
         timeoutMs: 30_000,
       });
       const body = payload.body;
-      const qrPayload = body.data?.url ?? body.data?.qrcode ?? body.url ?? body.qrcode;
+      const qrPayload = body.data?.url ?? body.data?.qrcode ?? body.data?.qr_code ?? body.data?.img ?? body.url ?? body.qrcode ?? body.qr_code ?? body.img;
       if (typeof qrPayload !== "string" || !qrPayload) throw new Error("QR response did not contain a URL");
-      setQr(await renderQrCode(qrPayload));
+      setQr(await renderQrPayload(qrPayload));
       setStatus("waitingScan");
       const deadline = Date.now() + 180_000;
       while (Date.now() < deadline) {
@@ -111,20 +119,20 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
 
   return (
     <section className="flex flex-col gap-3 rounded-[14px] border border-border/70 bg-card/80 p-4 text-foreground" aria-live="polite">
-      {compact ? <div className="flex flex-wrap items-center justify-between gap-2.5"><span className={STATUS_CLASSES[status]}>{t(`setup.${status}`)}</span></div> : (
+      {compact ? <div className="flex flex-wrap items-center justify-between gap-2.5"><span className={STATUS_CLASSES[status]}>{statusText}</span></div> : (
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div>
             <h3 className="m-0 text-[15px] font-semibold">{t("setup.title")}</h3>
             <p className="m-0 text-xs leading-6 text-muted-foreground">{t("setup.subtitle")}</p>
           </div>
-          <span className={STATUS_CLASSES[status]}>{t(`setup.${status}`)}</span>
+          <span className={STATUS_CLASSES[status]}>{statusText}</span>
         </div>
       )}
       {account && status === "connected" ? <p className="m-0 text-xs text-emerald-400">{t("setup.loggedIn", { name: account.name })}</p> : null}
       {qr ? <div className="flex flex-col items-center gap-2 rounded-[10px] bg-white p-3"><img className="size-[280px]" src={qr} alt={t("setup.qrAlt")} /><p className="m-0 text-xs leading-6 text-slate-600">{t("setup.waitingScan")}</p></div> : null}
       {error ? <p className="m-0 text-xs leading-6 text-destructive" role="alert">{errorText(t, "setup.failed", error)}</p> : null}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <button className={BUTTON_CLASS} type="button" onClick={() => void login()} disabled={busy}>{busy ? t("setup.waitingQr") : t("setup.login")}</button>
+        <button className={BUTTON_CLASS} type="button" onClick={() => void login()} disabled={busy}>{actionText}</button>
         <button className={BUTTON_CLASS} type="button" onClick={() => void refresh()} disabled={busy}>{t("setup.refresh")}</button>
         {!compact ? <button className={BUTTON_CLASS} type="button" onClick={() => context.ui.openWorkspaceView("accounts")}>{t("setup.openAccounts")}</button> : null}
       </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { renderQrCode } from "./qr";
-import { readAccountState, switchAccount } from "./xhs";
+import { renderQrCode, renderQrPayload } from "./qr";
+import { loginStatus, readAccountState, requestQrPayload, switchAccount } from "./xhs";
 
 function context() {
   const files = new Map<string, unknown>();
@@ -41,6 +41,20 @@ function context() {
 describe("xiaohongshu plugin account handling", () => {
   it("renders QR codes inside the plugin without a host QR API", async () => {
     expect(await renderQrCode("https://example.test/login")).toMatch(/^data:image\/png;base64,/);
+  });
+
+  it("keeps an upstream QR image data URL intact", async () => {
+    const image = "data:image/png;base64,ZmFrZQ==";
+    await expect(renderQrPayload(image)).resolves.toBe(image);
+  });
+
+  it("accepts the upstream login status and QR image response shapes", async () => {
+    const { ctx, service } = context();
+    service.request
+      .mockResolvedValueOnce({ ok: true, status: 200, statusText: "OK", body: { data: { is_logged_in: false } } })
+      .mockResolvedValueOnce({ ok: true, status: 200, statusText: "OK", body: { data: { img: "data:image/png;base64,ZmFrZQ==" } } } as never);
+    await expect(loginStatus(ctx)).resolves.toMatchObject({ loggedIn: false });
+    await expect(requestQrPayload(ctx)).resolves.toBe("data:image/png;base64,ZmFrZQ==");
   });
 
   it("writes the complete opaque session before restarting the service", async () => {

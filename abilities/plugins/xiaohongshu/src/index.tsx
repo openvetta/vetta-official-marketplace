@@ -20,12 +20,10 @@ export default definePlugin({
       component: () => createElement(XhsAccountsView, { context }),
     });
     void ensureServiceStarted(context)
-      .then(() => context.services.reportReady("xhs", true))
       .catch((reason: unknown) => context.ui.notify({ message: "小红书服务启动失败", error: reason, variant: "error" }));
     return async () => {
       accounts.dispose();
       setup.dispose();
-      await context.services.stop("xhs").catch(() => undefined);
     };
   },
 });

@@ -16,6 +16,7 @@
   "setup.verifying": "Verifying sign-in…",
   "setup.connected": "Signed in",
   "setup.failed": "Operation failed: {{details}}",
+  "setup.failedStatus": "Operation failed",
   "setup.retry": "Retry",
   "setup.openAccounts": "Manage accounts",
   "setup.qrAlt": "Xiaohongshu sign-in QR code",

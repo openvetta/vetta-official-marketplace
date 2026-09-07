@@ -11,3 +11,6 @@ failure states. The workspace view lists saved accounts and exposes switching/re
 
 The host-side `type: "service"` MCP binding and service data-file API are generic Plugin SDK capabilities. They
 do not contain Xiaohongshu routes, cookie parsing or account policy.
+
+Startup probes the upstream `/health` endpoint. Login status is checked separately by the plugin:
+it can launch a browser and contact Xiaohongshu, so it must not be used as the host's startup health probe.

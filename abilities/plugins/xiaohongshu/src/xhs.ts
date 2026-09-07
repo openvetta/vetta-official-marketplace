@@ -103,7 +103,7 @@ export async function requestQrPayload(ctx: PluginContext): Promise<string> {
   if (!response.ok) throw new Error(`QR request failed: HTTP ${response.status}`);
   const body = response.body as Record<string, unknown>;
   const data = body?.data as Record<string, unknown> | undefined;
-  const candidates = [data?.url, data?.qrcode, data?.qr_code, body?.url, body?.qrcode, body?.qr_code];
+  const candidates = [data?.url, data?.qrcode, data?.qr_code, data?.img, body?.url, body?.qrcode, body?.qr_code, body?.img];
   const payload = candidates.find((value): value is string => typeof value === "string" && value.trim().length > 0);
   if (!payload) throw new Error("QR response did not contain a URL");
   return payload;

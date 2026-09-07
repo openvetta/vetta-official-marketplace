@@ -16,6 +16,7 @@
   "setup.verifying": "正在验证登录…",
   "setup.connected": "登录成功",
   "setup.failed": "操作失败：{{details}}",
+  "setup.failedStatus": "操作失败",
   "setup.retry": "重试",
   "setup.openAccounts": "管理多个账号",
   "setup.qrAlt": "小红书登录二维码",
