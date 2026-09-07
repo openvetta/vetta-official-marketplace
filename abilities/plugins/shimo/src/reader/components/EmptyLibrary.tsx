@@ -30,10 +30,10 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
             <span className="flex size-7 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-500">
               <Feather className="size-3.5" />
             </span>
-            <span className="text-xs font-semibold text-foreground">古典诗赋典籍</span>
+            <span className="text-xs font-semibold text-foreground">{t("empty.poetryTitle")}</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            自动识别律绝与赋体，提供拼音覆载、意象阐释、诗眼赏析与名句典故考据。
+            {t("empty.poetryDescription")}
           </p>
         </div>
 
@@ -42,10 +42,10 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
             <span className="flex size-7 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-500">
               <FileText className="size-3.5" />
             </span>
-            <span className="text-xs font-semibold text-foreground">现代深度长文</span>
+            <span className="text-xs font-semibold text-foreground">{t("empty.articleTitle")}</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            精细解析论证结构，提取核心观点与推导前提，支持费曼重述与专业术语精解。
+            {t("empty.articleDescription")}
           </p>
         </div>
       </div>

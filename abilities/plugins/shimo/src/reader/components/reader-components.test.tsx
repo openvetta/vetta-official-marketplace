@@ -11,15 +11,18 @@ import {
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACTIONS } from "../../classification";
+import type { LibraryEntry, ReadingRecord } from "../../domain";
+import { LibrarySidebar } from "./LibrarySidebar";
 import { NoteComposer } from "./NoteComposer";
 import { PreferencesPopover } from "./PreferencesPopover";
 import { QuestionComposer } from "./QuestionComposer";
 import { ReaderHeader } from "./ReaderHeader";
+import { RecordList } from "./RecordList";
 import { RecordsDrawer } from "./RecordsDrawer";
 import { SelectionToolbar } from "./SelectionToolbar";
 
 vi.mock("@vetta/ui", () => ({
-  Button: ({ children, size: _size, variant: _variant, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { size?: string; variant?: string }) => <button {...props}>{children}</button>,
+  Button: ({ children, asChild: _asChild, size: _size, variant: _variant, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean; size?: string; variant?: string }) => <button {...props}>{children}</button>,
   Dialog: ({ children }: { children: ReactNode }) => <>{children}</>,
   DialogContent: ({ children, showCloseButton: _showCloseButton, ...props }: HTMLAttributes<HTMLDivElement> & { showCloseButton?: boolean }) => <div {...props}>{children}</div>,
   DialogDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
@@ -41,6 +44,7 @@ vi.mock("@vetta/ui", () => ({
   DropdownMenuContent: ({ children }: { children: ReactNode }) => <>{children}</>,
   DropdownMenuItem: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   DropdownMenuTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  Input: (props: InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
   Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
   PopoverContent: ({ children, align: _align, sideOffset: _sideOffset, ...props }: HTMLAttributes<HTMLDivElement> & { align?: string; sideOffset?: number }) => <div {...props}>{children}</div>,
   PopoverDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
@@ -65,7 +69,25 @@ vi.mock("@vetta/ui", () => ({
 const messages: Record<string, string> = {
   "library.collapse": "Collapse library",
   "library.expand": "Expand library",
+  "library.title": "Library",
+  "library.materials": "Reading materials",
+  "library.filterAll": "All",
+  "library.empty": "No materials",
+  "library.filteredEmpty": "No materials in this category",
+  "library.importHint": "Import material",
+  "category.poetry": "Poetry",
+  "category.book": "Book",
+  "category.article": "Article",
   "records.title": "Reading records",
+  "records.count": "Records",
+  "records.empty": "No records",
+  "records.filterAll": "All",
+  "records.filterAnswers": "AI answers",
+  "records.filterHighlights": "Highlights",
+  "records.filterNotes": "Notes",
+  "records.filteredEmpty": "No records in this category",
+  "records.kind.answer": "AI answer",
+  "records.kind.highlight": "Highlight",
   "preferences.title": "Reading preferences",
   "preferences.description": "Tune the reader",
   "preferences.pinyin": "Pinyin",
@@ -201,6 +223,66 @@ describe("Shimo note composer", () => {
     });
 
     expect(onSave).toHaveBeenCalledWith("雨后的静谧让山更显空灵");
+  });
+});
+
+describe("Shimo library and record filters", () => {
+  it("filters the library by reading category", async () => {
+    const baseEntry = {
+      kind: "text",
+      sourceBlobId: "blob",
+      mimeType: "text/plain",
+      sizeBytes: 10,
+      createdAt: "2026-09-07T00:00:00.000Z",
+      updatedAt: "2026-09-07T00:00:00.000Z",
+      status: "active"
+    } as const;
+    const entries: LibraryEntry[] = [
+      { ...baseEntry, id: "poem", title: "Moon poem", category: "poetry", sourceName: "poem.txt" },
+      { ...baseEntry, id: "essay", title: "Long essay", category: "article", sourceName: "essay.txt" }
+    ];
+    const container = await render(
+      <LibrarySidebar
+        entries={entries}
+        open
+        t={t}
+        onSelect={vi.fn(async () => undefined)}
+        onFiles={vi.fn(async () => undefined)}
+      />
+    );
+    const poetryFilter = Array.from(container.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Poetry (1)")
+    );
+
+    await act(async () => poetryFilter?.click());
+
+    expect(container.textContent).toContain("Moon poem");
+    expect(container.textContent).not.toContain("Long essay");
+  });
+
+  it("filters reading records by kind", async () => {
+    const anchor = { type: "text", start: 0, end: 4, quote: "text", prefix: "", suffix: "" } as const;
+    const baseRecord = {
+      schemaVersion: 1,
+      materialId: "material",
+      anchor,
+      createdAt: "2026-09-07T00:00:00.000Z",
+      updatedAt: "2026-09-07T00:00:00.000Z",
+      revision: 1
+    } as const;
+    const records: ReadingRecord[] = [
+      { ...baseRecord, id: "answer", kind: "answer", quote: "Answer quote", body: "Answer body" },
+      { ...baseRecord, id: "highlight", kind: "highlight", quote: "Highlight quote" }
+    ];
+    const container = await render(<RecordList records={records} locale="en" t={t} />);
+    const highlightsFilter = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Highlights"
+    );
+
+    await act(async () => highlightsFilter?.click());
+
+    expect(container.textContent).toContain("Highlight quote");
+    expect(container.textContent).not.toContain("Answer quote");
   });
 });
 

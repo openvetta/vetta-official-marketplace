@@ -2,7 +2,7 @@
 
 本仓库是 Vetta 桌面端「开放能力市场」的官方源。桌面端会拉取本仓库的 `main` 分支归档，解析 `.vetta/marketplace.json`，校验每个能力包后才展示与安装。
 
-这份手册面向在本仓库中添加/修改能力的人与 AI。**所有规则都对应桌面端的硬校验**：任何一条不满足，整个市场源都会同步失败——桌面端只会给出 `sync-failed`，不会告诉你具体哪里错了。所以宁可对着本手册逐条核对，也不要靠试。
+这份手册面向在本仓库中添加/修改能力的人与 AI。**所有规则都对应桌面端的硬校验**：任何一条不满足，整个市场源都会同步失败——界面通常只显示 `sync-failed`，具体原因需查看主进程日志中的 `open-marketplace` 记录。所以宁可对着本手册逐条核对，也不要靠试。
 
 ## 添加一个能力的流程
 
@@ -37,13 +37,34 @@ abilities/<type>/<slug>/assets/
 | `schemaVersion` | `1` 或 `2`；包路径 bundle 成员需 `2`，官方源当前使用 `2` |
 | `name` | slug 格式，市场标识 |
 | `displayName` | 可选 |
-| `marketplaceVersion` | 版本格式；**内容一变就必须改** |
+| `marketplaceVersion` | 已发布仓库快照的唯一版本；**任何归档内容变化都必须同步递增** |
 | `repository` | 合法 URL |
 | `minAppVersion` | 语义版本；低于该版本的桌面端整源拒绝加载 |
 | `abilities` | 独立上架条目数组，可以为空 |
 
 - slug 格式：`^[a-z0-9][a-z0-9-]{0,63}$`
 - 版本格式：`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`
+
+### `marketplaceVersion` 发布规则（强制）
+
+Desktop 会保存 `marketplaceVersion` 与整个 GitHub 归档的 SHA-256。只要版本号相同而归档任一字节不同，
+就会拒绝同步并记录 `Marketplace content changed without a marketplaceVersion update`。因此：
+
+- 发布分支上的**任何受 Git 跟踪文件变化**都视为新的市场快照，包括能力源码、构建产物、详情、测试、README、
+  `AGENTS.md` 和市场自身配置；不能只在新增能力时 bump。
+- 内容修改与版本递增必须在同一批发布变更中完成。禁止先推送版本号、再以同一版本追加内容；
+  如果含该版本的提交已经推送或可能被客户端见过，后续任何归档变化都必须使用下一个新版本。
+- 官方源使用 `YYYY.MM.DD-N`。同一天从当前最大 `N` 继续递增，不得复用、回退或覆盖已经被客户端见过的版本。
+- `marketplaceVersion` 标识整仓快照，能力自身的 `version` / `configVersion` 标识单个包合同，三者不能互相替代。
+- 提交前必须比较当前发布分支：只要归档内容有差异，就确认 `.vetta/marketplace.json` 也有一个尚未发布过的新版本。
+
+### 能力包版本规则（强制）
+
+- plugin、skill、MCP 的运行内容或用户可观察行为发生变化时，必须提升该包的 `version`；兼容修复和功能增量至少提升 patch。
+- 同一包身份出现于 manifest、`ability.json`、`plugin.json`、`mcp.json`、`SKILL.md` 或包管理文件时，所有版本字段必须同步一致。
+- plugin 改动版本后必须重新构建并提交 `dist/` 和对应的新版本发布归档；不能只改源码或只改版本号。
+- 仅修改说明文档、测试或市场展示且不改变包运行内容时，可以不提升包 `version`，但仍必须提升整仓 `marketplaceVersion`。
+- `configVersion` 只在安装配置或持久化配置合同变化时递增，不能替代包 `version` 或 `marketplaceVersion`。
 
 `abilities[]` 每一项：
 
@@ -376,7 +397,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 ## 提交前检查清单
 
-- [ ] `marketplaceVersion` 已 bump（**最常见的翻车点**：内容变了但版本没变，桌面端直接报 `Marketplace content changed without a marketplaceVersion update`）
+- [ ] 本次所有内容修改完成后，`marketplaceVersion` 已递增为从未发布过的新值；bump 之后没有再追加沿用该版本的提交
 - [ ] 新能力的 `slug` 在 manifest 内唯一
 - [ ] 默认名称与多语言名称不包含能力类型后缀，现有 slug 未因展示改名而变化
 - [ ] 包内 `SKILL.md` / `mcp.json` / `plugin.json` 的 slug、version 与 manifest 条目逐字一致
@@ -395,4 +416,4 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] 已运行 `node --test tests/marketplace.test.mjs`；这是内容回归检查，不替代 Desktop 的完整 Schema 校验
 - [ ] 在桌面端「能力 → 添加市场源」里实际添加本仓库，确认能列出新能力并安装成功
 
-最后一条最有效：桌面端同步失败时只会记一句 `sync-failed`，没有具体原因，所以本地跑通一次比读十遍手册可靠。
+最后一条最有效：界面上的 `sync-failed` 只表示同步失败，具体原因以主进程日志中的 `open-marketplace` 记录为准；本地跑通一次仍然比只读手册可靠。

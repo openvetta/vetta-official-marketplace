@@ -52,40 +52,43 @@ export function LibrarySidebar({ entries, selectedId, open, t, onSelect, onFiles
 
         {/* Category Filter Pills (诗词与文章分类筛选) */}
         <div className="mb-3 flex items-center gap-1 rounded-xl bg-muted/20 p-1 text-[11px]">
-          <button
+          <Button
             type="button"
+            size="xs"
+            variant={filter === "all" ? "secondary" : "ghost"}
+            aria-pressed={filter === "all"}
             onClick={() => setFilter("all")}
-            className={`flex-1 rounded-lg py-1 text-center font-medium transition-colors ${
-              filter === "all" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
           >
-            全部 ({entries.length})
-          </button>
-          <button
+            {t("library.filterAll")} ({entries.length})
+          </Button>
+          <Button
             type="button"
+            size="xs"
+            variant={filter === "poetry" ? "secondary" : "ghost"}
+            aria-pressed={filter === "poetry"}
             onClick={() => setFilter("poetry")}
-            className={`flex-1 rounded-lg py-1 text-center font-medium transition-colors ${
-              filter === "poetry" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
           >
-            诗歌 ({poetryCount})
-          </button>
-          <button
+            {t("category.poetry")} ({poetryCount})
+          </Button>
+          <Button
             type="button"
+            size="xs"
+            variant={filter === "article" ? "secondary" : "ghost"}
+            aria-pressed={filter === "article"}
             onClick={() => setFilter("article")}
-            className={`flex-1 rounded-lg py-1 text-center font-medium transition-colors ${
-              filter === "article" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
           >
-            文章 ({articleCount})
-          </button>
+            {t("category.article")} ({articleCount})
+          </Button>
         </div>
 
         {/* Materials List */}
         <nav className="shimo-scroll min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={t("library.materials")}>
           {filteredEntries.length === 0 ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
-              {filter === "all" ? t("records.empty") : "该分类下暂无资料"}
+              {filter === "all" ? t("library.empty") : t("library.filteredEmpty")}
             </div>
           ) : (
             filteredEntries.map((entry) => {

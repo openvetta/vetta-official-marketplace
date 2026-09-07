@@ -1,6 +1,7 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta/ui";
 import { useState, type ReactElement } from "react";
-import type { ReadingRecord, RecordKind } from "../../domain";
+import type { ReadingRecord } from "../../domain";
 import { locationLabel } from "../prompts";
 import type { Locale } from "../types";
 
@@ -33,48 +34,52 @@ export function RecordList({ records, locale, t }: RecordListProps): ReactElemen
     <div className="flex h-full flex-col overflow-hidden">
       {/* Quick Kind Filter (按记录类型渐进式过滤) */}
       <div className="flex items-center gap-1 border-b border-border/40 px-3 py-2 text-[11px]">
-        <button
+        <Button
           type="button"
+          size="xs"
+          variant={kindFilter === "all" ? "secondary" : "ghost"}
+          aria-pressed={kindFilter === "all"}
           onClick={() => setKindFilter("all")}
-          className={`rounded-md px-2 py-0.5 font-medium transition-colors ${
-            kindFilter === "all" ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
+          className="h-auto rounded-md px-2 py-0.5 font-medium"
         >
-          全部 ({records.length})
-        </button>
-        <button
+          {t("records.filterAll")} ({records.length})
+        </Button>
+        <Button
           type="button"
+          size="xs"
+          variant={kindFilter === "answer" ? "secondary" : "ghost"}
+          aria-pressed={kindFilter === "answer"}
           onClick={() => setKindFilter("answer")}
-          className={`rounded-md px-2 py-0.5 font-medium transition-colors ${
-            kindFilter === "answer" ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
+          className="h-auto rounded-md px-2 py-0.5 font-medium"
         >
-          AI 回答
-        </button>
-        <button
+          {t("records.filterAnswers")}
+        </Button>
+        <Button
           type="button"
+          size="xs"
+          variant={kindFilter === "highlight" ? "secondary" : "ghost"}
+          aria-pressed={kindFilter === "highlight"}
           onClick={() => setKindFilter("highlight")}
-          className={`rounded-md px-2 py-0.5 font-medium transition-colors ${
-            kindFilter === "highlight" ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
+          className="h-auto rounded-md px-2 py-0.5 font-medium"
         >
-          摘录
-        </button>
-        <button
+          {t("records.filterHighlights")}
+        </Button>
+        <Button
           type="button"
+          size="xs"
+          variant={kindFilter === "notes" ? "secondary" : "ghost"}
+          aria-pressed={kindFilter === "notes"}
           onClick={() => setKindFilter("notes")}
-          className={`rounded-md px-2 py-0.5 font-medium transition-colors ${
-            kindFilter === "notes" ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground"
-          }`}
+          className="h-auto rounded-md px-2 py-0.5 font-medium"
         >
-          手记
-        </button>
+          {t("records.filterNotes")}
+        </Button>
       </div>
 
       {/* Records Scroll List */}
       <div className="shimo-scroll min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {filteredRecords.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">暂无该分类的记录</div>
+          <div className="py-8 text-center text-xs text-muted-foreground">{t("records.filteredEmpty")}</div>
         ) : (
           filteredRecords
             .slice()
