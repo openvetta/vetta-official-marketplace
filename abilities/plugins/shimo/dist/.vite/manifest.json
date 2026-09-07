@@ -7,26 +7,27 @@
     "file": "assets/index-0xf-q3zY.js",
     "name": "index"
   },
-  "_reader-h0AgdnOn.js": {
-    "file": "assets/reader-h0AgdnOn.js",
+  "_reader-XS9iqYFa.js": {
+    "file": "assets/reader-XS9iqYFa.js",
     "name": "reader",
     "isDynamicEntry": true,
     "imports": [
       "_vite-preload-helper-BXl3LOEh.js",
       "src/index.tsx",
       "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_types-n2Wwm0KF.js"
+      "_types-Bxtijq11.js"
     ],
     "dynamicImports": [
       "src/reader/components/PdfReader.tsx",
       "src/reader/components/MarkdownReader.tsx"
     ]
   },
-  "_types-n2Wwm0KF.js": {
-    "file": "assets/types-n2Wwm0KF.js",
+  "_types-Bxtijq11.js": {
+    "file": "assets/types-Bxtijq11.js",
     "name": "types",
     "imports": [
-      "src/index.tsx"
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js"
     ]
   },
   "_vite-preload-helper-BXl3LOEh.js": {
@@ -38,21 +39,21 @@
     "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
   "src/activity-panel.tsx": {
-    "file": "assets/activity-panel-DJVMXQ7o.js",
+    "file": "assets/activity-panel-CFc31Hmn.js",
     "name": "activity-panel",
     "src": "src/activity-panel.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/index.tsx",
       "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_types-n2Wwm0KF.js",
+      "_types-Bxtijq11.js",
       "_vite-preload-helper-BXl3LOEh.js",
       "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
       "_index-0xf-q3zY.js"
     ]
   },
   "src/index.tsx": {
-    "file": "assets/index-CrrSTvPm.js",
+    "file": "assets/index-DyToT4av.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -64,7 +65,7 @@
       "_index-0xf-q3zY.js"
     ],
     "dynamicImports": [
-      "_reader-h0AgdnOn.js",
+      "_reader-XS9iqYFa.js",
       "src/activity-panel.tsx"
     ],
     "css": [
@@ -72,22 +73,22 @@
     ]
   },
   "src/reader/components/MarkdownReader.tsx": {
-    "file": "assets/MarkdownReader-CcddFj42.js",
+    "file": "assets/MarkdownReader-8VkJFTML.js",
     "name": "MarkdownReader",
     "src": "src/reader/components/MarkdownReader.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/index.tsx",
       "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_reader-h0AgdnOn.js",
+      "_reader-XS9iqYFa.js",
       "_vite-preload-helper-BXl3LOEh.js",
       "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
       "_index-0xf-q3zY.js",
-      "_types-n2Wwm0KF.js"
+      "_types-Bxtijq11.js"
     ]
   },
   "src/reader/components/PdfReader.tsx": {
-    "file": "assets/PdfReader-xmP-chBG.js",
+    "file": "assets/PdfReader-D7ICQrnq.js",
     "name": "PdfReader",
     "src": "src/reader/components/PdfReader.tsx",
     "isDynamicEntry": true,
@@ -117,7 +118,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
-    "file": "assets/virtualExposes-Co2PO1f_.js",
+    "file": "assets/virtualExposes-gOcf5a3R.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,

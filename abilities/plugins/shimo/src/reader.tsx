@@ -51,6 +51,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         <ReaderHeader
           title={reader.manifest?.title ?? reader.t("name")}
           subtitle={subtitle}
+          category={reader.manifest?.category}
           recordCount={reader.records.length}
           active={Boolean(reader.manifest)}
           quiet={reader.chromeQuiet}
@@ -175,13 +176,19 @@ function ReadingSurface({ reader, runtime }: { reader: ReturnType<typeof useRead
   }
   if (reader.manifest.kind === "markdown") {
     return (
-      <Suspense fallback={opening}>
-        <MarkdownReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
-      </Suspense>
+      <div className="shimo-parchment mx-auto max-w-3xl p-6 sm:p-10 md:p-14">
+        <Suspense fallback={opening}>
+          <MarkdownReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
+        </Suspense>
+      </div>
     );
   }
   if (reader.manifest.kind === "text") {
-    return <TextReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />;
+    return (
+      <div className="shimo-parchment mx-auto max-w-3xl p-6 sm:p-10 md:p-14">
+        <TextReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
+      </div>
+    );
   }
 
   return (
