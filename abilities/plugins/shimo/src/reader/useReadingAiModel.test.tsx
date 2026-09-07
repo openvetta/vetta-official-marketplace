@@ -52,7 +52,7 @@ describe("Shimo reading model state", () => {
       const state = useReadingAiModel(runtime);
       return (
         <div>
-          <span>{state.loading ? "loading" : state.modelKey}</span>
+          <span>{state.loading ? "loading" : `${state.modelKey}:${state.defaultModelKey}`}</span>
           <button type="button" onClick={() => void state.select("provider/first")}>select first</button>
         </div>
       );
@@ -64,7 +64,7 @@ describe("Shimo reading model state", () => {
       await Promise.resolve();
     });
 
-    expect(container.textContent).toContain("provider/second");
+    expect(container.textContent).toContain("provider/second:provider/second");
     expect(saveAiSettings).toHaveBeenCalledWith({ schemaVersion: 1, modelKey: "provider/second" });
 
     await act(async () => {

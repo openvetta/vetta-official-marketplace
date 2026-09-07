@@ -2,6 +2,7 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "katex/dist/katex.min.css";
 @source "./**/*.{ts,tsx}";
 
 /* The plugin build scopes this sheet to the Shimo root. Dark mode is inherited through
@@ -150,6 +151,108 @@
   padding: 0;
 }
 
+.shimo-answer-markdown {
+  overflow-wrap: anywhere;
+}
+
+.shimo-answer-markdown h1,
+.shimo-answer-markdown h2,
+.shimo-answer-markdown h3 {
+  margin-block: 1.25em 0.55em;
+}
+
+.shimo-answer-markdown p,
+.shimo-answer-markdown ul,
+.shimo-answer-markdown ol,
+.shimo-answer-markdown blockquote,
+.shimo-answer-markdown pre {
+  margin-block: 0.75em;
+}
+
+.shimo-answer-markdown hr {
+  margin-block: 1.25em;
+  border: 0;
+  border-block-start: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+}
+
+.shimo-answer-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.65rem;
+}
+
+.shimo-markdown-table-wrap {
+  width: 100%;
+  margin-block: 0.9em;
+  overflow-x: auto;
+  border: 1px solid color-mix(in oklab, var(--border) 90%, var(--foreground) 10%);
+  border-radius: 0.7rem;
+  background: color-mix(in oklab, var(--background) 88%, var(--muted) 12%);
+}
+
+.shimo-markdown-table-wrap:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 70%, transparent);
+  outline-offset: 2px;
+}
+
+.shimo-answer-markdown table {
+  width: 100%;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.shimo-answer-markdown th,
+.shimo-answer-markdown td {
+  border-inline-end: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+  border-block-end: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+  padding: 0.58em 0.72em;
+  text-align: start;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.shimo-answer-markdown th {
+  background: color-mix(in oklab, var(--primary) 9%, var(--muted));
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.shimo-answer-markdown tbody tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--muted) 28%, transparent);
+}
+
+.shimo-answer-markdown tr:last-child > * {
+  border-block-end: 0;
+}
+
+.shimo-answer-markdown tr > *:last-child {
+  border-inline-end: 0;
+}
+
+.shimo-answer-markdown input[type="checkbox"] {
+  margin-inline-end: 0.45em;
+  accent-color: var(--primary);
+}
+
+.shimo-answer-markdown .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25em;
+}
+
+.shimo-stream-caret {
+  display: inline-block;
+  width: 0.45em;
+  height: 1.05em;
+  margin-inline-start: 0.12em;
+  border-radius: 0.12em;
+  background: var(--primary);
+  vertical-align: -0.16em;
+  animation: shimo-caret-pulse 900ms steps(1, end) infinite;
+}
+
 .shimo-empty-mark {
   background: color-mix(in oklab, var(--primary) 10%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent);
@@ -172,6 +275,17 @@
 @keyframes shimo-menu-in {
   from { opacity: 0; transform: translateY(-4px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shimo-caret-pulse {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimo-stream-caret {
+    animation: none;
+  }
 }
 
 @keyframes shimo-drawer-in {

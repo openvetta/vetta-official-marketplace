@@ -34,8 +34,10 @@ export interface ReaderController {
   pendingNote: PendingNote | null;
   pendingQuestion: PendingQuestion | null;
   notice: ReaderNotice | null;
+  streamingAnswerId: string | null;
   aiModels: ReadingAiModel[];
   aiModelKey: string | null;
+  defaultAiModelKey: string | null;
   aiModelsLoading: boolean;
   aiModelsError: string | null;
   loading: boolean;
@@ -83,6 +85,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   const [pendingNote, setPendingNote] = useState<PendingNote | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
   const [notice, setNotice] = useState<ReaderNotice | null>(null);
+  const [streamingAnswerId, setStreamingAnswerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(0);
@@ -93,6 +96,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   const noticeSequence = useRef(0);
   const loadSequence = useRef(0);
   const quietTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const answerAbortController = useRef<AbortController | null>(null);
   const textRoot = useRef<HTMLDivElement>(null);
   const pdfRoot = useRef<HTMLDivElement>(null);
   const manifestRef = useRef<MaterialManifest | null>(null);
@@ -125,6 +129,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   );
 
   const loadMaterial = useCallback(async (id: string): Promise<void> => {
+    answerAbortController.current?.abort();
     const requestId = ++loadSequence.current;
     const nextManifest = await runtime.repository.getManifest(id);
     if (!nextManifest || requestId !== loadSequence.current) return;
@@ -178,6 +183,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
 
   useEffect(() => () => {
     if (quietTimer.current) clearTimeout(quietTimer.current);
+    answerAbortController.current?.abort();
   }, []);
 
   const selectMaterial = async (id: string): Promise<void> => {
@@ -245,29 +251,55 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   ): Promise<void> => {
     if (!manifest) return;
     const modelKey = requireAiModel(aiModel.modelKey, t);
+    answerAbortController.current?.abort();
+    const controller = new AbortController();
+    answerAbortController.current = controller;
+    let answerDraftId: string | null = null;
+    setRecordsOpen(true);
     showNotice("info", t("status.answering"));
-    const { answer } = await answerReadingSelection({
-      ai: runtime.context.ai,
-      repository: runtime.repository,
-      modelKey,
-      manifest,
-      selection: selected,
-      action,
-      question,
-      prompt,
-      locale,
-      onQuestionSaved: (questionRecord) => {
-        runtime.notifyRecordsChanged(questionRecord.materialId);
-        if (runtime.getSelectedId() === questionRecord.materialId) {
-          setRecords((current) => [...current, questionRecord]);
+    try {
+      const { answer } = await answerReadingSelection({
+        ai: runtime.context.ai,
+        repository: runtime.repository,
+        modelKey,
+        manifest,
+        selection: selected,
+        action,
+        question,
+        prompt,
+        locale,
+        signal: controller.signal,
+        onQuestionSaved: (questionRecord) => {
+          runtime.notifyRecordsChanged(questionRecord.materialId);
+          if (runtime.getSelectedId() === questionRecord.materialId) {
+            setRecords((current) => [...current, questionRecord]);
+          }
+        },
+        onAnswerChanged: (answerRecord) => {
+          answerDraftId = answerRecord.id;
+          setStreamingAnswerId(answerRecord.id);
+          if (runtime.getSelectedId() === answerRecord.materialId) {
+            setRecords((current) => upsertRecord(current, answerRecord));
+          }
         }
+      });
+      runtime.notifyRecordsChanged(answer.materialId);
+      showNotice("success", t("status.answered"));
+    } catch (error) {
+      if (answerDraftId) {
+        setRecords((current) => current.filter((record) => record.id !== answerDraftId));
       }
-    });
-    runtime.notifyRecordsChanged(answer.materialId);
-    if (runtime.getSelectedId() === answer.materialId) {
-      setRecords((current) => [...current, answer]);
+      if (controller.signal.aborted) {
+        setNotice((current) => current?.tone === "info" ? null : current);
+        throw abortError();
+      }
+      throw error;
+    } finally {
+      if (answerAbortController.current === controller) {
+        answerAbortController.current = null;
+        setStreamingAnswerId(null);
+      }
     }
-    showNotice("success", t("status.answered"));
   };
 
   const runAction = async (action: SelectionAction): Promise<void> => {
@@ -292,21 +324,26 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
       const question = locale === "zh" ? (action.promptZh ?? action.zh) : (action.promptEn ?? action.en);
       await saveReadingAiAnswer(action, selected, question, buildQuickActionPrompt(manifest, selected, action, locale));
     } catch (error) {
+      if (isAbortError(error)) return;
       showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
     }
   };
 
   const askQuestion = async (question: string): Promise<void> => {
     if (!manifest || !pendingQuestion) return;
+    const submittedMaterialId = manifest.id;
+    const submittedQuestion = pendingQuestion;
+    setPendingQuestion(null);
     try {
       await saveReadingAiAnswer(
-        pendingQuestion.action,
-        pendingQuestion.selection,
+        submittedQuestion.action,
+        submittedQuestion.selection,
         question,
-        buildQuestionPrompt(manifest, pendingQuestion.selection, question, locale)
+        buildQuestionPrompt(manifest, submittedQuestion.selection, question, locale)
       );
-      setPendingQuestion(null);
     } catch (error) {
+      if (isAbortError(error)) return;
+      if (runtime.getSelectedId() === submittedMaterialId) setPendingQuestion(submittedQuestion);
       showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
     }
   };
@@ -418,8 +455,10 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     pendingNote,
     pendingQuestion,
     notice,
+    streamingAnswerId,
     aiModels: aiModel.models,
     aiModelKey: aiModel.modelKey,
+    defaultAiModelKey: aiModel.defaultModelKey,
     aiModelsLoading: aiModel.loading,
     aiModelsError: aiModel.error,
     loading,
@@ -466,4 +505,20 @@ function errorMessage(error: unknown): string {
 function requireAiModel(modelKey: string | null, t: PluginTranslate): string {
   if (!modelKey) throw new Error(t("ai.modelRequired"));
   return modelKey;
+}
+
+function upsertRecord(records: ReadingRecord[], next: ReadingRecord): ReadingRecord[] {
+  const index = records.findIndex((record) => record.id === next.id);
+  if (index < 0) return [...records, next];
+  return records.map((record, currentIndex) => currentIndex === index ? next : record);
+}
+
+function abortError(): Error {
+  const error = new Error("AI answer generation was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
 }

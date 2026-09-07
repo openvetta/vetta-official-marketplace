@@ -24,13 +24,17 @@ describe("Shimo direct reading answers", () => {
   it("saves a question, calls the selected model, then saves its answer", async () => {
     const saveRecord = vi.fn(async () => undefined);
     const repository = { saveRecord } as unknown as ShimoRepository;
-    const complete = vi.fn(async () => ({
+    const stream = vi.fn(async (_request, options) => {
+      options?.onTextDelta?.({ delta: "月光与", text: "月光与" });
+      options?.onTextDelta?.({ delta: "松影", text: "月光与松影" });
+      return {
       modelKey: "provider/reader",
       text: "月光与松影共同营造出清幽的空间。",
       stopReason: "stop" as const,
       usage: { inputTokens: 20, outputTokens: 12, totalTokens: 32 },
-    }));
-    const ai = { complete, listModels: vi.fn(), chat: vi.fn() } as unknown as PluginAiApi;
+      };
+    });
+    const ai = { complete: vi.fn(), stream, listModels: vi.fn(), chat: vi.fn() } as unknown as PluginAiApi;
     const action = ACTIONS.poetry[0]!;
     const selection = {
       quote: "明月松间照",
@@ -39,6 +43,7 @@ describe("Shimo direct reading answers", () => {
       y: 10,
     };
     const onQuestionSaved = vi.fn();
+    const onAnswerChanged = vi.fn();
 
     const result = await answerReadingSelection({
       ai,
@@ -51,11 +56,21 @@ describe("Shimo direct reading answers", () => {
       prompt: "prompt",
       locale: "zh",
       onQuestionSaved,
+      onAnswerChanged,
     });
 
     expect(saveRecord).toHaveBeenCalledTimes(2);
     expect(onQuestionSaved).toHaveBeenCalledWith(result.question);
-    expect(complete).toHaveBeenCalledWith(expect.objectContaining({ modelKey: "provider/reader", prompt: "prompt" }));
+    expect(stream).toHaveBeenCalledWith(
+      expect.objectContaining({ modelKey: "provider/reader", prompt: "prompt" }),
+      expect.objectContaining({ signal: undefined, onTextDelta: expect.any(Function) }),
+    );
+    expect(onAnswerChanged.mock.calls.map(([record]) => record.body)).toEqual([
+      "",
+      "月光与",
+      "月光与松影",
+      "月光与松影共同营造出清幽的空间。",
+    ]);
     expect(result.answer).toMatchObject({
       kind: "answer",
       body: "月光与松影共同营造出清幽的空间。",
@@ -69,7 +84,8 @@ describe("Shimo direct reading answers", () => {
     const saveRecord = vi.fn(async (record: unknown) => { saved.push(record); });
     const repository = { saveRecord } as unknown as ShimoRepository;
     const ai = {
-      complete: vi.fn(async () => { throw new Error("provider unavailable"); }),
+      complete: vi.fn(),
+      stream: vi.fn(async () => { throw new Error("provider unavailable"); }),
       listModels: vi.fn(),
       chat: vi.fn(),
     } as unknown as PluginAiApi;

@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
+import type { ModelSelectorViewProps } from "@vetta/theme-ui/plugin-ui";
 import {
   act,
   type ButtonHTMLAttributes,
@@ -12,6 +13,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACTIONS } from "../../classification";
 import type { LibraryEntry, ReadingRecord } from "../../domain";
+import { ReaderDropTarget } from "../../reader";
 import { LibrarySidebar } from "./LibrarySidebar";
 import { NoteComposer } from "./NoteComposer";
 import { PreferencesPopover } from "./PreferencesPopover";
@@ -36,7 +38,7 @@ vi.mock("@vetta/ui", () => ({
     </div>
   ),
   DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
-  DrawerContent: ({ children, overlayClassName: _overlayClassName, ...props }: HTMLAttributes<HTMLDivElement> & { overlayClassName?: string }) => <div {...props}>{children}</div>,
+  DrawerContent: ({ children, overlayClassName: _overlayClassName, portalContainer, ...props }: HTMLAttributes<HTMLDivElement> & { overlayClassName?: string; portalContainer?: HTMLElement }) => <div data-portal-container={portalContainer?.tagName} {...props}>{children}</div>,
   DrawerDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
   DrawerHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
   DrawerTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
@@ -64,6 +66,21 @@ vi.mock("@vetta/ui", () => ({
   )
 }));
 
+vi.mock("@vetta/theme-ui/plugin-ui", () => ({
+  PROVIDER_ICONS: { gemini: "gemini-icon", openai: "openai-icon" },
+  ModelSelectorView: ({ groups, onModelSelect, selectedModel }: ModelSelectorViewProps) => (
+    <select
+      data-testid="host-model-selector"
+      value={selectedModel}
+      onChange={(event) => onModelSelect(event.target.value)}
+    >
+      {groups.flatMap((group) => group.models).map((model) => (
+        <option key={model.key} value={model.key}>{model.displayName}</option>
+      ))}
+    </select>
+  )
+}));
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const messages: Record<string, string> = {
@@ -88,6 +105,7 @@ const messages: Record<string, string> = {
   "records.filteredEmpty": "No records in this category",
   "records.kind.answer": "AI answer",
   "records.kind.highlight": "Highlight",
+  "records.generating": "Generating",
   "preferences.title": "Reading preferences",
   "preferences.description": "Tune the reader",
   "preferences.pinyin": "Pinyin",
@@ -104,6 +122,14 @@ const messages: Record<string, string> = {
   "ai.reloadModels": "Reload",
   "ai.noModels": "No models",
   "ai.modelRequired": "Choose a model",
+  "ai.searchModels": "Search models",
+  "ai.clearModelSearch": "Clear model search",
+  "ai.modelsHeader": "Models",
+  "ai.noModelResults": "No matching models",
+  "ai.noModelResultsHint": "Try another name",
+  "ai.cloudOnly": "Cloud",
+  "ai.vision": "Supports images",
+  "ai.defaultModel": "Default",
   "export.title": "Export",
   "export.description": "Export records",
   "export.action": "Export",
@@ -188,6 +214,7 @@ describe("Shimo progressive disclosure", () => {
     expect(toolbar?.getAttribute("aria-label")).toBe("Selection actions");
     expect(buttons).toHaveLength(actions.length);
     expect(Array.from(buttons).map((button) => button.textContent)).toEqual(actions.map((action) => action.zh));
+    expect(toolbar?.querySelectorAll("svg")).toHaveLength(actions.length);
     await act(async () => buttons[0]?.click());
     expect(onAction).toHaveBeenCalledWith(actions[0]);
   });
@@ -294,8 +321,12 @@ describe("Shimo reading preferences", () => {
     const container = await render(
       <PreferencesPopover
         preferences={{ schemaVersion: 1, pinyin: "hidden", scannedPdfOcr: "never", rememberPosition: true }}
-        aiModels={[{ modelKey: "provider/reader", provider: "provider", id: "reader", name: "Reader" }]}
+        aiModels={[
+          { modelKey: "provider/reader", provider: "provider", id: "reader", name: "Reader", supportsImage: false },
+          { modelKey: "provider/vision", provider: "provider", id: "vision", name: "Vision", supportsImage: true }
+        ]}
         aiModelKey="provider/reader"
+        defaultAiModelKey="provider/reader"
         aiModelsLoading={false}
         aiModelsError={null}
         canExportPdf={false}
@@ -310,6 +341,12 @@ describe("Shimo reading preferences", () => {
     );
 
     const selects = container.querySelectorAll("select");
+    const modelSelector = container.querySelector<HTMLSelectElement>('[data-testid="host-model-selector"]');
+    await act(async () => {
+      if (!modelSelector) return;
+      modelSelector.value = "provider/vision";
+      modelSelector.dispatchEvent(new Event("change", { bubbles: true }));
+    });
     await act(async () => {
       const pinyin = selects[1];
       if (!pinyin) return;
@@ -321,7 +358,40 @@ describe("Shimo reading preferences", () => {
 
     expect(onChange).toHaveBeenCalledWith({ pinyin: "visible" });
     expect(onChange).toHaveBeenCalledWith({ rememberPosition: false });
+    expect(onAiModelChange).toHaveBeenCalledWith("provider/vision");
     expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Shimo file drops", () => {
+  it("accepts real file drops without showing a sticky full-panel overlay", async () => {
+    const onFiles = vi.fn(async () => undefined);
+    const container = await render(<ReaderDropTarget onFiles={onFiles}>Reader content</ReaderDropTarget>);
+    const dropTarget = container.querySelector("main");
+    const file = new File(["content"], "reading.txt", { type: "text/plain" });
+    const files = {
+      0: file,
+      length: 1,
+      item: (index: number) => index === 0 ? file : null,
+      *[Symbol.iterator]() { yield file; }
+    } as unknown as FileList;
+
+    const textDrag = new Event("dragover", { bubbles: true, cancelable: true });
+    Object.defineProperty(textDrag, "dataTransfer", { value: { types: ["text/plain"], files } });
+    await act(async () => dropTarget?.dispatchEvent(textDrag));
+    expect(textDrag.defaultPrevented).toBe(false);
+
+    const fileDrag = new Event("dragover", { bubbles: true, cancelable: true });
+    Object.defineProperty(fileDrag, "dataTransfer", { value: { types: ["Files"], files } });
+    await act(async () => dropTarget?.dispatchEvent(fileDrag));
+    expect(fileDrag.defaultPrevented).toBe(true);
+
+    const drop = new Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, "dataTransfer", { value: { types: ["Files"], files } });
+    await act(async () => dropTarget?.dispatchEvent(drop));
+
+    expect(onFiles).toHaveBeenCalledWith(files);
+    expect(container.textContent).toBe("Reader content");
   });
 });
 
@@ -357,11 +427,40 @@ describe("Shimo questions", () => {
 describe("Shimo reading records", () => {
   it("closes through the shared Drawer state contract", async () => {
     const onClose = vi.fn();
-    const container = await render(<RecordsDrawer records={[]} locale="en" t={t} onClose={onClose} />);
+    const container = await render(<RecordsDrawer records={[]} locale="en" t={t} portalContainer={document.body} onClose={onClose} />);
 
     expect(container.querySelector('[aria-label="Reading records"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Reading records"]')?.getAttribute("data-portal-container")).toBe("BODY");
     await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="drawer-dismiss"]')?.click());
 
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("renders streamed AI answers as GFM and math without exposing raw markup", async () => {
+    const record: ReadingRecord = {
+      schemaVersion: 1,
+      id: "streaming-answer",
+      materialId: "material",
+      kind: "answer",
+      quote: "Euler identity",
+      anchor: { type: "text", start: 0, end: 5, quote: "Euler", prefix: "", suffix: "" },
+      body: "| Symbol | Value |\n| --- | --- |\n| Euler | $e^{i\\pi}+1=0$ |\n\n<script>alert('no')</script>",
+      modelKey: "provider/reader",
+      createdAt: "2026-09-07T00:00:00.000Z",
+      updatedAt: "2026-09-07T00:00:00.000Z",
+      revision: 1,
+    };
+    const container = await render(
+      <RecordList records={[record]} locale="en" t={t} streamingRecordId={record.id} />,
+    );
+
+    expect(container.querySelector("table")).not.toBeNull();
+    expect(container.querySelector(".shimo-markdown-table-wrap")?.querySelector("table")).not.toBeNull();
+    expect(container.querySelector(".shimo-markdown-table-wrap")?.getAttribute("tabindex")).toBe("0");
+    expect(container.querySelector(".katex")).not.toBeNull();
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("Generating");
+    expect(container.querySelector(".shimo-stream-caret")).not.toBeNull();
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.textContent).not.toContain("alert('no')");
   });
 });

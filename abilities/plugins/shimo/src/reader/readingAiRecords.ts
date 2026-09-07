@@ -16,7 +16,9 @@ export interface AnswerReadingSelectionInput {
   question: string;
   prompt: string;
   locale: Locale;
+  signal?: AbortSignal;
   onQuestionSaved?(question: ReadingRecord): void;
+  onAnswerChanged?(answer: ReadingRecord): void;
 }
 
 export async function answerReadingSelection(input: AnswerReadingSelectionInput): Promise<{
@@ -30,18 +32,26 @@ export async function answerReadingSelection(input: AnswerReadingSelectionInput)
   await input.repository.saveRecord(question);
   input.onQuestionSaved?.(question);
 
+  const answerDraft = createRecord(input.manifest.id, "answer", input.selection.quote, input.selection.anchor, {
+    actionId: input.action.id,
+    body: "",
+    modelKey: input.modelKey,
+    relatedRecordId: question.id,
+  });
+  input.onAnswerChanged?.(answerDraft);
+
   const result = await completeReading(
     input.ai,
     input.modelKey,
     buildReadingSystemPrompt(input.manifest.category, input.locale),
     input.prompt,
+    {
+      signal: input.signal,
+      onTextDelta: ({ text }) => input.onAnswerChanged?.({ ...answerDraft, body: text, updatedAt: new Date().toISOString() })
+    },
   );
-  const answer = createRecord(input.manifest.id, "answer", input.selection.quote, input.selection.anchor, {
-    actionId: input.action.id,
-    body: result.text,
-    modelKey: input.modelKey,
-    relatedRecordId: question.id,
-  });
+  const answer = { ...answerDraft, body: result.text, updatedAt: new Date().toISOString() };
   await input.repository.saveRecord(answer);
+  input.onAnswerChanged?.(answer);
   return { question, answer };
 }

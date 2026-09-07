@@ -6,10 +6,17 @@ export interface ReadingAiModel {
   name: string;
   provider: string;
   id: string;
+  supportsImage: boolean;
 }
 
 export function toReadingAiModels(result: Awaited<ReturnType<PluginAiApi["listModels"]>>): ReadingAiModel[] {
-  return result.models.map(({ modelKey, name, provider, id }) => ({ modelKey, name, provider, id }));
+  return result.models.map(({ modelKey, name, provider, id, input }) => ({
+    modelKey,
+    name,
+    provider,
+    id,
+    supportsImage: input.includes("image")
+  }));
 }
 
 export function resolveReadingModelKey(
@@ -28,7 +35,8 @@ export async function completeReading(
   modelKey: string | null,
   systemPrompt: string,
   prompt: string,
+  options?: Parameters<PluginAiApi["stream"]>[1],
 ): Promise<PluginAiCompleteResult> {
   if (!modelKey) throw new Error("No Shimo AI model is selected. Choose a model in Reading preferences.");
-  return ai.complete({ modelKey, systemPrompt, prompt, temperature: 0.2, maxTokens: 1600 });
+  return ai.stream({ modelKey, systemPrompt, prompt, temperature: 0.2, maxTokens: 1600 }, options);
 }

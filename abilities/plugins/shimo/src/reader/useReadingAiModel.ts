@@ -5,6 +5,7 @@ import type { ShimoRuntime } from "../runtime";
 export interface ReadingAiModelState {
   models: ReadingAiModel[];
   modelKey: string | null;
+  defaultModelKey: string | null;
   loading: boolean;
   error: string | null;
   select(modelKey: string): Promise<void>;
@@ -14,6 +15,7 @@ export interface ReadingAiModelState {
 export function useReadingAiModel(runtime: ShimoRuntime): ReadingAiModelState {
   const [models, setModels] = useState<ReadingAiModel[]>([]);
   const [modelKey, setModelKey] = useState<string | null>(null);
+  const [defaultModelKey, setDefaultModelKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +30,7 @@ export function useReadingAiModel(runtime: ShimoRuntime): ReadingAiModelState {
       const nextModelKey = resolveReadingModelKey(settings, nextModels, listed.defaultModel);
       setModels(nextModels);
       setModelKey(nextModelKey);
+      setDefaultModelKey(listed.defaultModel);
       setError(nextModelKey ? null : "no-models");
       if (nextModelKey && settings.modelKey !== nextModelKey) {
         await runtime.repository.saveAiSettings({ schemaVersion: 1, modelKey: nextModelKey });
@@ -35,6 +38,7 @@ export function useReadingAiModel(runtime: ShimoRuntime): ReadingAiModelState {
     } catch (cause) {
       setModels([]);
       setModelKey(null);
+      setDefaultModelKey(null);
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setLoading(false);
@@ -54,5 +58,5 @@ export function useReadingAiModel(runtime: ShimoRuntime): ReadingAiModelState {
     setError(null);
   }, [models, runtime.repository]);
 
-  return { models, modelKey, loading, error, select, refresh };
+  return { models, modelKey, defaultModelKey, loading, error, select, refresh };
 }

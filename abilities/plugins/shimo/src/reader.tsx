@@ -1,5 +1,5 @@
 import { Spin } from "@vetta/ui";
-import { lazy, Suspense, useState, type DragEvent, type ReactElement } from "react";
+import { lazy, Suspense, type DragEvent, type ReactElement, type ReactNode, useState } from "react";
 import { EmptyLibrary } from "./reader/components/EmptyLibrary";
 import { LibrarySidebar } from "./reader/components/LibrarySidebar";
 import { NoteComposer } from "./reader/components/NoteComposer";
@@ -19,25 +19,13 @@ const MarkdownReader = lazy(async () => ({ default: (await import("./reader/comp
 
 export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement {
   const reader = useReaderController(runtime);
-  const [dragging, setDragging] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const subtitle = reader.manifest
     ? `${reader.t("reader.offline")} · ${reader.t(`category.${reader.manifest.category}`)}`
     : undefined;
 
-  const handleDrop = (event: DragEvent<HTMLElement>): void => {
-    event.preventDefault();
-    setDragging(false);
-    if (event.dataTransfer.files.length > 0) void reader.importFiles(event.dataTransfer.files);
-  };
-
   return (
-    <main
-      className="relative flex h-full min-h-[32rem] overflow-hidden bg-background text-foreground"
-      onDragEnter={(event) => { event.preventDefault(); setDragging(true); }}
-      onDragOver={(event) => event.preventDefault()}
-      onDragLeave={(event) => { if (event.currentTarget === event.target) setDragging(false); }}
-      onDrop={handleDrop}
-    >
+    <ReaderDropTarget onFiles={reader.importFiles} onContainerChange={setPortalContainer}>
       <LibrarySidebar
         entries={reader.entries}
         selectedId={reader.manifest?.id}
@@ -63,6 +51,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
               preferences={reader.preferences}
               aiModels={reader.aiModels}
               aiModelKey={reader.aiModelKey}
+              defaultAiModelKey={reader.defaultAiModelKey}
               aiModelsLoading={reader.aiModelsLoading}
               aiModelsError={reader.aiModelsError}
               canExportPdf={reader.manifest.kind === "pdf"}
@@ -109,6 +98,8 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
           records={reader.records}
           locale={reader.locale}
           t={reader.t}
+          streamingRecordId={reader.streamingAnswerId}
+          portalContainer={portalContainer}
           onClose={() => reader.setRecordsOpen(false)}
         />
       ) : null}
@@ -146,14 +137,38 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         />
       ) : null}
 
-      {dragging ? (
-        <div className="pointer-events-none absolute inset-3 z-50 grid place-items-center rounded-3xl border-2 border-dashed border-primary/45 bg-background/88 text-center shadow-2xl backdrop-blur-md">
-          <div>
-            <div className="shimo-empty-mark shimo-serif mx-auto grid size-14 place-items-center rounded-2xl text-xl">{reader.t("brand.mark")}</div>
-            <p className="mt-3 text-sm font-medium">{reader.t("library.drop")}</p>
-          </div>
-        </div>
-      ) : null}
+    </ReaderDropTarget>
+  );
+}
+
+export function ReaderDropTarget({
+  children,
+  onFiles,
+  onContainerChange,
+}: {
+  children: ReactNode;
+  onFiles(files: FileList): Promise<void>;
+  onContainerChange?(container: HTMLElement | null): void;
+}): ReactElement {
+  const isFileDrag = (event: DragEvent<HTMLElement>): boolean =>
+    Array.from(event.dataTransfer.types).includes("Files");
+
+  const handleDrop = (event: DragEvent<HTMLElement>): void => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
+    if (event.dataTransfer.files.length > 0) void onFiles(event.dataTransfer.files);
+  };
+
+  return (
+    <main
+      ref={onContainerChange}
+      className="relative flex h-full min-h-[32rem] overflow-hidden bg-background text-foreground"
+      onDragOver={(event) => {
+        if (isFileDrag(event)) event.preventDefault();
+      }}
+      onDrop={handleDrop}
+    >
+      {children}
     </main>
   );
 }

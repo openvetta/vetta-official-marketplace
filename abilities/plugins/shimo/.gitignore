@@ -1,4 +1,6 @@
-# Local dependency and packaging outputs. Runtime files in dist/ are committed.
+# Local dependencies and superseded local archives are not committed. Keep the
+# current tested release archive with the marketplace source.
 node_modules/
-release/
+release/*
+!release/shimo-reader-1.0.7.zip
 bun.lock

@@ -1,103 +1,126 @@
 {
-  "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js": {
-    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-    "name": "_virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js"
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf": {
+    "file": "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf"
   },
-  "_index-0xf-q3zY.js": {
-    "file": "assets/index-0xf-q3zY.js",
-    "name": "index"
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff": {
+    "file": "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff"
   },
-  "_reader-00D8PE60.js": {
-    "file": "assets/reader-00D8PE60.js",
-    "name": "reader",
-    "isDynamicEntry": true,
-    "imports": [
-      "_vite-preload-helper-BXl3LOEh.js",
-      "src/index.tsx",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_types-DNe8cPGQ.js"
-    ],
-    "dynamicImports": [
-      "src/reader/components/PdfReader.tsx",
-      "src/reader/components/MarkdownReader.tsx"
-    ]
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf": {
+    "file": "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf"
   },
-  "_types-DNe8cPGQ.js": {
-    "file": "assets/types-DNe8cPGQ.js",
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf": {
+    "file": "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf"
+  },
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf": {
+    "file": "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf"
+  },
+  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf": {
+    "file": "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf"
+  },
+  "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js": {
+    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js",
+    "name": "_virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js"
+  },
+  "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js": {
+    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+    "name": "_virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js"
+  },
+  "_preload-helper-BXl3LOEh.js": {
+    "file": "assets/preload-helper-BXl3LOEh.js",
+    "name": "preload-helper"
+  },
+  "_types-DpvkUsd-.js": {
+    "file": "assets/types-DpvkUsd-.js",
     "name": "types",
     "imports": [
-      "src/index.tsx",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js"
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js"
     ]
-  },
-  "_vite-preload-helper-BXl3LOEh.js": {
-    "file": "assets/vite-preload-helper-BXl3LOEh.js",
-    "name": "vite-preload-helper"
   },
   "node_modules/pdfjs-dist/build/pdf.worker.min.mjs": {
     "file": "assets/pdf.worker.min-iDqQPrd3.mjs",
     "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
   "src/activity-panel.tsx": {
-    "file": "assets/activity-panel-dWCl1gNN.js",
+    "file": "assets/activity-panel-Dnoj3DIG.js",
     "name": "activity-panel",
     "src": "src/activity-panel.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "src/index.tsx",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_types-DNe8cPGQ.js",
-      "_vite-preload-helper-BXl3LOEh.js",
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "_index-0xf-q3zY.js"
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js",
+      "_types-DpvkUsd-.js"
     ]
   },
   "src/index.tsx": {
-    "file": "assets/index-DYBsK4i-.js",
+    "file": "assets/index-CrynQRxJ.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_vite-preload-helper-BXl3LOEh.js",
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_index-0xf-q3zY.js"
+      "_preload-helper-BXl3LOEh.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js"
     ],
     "dynamicImports": [
-      "_reader-00D8PE60.js",
+      "src/reader.tsx",
       "src/activity-panel.tsx"
     ],
     "css": [
       "style.css"
+    ],
+    "assets": [
+      "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+      "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+      "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+      "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+      "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+      "assets/KaTeX_Main-Regular-ypZvNtVU.ttf"
+    ]
+  },
+  "src/reader.tsx": {
+    "file": "assets/reader-vEKVuelZ.js",
+    "name": "reader",
+    "src": "src/reader.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_preload-helper-BXl3LOEh.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js",
+      "_types-DpvkUsd-.js",
+      "src/index.tsx"
+    ],
+    "dynamicImports": [
+      "src/reader/components/PdfReader.tsx",
+      "src/reader/components/MarkdownReader.tsx"
     ]
   },
   "src/reader/components/MarkdownReader.tsx": {
-    "file": "assets/MarkdownReader-Pw5n9u_k.js",
+    "file": "assets/MarkdownReader-DsHzuqwb.js",
     "name": "MarkdownReader",
     "src": "src/reader/components/MarkdownReader.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "src/index.tsx",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_reader-00D8PE60.js",
-      "_vite-preload-helper-BXl3LOEh.js",
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "_index-0xf-q3zY.js",
-      "_types-DNe8cPGQ.js"
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js",
+      "_types-DpvkUsd-.js"
     ]
   },
   "src/reader/components/PdfReader.tsx": {
-    "file": "assets/PdfReader-28FGOejG.js",
+    "file": "assets/PdfReader-Bf0Ec_og.js",
     "name": "PdfReader",
     "src": "src/reader/components/PdfReader.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "src/index.tsx",
-      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__263772354059829__loadShare__react__loadShare__.js-HAhm3GuG.js",
-      "_vite-preload-helper-BXl3LOEh.js",
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "_index-0xf-q3zY.js"
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
+      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-BIIAEfNA.js"
     ],
     "assets": [
       "assets/pdf.worker.min-iDqQPrd3.mjs"
@@ -109,45 +132,44 @@
     "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_vite-preload-helper-BXl3LOEh.js",
-      "_index-0xf-q3zY.js"
+      "_preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
-      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader",
       "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js"
     ]
   },
   "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
-    "file": "assets/virtualExposes-DTD86E1j.js",
+    "file": "assets/virtualExposes-DbC78l-N.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_vite-preload-helper-BXl3LOEh.js"
+      "_preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
       "src/index.tsx"
     ]
   },
-  "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1-DwYnecTi.js",
-    "name": "_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1",
-    "src": "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
+  "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader-DV2pGGCV.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader",
     "isDynamicEntry": true,
     "imports": [
-      "_index-0xf-q3zY.js"
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_preload-helper-BXl3LOEh.js"
     ]
   },
-  "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-DaK7Clq2.js",
+  "virtual:mf:__mfe_internal__shimo_reader__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-C0TgB5d0.js",
     "name": "hostInit",
-    "src": "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
+    "src": "virtual:mf:__mfe_internal__shimo_reader__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
-      "_vite-preload-helper-BXl3LOEh.js"
+      "_preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1"
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js"
     ]
   }
 }

@@ -18,16 +18,19 @@ interface RecordsDrawerProps {
   records: ReadingRecord[];
   locale: Locale;
   t: PluginTranslate;
+  streamingRecordId?: string | null;
+  portalContainer?: HTMLElement | null;
   onClose(): void;
 }
 
-export function RecordsDrawer({ records, locale, t, onClose }: RecordsDrawerProps): ReactElement {
+export function RecordsDrawer({ records, locale, t, streamingRecordId, portalContainer, onClose }: RecordsDrawerProps): ReactElement {
   return (
     <Drawer open direction="right" onOpenChange={(open) => { if (!open) onClose(); }}>
       <DrawerContent
         aria-label={t("records.title")}
         className="w-[23rem] max-w-[86vw] rounded-none bg-popover/97 shadow-2xl backdrop-blur-xl sm:max-w-[23rem]"
         overlayClassName="bg-background/20"
+        portalContainer={portalContainer ?? undefined}
       >
         <DrawerHeader className="flex h-16 shrink-0 flex-row items-center justify-between gap-3 border-b border-border/50 px-4 py-0">
           <div>
@@ -42,7 +45,7 @@ export function RecordsDrawer({ records, locale, t, onClose }: RecordsDrawerProp
             </Button>
           </DrawerClose>
         </DrawerHeader>
-        <RecordList records={records} locale={locale} t={t} />
+        <RecordList records={records} locale={locale} t={t} streamingRecordId={streamingRecordId} />
       </DrawerContent>
     </Drawer>
   );

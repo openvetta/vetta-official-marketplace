@@ -20,11 +20,13 @@ import { Ellipsis, X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingAiModel } from "../../ai";
 import type { ReadingPreferences } from "../../domain";
+import { ReadingModelSelector } from "./ReadingModelSelector";
 
 interface PreferencesPopoverProps {
   preferences: ReadingPreferences;
   aiModels: ReadingAiModel[];
   aiModelKey: string | null;
+  defaultAiModelKey: string | null;
   aiModelsLoading: boolean;
   aiModelsError: string | null;
   canExportPdf: boolean;
@@ -42,6 +44,7 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
     preferences,
     aiModels,
     aiModelKey,
+    defaultAiModelKey,
     aiModelsLoading,
     aiModelsError,
     canExportPdf,
@@ -76,18 +79,14 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
           <div className="flex items-center justify-between gap-3">
             <span>{t("ai.model")}</span>
             {aiModels.length > 0 ? (
-              <Select value={aiModelKey ?? undefined} onValueChange={(value) => void onAiModelChange(value)}>
-                <SelectTrigger size="sm" className="w-48" aria-label={t("ai.model")}>
-                  <SelectValue placeholder={t("ai.selectModel")} />
-                </SelectTrigger>
-                <SelectContent align="end">
-                  {aiModels.map((model) => (
-                    <SelectItem key={model.modelKey} value={model.modelKey}>
-                      {model.name} · {model.provider}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ReadingModelSelector
+                models={aiModels}
+                value={aiModelKey}
+                defaultKey={defaultAiModelKey}
+                t={t}
+                onChange={onAiModelChange}
+                onRefresh={onRefreshAiModels}
+              />
             ) : (
               <Button type="button" size="sm" variant="secondary" disabled={aiModelsLoading} onClick={() => void onRefreshAiModels()}>
                 {aiModelsLoading ? t("ai.loadingModels") : t("ai.reloadModels")}

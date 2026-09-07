@@ -1,17 +1,20 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
+import { LoaderCircle } from "lucide-react";
 import { useState, type ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import { locationLabel } from "../prompts";
 import type { Locale } from "../types";
+import { AnswerMarkdown } from "./AnswerMarkdown";
 
 export interface RecordListProps {
   records: ReadingRecord[];
   locale: Locale;
   t: PluginTranslate;
+  streamingRecordId?: string | null;
 }
 
-export function RecordList({ records, locale, t }: RecordListProps): ReactElement {
+export function RecordList({ records, locale, t, streamingRecordId }: RecordListProps): ReactElement {
   const [kindFilter, setKindFilter] = useState<"all" | "answer" | "highlight" | "notes">("all");
 
   if (records.length === 0) {
@@ -84,14 +87,32 @@ export function RecordList({ records, locale, t }: RecordListProps): ReactElemen
           filteredRecords
             .slice()
             .reverse()
-            .map((record) => <RecordCard key={record.id} record={record} locale={locale} t={t} />)
+            .map((record) => (
+              <RecordCard
+                key={record.id}
+                record={record}
+                locale={locale}
+                t={t}
+                streaming={record.id === streamingRecordId}
+              />
+            ))
         )}
       </div>
     </div>
   );
 }
 
-function RecordCard({ record, locale, t }: { record: ReadingRecord; locale: Locale; t: PluginTranslate }): ReactElement {
+function RecordCard({
+  record,
+  locale,
+  t,
+  streaming = false
+}: {
+  record: ReadingRecord;
+  locale: Locale;
+  t: PluginTranslate;
+  streaming?: boolean;
+}): ReactElement {
   const isAnswer = record.kind === "answer";
   const isReflection = record.kind === "reflection" || record.kind === "note";
 
@@ -115,11 +136,21 @@ function RecordCard({ record, locale, t }: { record: ReadingRecord; locale: Loca
             <span className="normal-case tracking-normal font-mono text-[9px]">{record.modelKey}</span>
           </>
         ) : null}
+        {streaming ? (
+          <span role="status" className="ml-auto inline-flex items-center gap-1 normal-case tracking-normal text-primary">
+            <LoaderCircle aria-hidden="true" className="size-3 animate-spin" />
+            {t("records.generating")}
+          </span>
+        ) : null}
       </div>
       <blockquote className="shimo-serif my-2.5 line-clamp-5 border-l-2 border-primary/40 pl-3 leading-relaxed text-foreground">
         {record.quote}
       </blockquote>
-      {record.body ? (
+      {isAnswer && (record.body || streaming) ? (
+        <div className="mt-1 rounded-lg bg-background/50 p-2">
+          <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
+        </div>
+      ) : record.body ? (
         <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground/85 bg-background/50 rounded-lg p-2 mt-1">
           {record.body}
         </p>

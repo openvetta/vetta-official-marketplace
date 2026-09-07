@@ -31,6 +31,7 @@ const listed = {
 describe("Shimo AI model selection", () => {
   it("keeps a saved available model ahead of the host default", () => {
     const models = toReadingAiModels(listed);
+    expect(models.map((model) => model.supportsImage)).toEqual([false, false]);
     expect(resolveReadingModelKey({ schemaVersion: 1, modelKey: "provider/selected" }, models, listed.defaultModel))
       .toBe("provider/selected");
   });
@@ -43,7 +44,7 @@ describe("Shimo AI model selection", () => {
   });
 
   it("always sends the Shimo-selected model key to completion", async () => {
-    const complete = vi.fn(async () => ({
+    const stream = vi.fn(async () => ({
       modelKey: "provider/selected",
       text: "answer",
       stopReason: "stop" as const,
@@ -51,19 +52,23 @@ describe("Shimo AI model selection", () => {
     }));
     const ai: PluginAiApi = {
       listModels: vi.fn(async () => listed),
-      complete,
+      complete: vi.fn(),
+      stream,
       chat: vi.fn(),
     };
 
     await completeReading(ai, "provider/selected", "system", "prompt");
 
-    expect(complete).toHaveBeenCalledWith(expect.objectContaining({ modelKey: "provider/selected" }));
+    expect(stream).toHaveBeenCalledWith(
+      expect.objectContaining({ modelKey: "provider/selected" }),
+      undefined,
+    );
   });
 
   it("fails before calling the host when no reading model is selected", async () => {
-    const complete = vi.fn();
-    const ai = { listModels: vi.fn(), complete, chat: vi.fn() } as unknown as PluginAiApi;
+    const stream = vi.fn();
+    const ai = { listModels: vi.fn(), complete: vi.fn(), stream, chat: vi.fn() } as unknown as PluginAiApi;
     await expect(completeReading(ai, null, "system", "prompt")).rejects.toThrow("No Shimo AI model");
-    expect(complete).not.toHaveBeenCalled();
+    expect(stream).not.toHaveBeenCalled();
   });
 });
