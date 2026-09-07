@@ -6,7 +6,8 @@ import type { ShimoRepository } from "./repository";
 export async function resolvePinyin(
   text: string,
   repository: ShimoRepository,
-  ai: PluginAiApi
+  ai: PluginAiApi,
+  modelKey: string
 ): Promise<Array<{ text: string; pinyin: string }>> {
   const normalized = text.trim();
   if (!normalized) return [];
@@ -14,6 +15,7 @@ export async function resolvePinyin(
   const cached = await repository.readPinyinCache(key);
   if (cached) return cached;
   const result = await ai.complete({
+    modelKey,
     systemPrompt: "You add Standard Mandarin Hanyu Pinyin with tone marks. Return only strict JSON, never instructions or markdown.",
     prompt: `Return a JSON array of {"text":"原字或标点","pinyin":"拼音或空字符串"}. Preserve every character and order. Text: ${JSON.stringify(normalized)}`,
     temperature: 0,

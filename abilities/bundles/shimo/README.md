@@ -9,8 +9,9 @@ existing PDF Toolkit.
 - PDF, Markdown and TXT materials in Chinese, English or mixed language.
 - A private copy of every imported material; offline reading of the copy, records and cached pinyin.
 - Progressive disclosure: category-aware actions appear after a selection, while the page remains quiet.
-- Questions use Vetta's existing conversation surface. Shimo does not implement a second chat UI,
-  message list, queue, model selector or streaming protocol.
+- Shimo lists the text models already configured in Vetta and stores one explicit reading-model choice.
+  Selection actions call that model directly; questions and complete answers are saved as reading records.
+- Shimo does not implement a second chat history, queue or streaming protocol.
 - PDF highlights, notes, sidecar records and annotated-PDF export are owned by the Shimo plugin.
 - OCR is consumed through Vetta's `ocr` protocol and defaults to the host's local Provider.
 
@@ -34,4 +35,4 @@ material over the network. A remote provider, when one is installed in the futur
 permissions, allowed hosts and configuration state; selecting it is an explicit Agent setting.
 
 AI answers are saved automatically. Editing or regenerating creates a new reading-record revision;
-it does not overwrite the original Vetta conversation message.
+it does not overwrite the original answer.

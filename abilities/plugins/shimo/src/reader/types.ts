@@ -16,6 +16,11 @@ export interface PendingNote {
   selection: ReadingSelection;
 }
 
+export interface PendingQuestion {
+  action: SelectionAction;
+  selection: ReadingSelection;
+}
+
 export interface ReaderNotice {
   id: number;
   tone: "info" | "success" | "error";

@@ -4,11 +4,11 @@
     {
       "type": "hero",
       "title": "为主动学习而设计的安静阅读器",
-      "description": "复制导入 PDF、Markdown 或 TXT，专注阅读；遇到问题时划选内容，直接使用现有 Vetta 对话。",
+      "description": "复制导入 PDF、Markdown 或 TXT，选择 Vetta 已配置的模型，划选内容后无需离开阅读器即可提问。",
       "badges": [
         "私有副本",
         "记录可离线",
-        "复用 Vetta 对话"
+        "自主选择 AI 模型"
       ]
     },
     {
@@ -20,7 +20,7 @@
         },
         {
           "title": "划选后出现操作",
-          "description": "选中文字后才显示提问、解释、翻译、拼音和记录操作。"
+          "description": "选中文字后才显示提问、解释、翻译、拼音和记录操作，AI 回答直接进入阅读记录。"
         },
         {
           "title": "记录属于你",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ACTIONS } from "../classification";
 import type { MaterialManifest } from "../domain";
-import { buildQuestionAttachment, buildQuickActionPrompt } from "./prompts";
+import { buildQuestionPrompt, buildQuickActionPrompt, buildReadingSystemPrompt } from "./prompts";
 import type { ReadingSelection } from "./types";
 
 const manifest: MaterialManifest = {
@@ -26,7 +26,7 @@ const selection: ReadingSelection = {
   y: 30
 };
 
-describe("Shimo conversation prompts", () => {
+describe("Shimo reading AI prompts", () => {
   it("builds a self-contained quick-action prompt with a stable location", () => {
     const prompt = buildQuickActionPrompt(manifest, selection, ACTIONS.poetry[0], "zh");
 
@@ -36,13 +36,18 @@ describe("Shimo conversation prompts", () => {
     expect(prompt).toContain("语言、节奏和情感");
   });
 
-  it("attaches structured reading context to the existing conversation", () => {
-    const attachment = buildQuestionAttachment(manifest, selection, "en");
+  it("builds a self-contained custom question for direct completion", () => {
+    const prompt = buildQuestionPrompt(manifest, selection, "What does the moon image suggest?", "en");
 
-    expect(attachment.lifecycle).toBe("once");
-    expect(attachment.context).toBeDefined();
-    if (!attachment.context) throw new Error("Expected a structured attachment context");
-    expect(attachment.context.schema).toBe("shimo.reading-selection");
-    expect(attachment.context.payload).toMatchObject({ materialId: "material-1", quote: "明月松间照" });
+    expect(prompt).toContain("Material: “山居秋暝”");
+    expect(prompt).toContain("Passage:\n明月松间照");
+    expect(prompt).toContain("Question: What does the moon image suggest?");
+  });
+
+  it("keeps poetry analysis grounded and localized in the system prompt", () => {
+    const prompt = buildReadingSystemPrompt("poetry", "zh");
+    expect(prompt).toContain("Analyze poetry");
+    expect(prompt).toContain("never invent missing context");
+    expect(prompt).toContain("使用中文回答");
   });
 });

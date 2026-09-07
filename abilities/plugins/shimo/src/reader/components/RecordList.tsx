@@ -35,6 +35,9 @@ function RecordCard({ record, locale, t }: { record: ReadingRecord; locale: Loca
         <span>{t(`records.kind.${record.kind}`)}</span>
         <span aria-hidden="true">·</span>
         <span className="normal-case tracking-normal">{locationLabel(record.anchor, locale)}</span>
+        {record.kind === "answer" && record.modelKey ? (
+          <><span aria-hidden="true">·</span><span className="normal-case tracking-normal">{record.modelKey}</span></>
+        ) : null}
       </div>
       <blockquote className="shimo-serif my-2.5 line-clamp-5 border-l-2 border-primary/30 pl-3 leading-relaxed text-foreground">
         {record.quote}

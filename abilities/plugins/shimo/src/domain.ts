@@ -91,6 +91,11 @@ export const ReadingPreferencesSchema = Type.Object({
   ocrProviderOverride: Type.Optional(Type.String({ minLength: 1 }))
 }, { additionalProperties: false });
 
+export const AiSettingsSchema = Type.Object({
+  schemaVersion: Type.Literal(1),
+  modelKey: Type.Optional(Type.String({ minLength: 1 }))
+}, { additionalProperties: false });
+
 export const PinyinTokensSchema = Type.Array(Type.Object({
   text: Type.String(),
   pinyin: Type.String()
@@ -103,6 +108,7 @@ export const ReadingRecordSchema = Type.Object({
   kind: RecordKindSchema,
   quote: Type.String(),
   body: Type.Optional(Type.String()),
+  modelKey: Type.Optional(Type.String({ minLength: 1 })),
   actionId: Type.Optional(Type.String({ minLength: 1 })),
   anchor: ReadingAnchorSchema,
   createdAt: Type.String({ minLength: 1 }),
@@ -149,6 +155,7 @@ export type ReadingAnchor = Static<typeof ReadingAnchorSchema>;
 export type LibraryEntry = Static<typeof LibraryEntrySchema>;
 export type MaterialManifest = Static<typeof MaterialManifestSchema>;
 export type ReadingPreferences = Static<typeof ReadingPreferencesSchema>;
+export type AiSettings = Static<typeof AiSettingsSchema>;
 export type ReadingRecord = Static<typeof ReadingRecordSchema>;
 export type LibraryCatalog = Static<typeof LibraryCatalogSchema>;
 export type ExportDocument = Static<typeof ExportDocumentSchema>;
@@ -159,4 +166,8 @@ export const DEFAULT_PREFERENCES: ReadingPreferences = {
   pinyin: "on-demand",
   scannedPdfOcr: "on-demand",
   rememberPosition: true
+};
+
+export const DEFAULT_AI_SETTINGS: AiSettings = {
+  schemaVersion: 1
 };

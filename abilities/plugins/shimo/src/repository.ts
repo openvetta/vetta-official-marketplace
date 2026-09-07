@@ -2,6 +2,8 @@ import type { PluginStorageApi } from "@vetta-org/plugin-sdk";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import {
+  AiSettingsSchema,
+  DEFAULT_AI_SETTINGS,
   DEFAULT_PREFERENCES,
   LibraryEntrySchema,
   MaterialManifestSchema,
@@ -9,6 +11,7 @@ import {
   PinyinTokensSchema,
   ReadingPreferencesSchema,
   ReadingRecordSchema,
+  type AiSettings,
   type DocumentKind,
   type LibraryCatalog,
   type LibraryEntry,
@@ -20,6 +23,7 @@ import {
 import { inferCategory } from "./classification";
 
 const CATALOG_PATH = "library/catalog.json";
+const AI_SETTINGS_PATH = "settings/ai.json";
 const EMPTY_CATALOG: LibraryCatalog = { schemaVersion: 1, entries: [] };
 
 export class ShimoRepository {
@@ -137,6 +141,15 @@ export class ShimoRepository {
     );
   }
 
+  async getAiSettings(): Promise<AiSettings> {
+    return (await this.readJson(AI_SETTINGS_PATH, isAiSettings)) ?? DEFAULT_AI_SETTINGS;
+  }
+
+  async saveAiSettings(settings: AiSettings): Promise<void> {
+    assertSchema(AiSettingsSchema, settings, "AI settings");
+    await this.storage.writeFile(AI_SETTINGS_PATH, JSON.stringify(settings, null, 2), "utf8");
+  }
+
   async readPinyinCache(key: string): Promise<Array<{ text: string; pinyin: string }> | null> {
     const value = await this.readJson(`cache/pinyin/${safeId(key)}.json`, isPinyinTokens);
     return value;
@@ -248,6 +261,10 @@ function isRecord(value: unknown): value is ReadingRecord {
 
 function isPreferences(value: unknown): value is ReadingPreferences {
   return Value.Check(ReadingPreferencesSchema, value);
+}
+
+function isAiSettings(value: unknown): value is AiSettings {
+  return Value.Check(AiSettingsSchema, value);
 }
 
 function isPinyinTokens(value: unknown): value is Array<{ text: string; pinyin: string }> {

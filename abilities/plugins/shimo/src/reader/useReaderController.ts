@@ -1,5 +1,6 @@
 import { useTranslation, type PluginTranslate } from "@vetta-org/plugin-sdk";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import type { ReadingAiModel } from "../ai";
 import { ACTIONS, type SelectionAction } from "../classification";
 import {
   DEFAULT_PREFERENCES,
@@ -12,11 +13,12 @@ import { buildAnnotatedPdf, buildExportDocument, exportRecords, sanitizeExportBa
 import { resolvePinyin } from "../pinyin";
 import { createRecord } from "../repository";
 import type { ShimoRuntime } from "../runtime";
-import { buildQuestionAttachment, buildQuickActionPrompt } from "./prompts";
+import { buildQuestionPrompt, buildQuickActionPrompt } from "./prompts";
 import { readSelection } from "./selection";
-import { localeFrom, type Locale, type PendingNote, type ReaderNotice, type ReadingSelection } from "./types";
-import { useConversationRecordBridge } from "./useConversationRecordBridge";
+import { answerReadingSelection } from "./readingAiRecords";
+import { localeFrom, type Locale, type PendingNote, type PendingQuestion, type ReaderNotice, type ReadingSelection } from "./types";
 import { useMaterialClassification } from "./useMaterialClassification";
+import { useReadingAiModel } from "./useReadingAiModel";
 
 export interface ReaderController {
   locale: Locale;
@@ -30,7 +32,12 @@ export interface ReaderController {
   preferences: ReadingPreferences;
   selection: ReadingSelection | null;
   pendingNote: PendingNote | null;
+  pendingQuestion: PendingQuestion | null;
   notice: ReaderNotice | null;
+  aiModels: ReadingAiModel[];
+  aiModelKey: string | null;
+  aiModelsLoading: boolean;
+  aiModelsError: string | null;
   loading: boolean;
   page: number;
   pageCount: number;
@@ -47,7 +54,11 @@ export interface ReaderController {
   runAction(action: SelectionAction): Promise<void>;
   cancelNote(): void;
   saveNote(body: string): Promise<void>;
+  cancelQuestion(): void;
+  askQuestion(question: string): Promise<void>;
   changePreferences(patch: Partial<ReadingPreferences>): Promise<void>;
+  changeAiModel(modelKey: string): Promise<void>;
+  refreshAiModels(): Promise<void>;
   exportFormat(format: "json" | "markdown" | "html"): Promise<void>;
   exportPdf(): Promise<void>;
   setPage(page: number): void;
@@ -70,6 +81,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   const [preferences, setPreferences] = useState<ReadingPreferences>(DEFAULT_PREFERENCES);
   const [selection, setSelection] = useState<ReadingSelection | null>(null);
   const [pendingNote, setPendingNote] = useState<PendingNote | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
   const [notice, setNotice] = useState<ReaderNotice | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -87,6 +99,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   const preferencesRef = useRef<ReadingPreferences>(preferences);
   manifestRef.current = manifest;
   preferencesRef.current = preferences;
+  const aiModel = useReadingAiModel(runtime);
 
   const showNotice = useCallback((tone: ReaderNotice["tone"], message: string): void => {
     const id = ++noticeSequence.current;
@@ -95,14 +108,6 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
       window.setTimeout(() => setNotice((current) => current?.id === id ? null : current), tone === "error" ? 6000 : 2800);
     }
   }, []);
-
-  const conversationRecords = useConversationRecordBridge(
-    runtime,
-    (record) => {
-      if (runtime.getSelectedId() === record.materialId) setRecords((current) => [...current, record]);
-    },
-    (error) => showNotice("error", `${t("status.error")}: ${errorMessage(error)}`)
-  );
 
   const handleClassified = useCallback((next: MaterialManifest): void => setManifest(next), []);
   const handleClassificationStatus = useCallback((message: string | null): void => {
@@ -113,6 +118,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     runtime,
     manifest,
     content,
+    aiModel.modelKey,
     t,
     handleClassified,
     handleClassificationStatus
@@ -140,6 +146,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     setPageCount(0);
     setSelection(null);
     setPendingNote(null);
+    setPendingQuestion(null);
   }, [runtime]);
 
   const refreshLibrary = useCallback(async (): Promise<void> => {
@@ -220,7 +227,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   ): Promise<void> => {
     if (!manifest) return;
     const pinyin = kind === "pinyin"
-      ? await resolvePinyin(selected.quote, runtime.repository, runtime.context.ai)
+      ? await resolvePinyin(selected.quote, runtime.repository, runtime.context.ai, requireAiModel(aiModel.modelKey, t))
       : undefined;
     const record = createRecord(manifest.id, kind, selected.quote, selected.anchor, { pinyin, actionId: action.id });
     await runtime.repository.saveRecord(record);
@@ -230,11 +237,42 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     showNotice("success", t("status.saved"));
   };
 
+  const saveReadingAiAnswer = async (
+    action: SelectionAction,
+    selected: ReadingSelection,
+    question: string,
+    prompt: string
+  ): Promise<void> => {
+    if (!manifest) return;
+    const modelKey = requireAiModel(aiModel.modelKey, t);
+    showNotice("info", t("status.answering"));
+    const { answer } = await answerReadingSelection({
+      ai: runtime.context.ai,
+      repository: runtime.repository,
+      modelKey,
+      manifest,
+      selection: selected,
+      action,
+      question,
+      prompt,
+      locale,
+      onQuestionSaved: (questionRecord) => {
+        runtime.notifyRecordsChanged(questionRecord.materialId);
+        if (runtime.getSelectedId() === questionRecord.materialId) {
+          setRecords((current) => [...current, questionRecord]);
+        }
+      }
+    });
+    runtime.notifyRecordsChanged(answer.materialId);
+    if (runtime.getSelectedId() === answer.materialId) {
+      setRecords((current) => [...current, answer]);
+    }
+    showNotice("success", t("status.answered"));
+  };
+
   const runAction = async (action: SelectionAction): Promise<void> => {
     if (!manifest || !selection) return;
     const selected = selection;
-    let stagedQuestionId: string | null = null;
-    let stagedAsk = false;
     try {
       if (action.local === "note" || action.local === "reflection") {
         setPendingNote({ kind: action.local, action, selection: selected });
@@ -246,29 +284,29 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
         return;
       }
       if (action.id === "ask") {
-        conversationRecords.stageAsk(manifest, selected);
-        stagedAsk = true;
-        runtime.context.ui.setPromptAttachment(buildQuestionAttachment(manifest, selected, locale));
-        runtime.context.ui.openActivityTab("reader-context", { width: "max" });
-        runtime.context.conversation.insertText(t("conversation.draft"));
+        setPendingQuestion({ action, selection: selected });
         setSelection(null);
-        showNotice("success", t("status.draftReady"));
         return;
       }
-
-      const question = createRecord(manifest.id, "question", selected.quote, selected.anchor, { actionId: action.id });
-      await runtime.repository.saveRecord(question);
-      runtime.notifyRecordsChanged(question.materialId);
-      setRecords((current) => [...current, question]);
-      conversationRecords.stageQuestion(question);
-      stagedQuestionId = question.id;
-      const result = await runtime.context.conversation.sendPrompt(buildQuickActionPrompt(manifest, selected, action, locale));
-      if (result.status === "failed") throw new Error(result.error?.message ?? "Request failed");
       setSelection(null);
-      showNotice("success", result.status === "queued" ? t("status.queued") : t("status.sent"));
+      const question = locale === "zh" ? (action.promptZh ?? action.zh) : (action.promptEn ?? action.en);
+      await saveReadingAiAnswer(action, selected, question, buildQuickActionPrompt(manifest, selected, action, locale));
     } catch (error) {
-      if (stagedQuestionId) conversationRecords.removeQuestion(stagedQuestionId);
-      if (stagedAsk) conversationRecords.clearAsk();
+      showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
+    }
+  };
+
+  const askQuestion = async (question: string): Promise<void> => {
+    if (!manifest || !pendingQuestion) return;
+    try {
+      await saveReadingAiAnswer(
+        pendingQuestion.action,
+        pendingQuestion.selection,
+        question,
+        buildQuestionPrompt(manifest, pendingQuestion.selection, question, locale)
+      );
+      setPendingQuestion(null);
+    } catch (error) {
       showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
     }
   };
@@ -301,6 +339,15 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     } catch (error) {
       preferencesRef.current = preferences;
       setPreferences(preferences);
+      showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
+    }
+  };
+
+  const changeAiModel = async (modelKey: string): Promise<void> => {
+    try {
+      await aiModel.select(modelKey);
+      showNotice("success", t("ai.modelSaved"));
+    } catch (error) {
       showNotice("error", `${t("status.error")}: ${errorMessage(error)}`);
     }
   };
@@ -369,7 +416,12 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     preferences,
     selection,
     pendingNote,
+    pendingQuestion,
     notice,
+    aiModels: aiModel.models,
+    aiModelKey: aiModel.modelKey,
+    aiModelsLoading: aiModel.loading,
+    aiModelsError: aiModel.error,
     loading,
     page,
     pageCount,
@@ -386,7 +438,11 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     runAction,
     cancelNote: () => setPendingNote(null),
     saveNote,
+    cancelQuestion: () => setPendingQuestion(null),
+    askQuestion,
     changePreferences,
+    changeAiModel,
+    refreshAiModels: aiModel.refresh,
     exportFormat,
     exportPdf,
     setPage: changePage,
@@ -405,4 +461,9 @@ export function actionsFor(controller: Pick<ReaderController, "manifest">): Sele
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function requireAiModel(modelKey: string | null, t: PluginTranslate): string {
+  if (!modelKey) throw new Error(t("ai.modelRequired"));
+  return modelKey;
 }

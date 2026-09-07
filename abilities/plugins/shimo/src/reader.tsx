@@ -5,6 +5,7 @@ import { LibrarySidebar } from "./reader/components/LibrarySidebar";
 import { NoteComposer } from "./reader/components/NoteComposer";
 import { PdfPagination } from "./reader/components/PdfPagination";
 import { PreferencesPopover } from "./reader/components/PreferencesPopover";
+import { QuestionComposer } from "./reader/components/QuestionComposer";
 import { ReaderHeader } from "./reader/components/ReaderHeader";
 import { RecordsDrawer } from "./reader/components/RecordsDrawer";
 import { SelectionToolbar } from "./reader/components/SelectionToolbar";
@@ -59,10 +60,16 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
           preferencesPanel={reader.manifest ? (
             <PreferencesPopover
               preferences={reader.preferences}
+              aiModels={reader.aiModels}
+              aiModelKey={reader.aiModelKey}
+              aiModelsLoading={reader.aiModelsLoading}
+              aiModelsError={reader.aiModelsError}
               canExportPdf={reader.manifest.kind === "pdf"}
               t={reader.t}
               onClose={() => reader.setPreferencesOpen(false)}
               onChange={reader.changePreferences}
+              onAiModelChange={reader.changeAiModel}
+              onRefreshAiModels={reader.refreshAiModels}
               onExport={reader.exportFormat}
               onExportPdf={reader.exportPdf}
             />
@@ -123,6 +130,18 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
           t={reader.t}
           onCancel={reader.cancelNote}
           onSave={reader.saveNote}
+        />
+      ) : null}
+
+      {reader.pendingQuestion ? (
+        <QuestionComposer
+          key={`question:${reader.pendingQuestion.selection.quote}`}
+          pending={reader.pendingQuestion}
+          locale={reader.locale}
+          t={reader.t}
+          modelAvailable={Boolean(reader.aiModelKey)}
+          onCancel={reader.cancelQuestion}
+          onSubmit={reader.askQuestion}
         />
       ) : null}
 

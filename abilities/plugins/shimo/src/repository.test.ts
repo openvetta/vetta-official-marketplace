@@ -69,4 +69,15 @@ describe("ShimoRepository", () => {
     } as unknown as OcrPageCache;
     await expect(repository.writeOcrPage("material", invalidCache)).rejects.toThrow("Invalid OCR page cache");
   });
+
+  it("persists the Shimo-wide reading model independently from material preferences", async () => {
+    const repository = new ShimoRepository(memoryStorage());
+    expect(await repository.getAiSettings()).toEqual({ schemaVersion: 1 });
+
+    await repository.saveAiSettings({ schemaVersion: 1, modelKey: "provider/reader" });
+
+    expect(await repository.getAiSettings()).toEqual({ schemaVersion: 1, modelKey: "provider/reader" });
+    await expect(repository.saveAiSettings({ schemaVersion: 1, modelKey: "" }))
+      .rejects.toThrow("Invalid AI settings");
+  });
 });

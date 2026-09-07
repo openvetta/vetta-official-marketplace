@@ -1,4 +1,3 @@
-import type { PluginPromptAttachment } from "@vetta-org/plugin-sdk";
 import type { SelectionAction } from "../classification";
 import type { MaterialManifest, ReadingAnchor } from "../domain";
 import type { Locale, ReadingSelection } from "./types";
@@ -41,30 +40,25 @@ export function buildQuickActionPrompt(
   ].join("\n");
 }
 
-export function buildQuestionAttachment(
+export function buildQuestionPrompt(
   manifest: MaterialManifest,
   selection: ReadingSelection,
+  question: string,
   locale: Locale
-): PluginPromptAttachment {
-  return {
-    id: `shimo:${manifest.id}`,
-    label: locale === "zh" ? `拾墨：${manifest.title}` : `Shimo: ${manifest.title}`,
-    lifecycle: "once",
-    context: {
-      schema: "shimo.reading-selection",
-      version: 1,
-      payload: {
-        materialId: manifest.id,
-        title: manifest.title,
-        category: manifest.category,
-        quote: selection.quote,
-        anchor: selection.anchor
-      }
-    },
-    instructions: [
-      locale === "zh"
-        ? "回答时引用拾墨资料位置；不要臆造资料中不存在的内容。"
-        : "Keep the Shimo material location in your answer and do not invent content outside the passage."
-    ]
-  };
+): string {
+  const context = buildQuickActionPrompt(manifest, selection, { id: "ask", zh: "问 AI", en: "Ask AI" }, locale);
+  return `${context}\n\n${locale === "zh" ? "问题" : "Question"}: ${question.trim()}`;
+}
+
+export function buildReadingSystemPrompt(category: MaterialManifest["category"], locale: Locale): string {
+  const language = locale === "zh" ? "使用中文回答。" : "Answer in English.";
+  const categoryGuidance = category === "poetry"
+    ? "Analyze poetry from literal meaning through diction, imagery, rhythm, structure, and supported interpretations."
+    : "Explain the selected passage from literal meaning through structure, key terms, assumptions, and implications.";
+  return [
+    "You are Shimo's focused reading assistant.",
+    categoryGuidance,
+    "Ground every claim in the supplied passage. Separate observation from interpretation, preserve uncertainty, and never invent missing context.",
+    language,
+  ].join(" ");
 }

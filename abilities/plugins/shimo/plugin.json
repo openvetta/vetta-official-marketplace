@@ -19,7 +19,7 @@
     "fs.write",
     "storage.read",
     "storage.write",
-    "agent.session.read",
+    "ai.models.list",
     "ai.complete",
     "ai.ocr.recognize"
   ],

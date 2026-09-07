@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACTIONS } from "../../classification";
 import { NoteComposer } from "./NoteComposer";
 import { PreferencesPopover } from "./PreferencesPopover";
+import { QuestionComposer } from "./QuestionComposer";
 import { ReaderHeader } from "./ReaderHeader";
 import { RecordsDrawer } from "./RecordsDrawer";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -53,6 +54,7 @@ vi.mock("@vetta/ui", () => ({
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => <option value={value}>{children}</option>,
   SelectTrigger: () => null,
   SelectValue: () => null,
+  Spin: () => <span data-testid="spin" />,
   Switch: ({ checked, onCheckedChange, ...props }: InputHTMLAttributes<HTMLInputElement> & { onCheckedChange?(checked: boolean): void }) => (
     <input type="checkbox" checked={checked} onChange={(event) => onCheckedChange?.(event.target.checked)} {...props} />
   )
@@ -74,6 +76,12 @@ const messages: Record<string, string> = {
   "preferences.visible": "Visible",
   "preferences.never": "Never",
   "preferences.visiblePages": "Visible pages",
+  "ai.model": "Reading model",
+  "ai.selectModel": "Select a model",
+  "ai.loadingModels": "Loading",
+  "ai.reloadModels": "Reload",
+  "ai.noModels": "No models",
+  "ai.modelRequired": "Choose a model",
   "export.title": "Export",
   "export.description": "Export records",
   "export.action": "Export",
@@ -85,6 +93,12 @@ const messages: Record<string, string> = {
   "composer.placeholder": "Write here",
   "composer.inputLabel": "Record text",
   "composer.shortcut": "Ctrl + Enter to save",
+  "question.title": "Ask AI",
+  "question.description": "Saved to records",
+  "question.placeholder": "Ask about this passage",
+  "question.inputLabel": "Question",
+  "question.ask": "Ask",
+  "question.answering": "Answering",
   "common.cancel": "Cancel",
   "common.close": "Close",
   "common.save": "Save",
@@ -193,14 +207,21 @@ describe("Shimo note composer", () => {
 describe("Shimo reading preferences", () => {
   it("writes shared Select and Switch changes through the preferences contract", async () => {
     const onChange = vi.fn(async () => undefined);
+    const onAiModelChange = vi.fn(async () => undefined);
     const onClose = vi.fn();
     const container = await render(
       <PreferencesPopover
         preferences={{ schemaVersion: 1, pinyin: "hidden", scannedPdfOcr: "never", rememberPosition: true }}
+        aiModels={[{ modelKey: "provider/reader", provider: "provider", id: "reader", name: "Reader" }]}
+        aiModelKey="provider/reader"
+        aiModelsLoading={false}
+        aiModelsError={null}
         canExportPdf={false}
         t={t}
         onClose={onClose}
         onChange={onChange}
+        onAiModelChange={onAiModelChange}
+        onRefreshAiModels={vi.fn(async () => undefined)}
         onExport={vi.fn(async () => undefined)}
         onExportPdf={vi.fn(async () => undefined)}
       />
@@ -208,7 +229,7 @@ describe("Shimo reading preferences", () => {
 
     const selects = container.querySelectorAll("select");
     await act(async () => {
-      const pinyin = selects[0];
+      const pinyin = selects[1];
       if (!pinyin) return;
       pinyin.value = "visible";
       pinyin.dispatchEvent(new Event("change", { bubbles: true }));
@@ -219,6 +240,35 @@ describe("Shimo reading preferences", () => {
     expect(onChange).toHaveBeenCalledWith({ pinyin: "visible" });
     expect(onChange).toHaveBeenCalledWith({ rememberPosition: false });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Shimo questions", () => {
+  it("submits a selected-passage question inside Shimo", async () => {
+    const onSubmit = vi.fn(async () => undefined);
+    const container = await render(
+      <QuestionComposer
+        pending={{
+          action: ACTIONS.poetry.find((action) => action.id === "ask")!,
+          selection: { quote: "明月松间照", anchor: { type: "text", start: 0, end: 6, quote: "明月松间照", prefix: "", suffix: "" }, x: 10, y: 10 }
+        }}
+        locale="zh"
+        t={t}
+        modelAvailable
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />
+    );
+    const textarea = container.querySelector("textarea");
+    await act(async () => {
+      if (!textarea) return;
+      const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+      setValue?.call(textarea, "这句营造了什么意境？");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => container.querySelector<HTMLButtonElement>("button:not([disabled]):last-of-type")?.click());
+
+    expect(onSubmit).toHaveBeenCalledWith("这句营造了什么意境？");
   });
 });
 

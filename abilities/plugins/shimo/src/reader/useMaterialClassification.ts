@@ -8,17 +8,19 @@ export function useMaterialClassification(
   runtime: ShimoRuntime,
   manifest: MaterialManifest | null,
   content: string,
+  modelKey: string | null,
   t: PluginTranslate,
   onClassified: (manifest: MaterialManifest) => void,
   showStatus: (message: string | null) => void
 ): void {
   useEffect(() => {
-    if (!manifest || manifest.classification?.source === "ai" || (!content && manifest.kind !== "pdf")) return;
+    if (!manifest || !modelKey || manifest.classification?.source === "ai" || (!content && manifest.kind !== "pdf")) return;
     let cancelled = false;
     const fallback = inferCategory(manifest.kind, manifest.title, content);
     showStatus(t("status.classifying"));
 
     void runtime.context.ai.complete({
+      modelKey,
       systemPrompt: "Classify reading material. Reply with exactly one token: poetry, book, or article.",
       prompt: `Title: ${manifest.title}\nFormat: ${manifest.kind}\nSample: ${content.slice(0, 1800)}`,
       temperature: 0,
@@ -39,5 +41,5 @@ export function useMaterialClassification(
     });
 
     return () => { cancelled = true; };
-  }, [content, manifest?.id, onClassified, runtime, showStatus, t]);
+  }, [content, manifest?.id, modelKey, onClassified, runtime, showStatus, t]);
 }

@@ -161,6 +161,10 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   assert.equal(packageJson.devDependencies["@vetta/ui"], "^0.1.0");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.ok(plugin.permissions.includes("agent.skills.control"));
+  assert.ok(plugin.permissions.includes("ai.models.list"));
+  assert.ok(plugin.permissions.includes("ai.complete"));
+  assert.equal(plugin.permissions.includes("agent.session.read"), false);
+  assert.equal(plugin.permissions.includes("agent.session.write"), false);
   assert.deepEqual(plugin.styles, ["dist/style.css"]);
   packageFile(directory, "dist/style.css");
   assert.equal(readJson(packageFile(directory, "locales/en.json")).name, "Shimo");
@@ -183,7 +187,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
     assert.equal(existsSync(resolve(directory, "src/reader/components/icons.tsx")), false);
 
   const skillContracts = [
-    ["agent/skills/shimo-reading-coach/SKILL.md", /existing Vetta conversation/u],
+    ["agent/skills/shimo-reading-coach/SKILL.md", /selected reading model/u],
     ["agent/skills/shimo-poetry-analysis/SKILL.md", /Pinyin belongs above/u],
     ["agent/skills/shimo-reading-records/SKILL.md", /material title/u],
   ];

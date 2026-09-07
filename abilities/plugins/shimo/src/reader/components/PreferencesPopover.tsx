@@ -18,20 +18,41 @@ import {
 } from "@vetta/ui";
 import { Ellipsis, X } from "lucide-react";
 import type { ReactElement } from "react";
+import type { ReadingAiModel } from "../../ai";
 import type { ReadingPreferences } from "../../domain";
 
 interface PreferencesPopoverProps {
   preferences: ReadingPreferences;
+  aiModels: ReadingAiModel[];
+  aiModelKey: string | null;
+  aiModelsLoading: boolean;
+  aiModelsError: string | null;
   canExportPdf: boolean;
   t: PluginTranslate;
   onClose(): void;
   onChange(patch: Partial<ReadingPreferences>): Promise<void>;
+  onAiModelChange(modelKey: string): Promise<void>;
+  onRefreshAiModels(): Promise<void>;
   onExport(format: "json" | "markdown" | "html"): Promise<void>;
   onExportPdf(): Promise<void>;
 }
 
 export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement {
-  const { preferences, canExportPdf, t, onClose, onChange, onExport, onExportPdf } = props;
+  const {
+    preferences,
+    aiModels,
+    aiModelKey,
+    aiModelsLoading,
+    aiModelsError,
+    canExportPdf,
+    t,
+    onClose,
+    onChange,
+    onAiModelChange,
+    onRefreshAiModels,
+    onExport,
+    onExportPdf
+  } = props;
 
   return (
     <PopoverContent
@@ -51,6 +72,31 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
       </PopoverHeader>
 
       <div className="space-y-3">
+        <div className="rounded-xl bg-muted/40 px-3 py-2.5 text-xs">
+          <div className="flex items-center justify-between gap-3">
+            <span>{t("ai.model")}</span>
+            {aiModels.length > 0 ? (
+              <Select value={aiModelKey ?? undefined} onValueChange={(value) => void onAiModelChange(value)}>
+                <SelectTrigger size="sm" className="w-48" aria-label={t("ai.model")}>
+                  <SelectValue placeholder={t("ai.selectModel")} />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {aiModels.map((model) => (
+                    <SelectItem key={model.modelKey} value={model.modelKey}>
+                      {model.name} · {model.provider}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Button type="button" size="sm" variant="secondary" disabled={aiModelsLoading} onClick={() => void onRefreshAiModels()}>
+                {aiModelsLoading ? t("ai.loadingModels") : t("ai.reloadModels")}
+              </Button>
+            )}
+          </div>
+          {aiModelsError ? <p className="mt-1.5 text-[10px] leading-relaxed text-destructive">{t("ai.noModels")}</p> : null}
+        </div>
+
         <div className="flex min-h-10 items-center justify-between gap-4 rounded-xl bg-muted/40 px-3 py-2 text-xs">
           <span>{t("preferences.pinyin")}</span>
           <Select
