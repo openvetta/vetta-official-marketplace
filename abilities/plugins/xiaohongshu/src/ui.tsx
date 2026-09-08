@@ -185,10 +185,9 @@ export function XhsSetupSlot({
       );
       const current = await loginStatus(context);
       if (disposedRef.current) return;
-      const synced =
-        active && current.loggedIn
-          ? await updateAccountIdentity(context, active.id, current)
-          : undefined;
+      const synced = active
+        ? await updateAccountIdentity(context, active.id, current)
+        : undefined;
       setAccount(
         synced ??
           (active
@@ -196,12 +195,13 @@ export function XhsSetupSlot({
             : undefined),
       );
       setStatus(current.loggedIn ? "connected" : "notLoggedIn");
+      if (active) onAccountChanged?.();
     } catch (reason) {
       if (disposedRef.current || isAbortError(reason)) return;
       setStatus("failed");
       setError(messageOf(reason));
     }
-  }, [context]);
+  }, [context, onAccountChanged]);
 
   useEffect(() => {
     disposedRef.current = false;
@@ -596,6 +596,9 @@ export function XhsAccountsView({
     [context, refresh, t],
   );
   const active = accounts.find((account) => account.id === activeId);
+  const handleAccountChanged = useCallback(() => {
+    void refresh();
+  }, [refresh]);
   return (
     <main
       className="min-h-full bg-background px-5 py-6 text-foreground sm:px-8"
@@ -624,7 +627,7 @@ export function XhsAccountsView({
             context={context}
             compact
             allowAdd
-            onAccountChanged={() => void refresh()}
+            onAccountChanged={handleAccountChanged}
           />
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">

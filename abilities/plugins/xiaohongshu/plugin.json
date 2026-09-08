@@ -2,7 +2,7 @@
   "id": "xiaohongshu",
   "name": "%name%",
   "icon": "assets/icon.png",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],

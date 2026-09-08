@@ -7,6 +7,7 @@ import {
   readAccountState,
   requestQrPayload,
   switchAccount,
+  updateAccountIdentity,
 } from "./xhs";
 import { isAbortError } from "./ui";
 
@@ -147,6 +148,20 @@ describe("xiaohongshu plugin account handling", () => {
     expect(accountInitial({ name: "小红书账号 1", nickname: "花酒" })).toBe(
       "花",
     );
+  });
+
+  it("marks the active saved account expired when the service is signed out", async () => {
+    const { ctx } = context();
+    const updated = await updateAccountIdentity(ctx, "account-b", {
+      loggedIn: false,
+    });
+
+    expect(updated?.status).toBe("expired");
+    expect(
+      (await readAccountState(ctx)).accounts.find(
+        (account) => account.id === "account-b",
+      )?.status,
+    ).toBe("expired");
   });
 
   it("writes the complete opaque session before restarting the service", async () => {
