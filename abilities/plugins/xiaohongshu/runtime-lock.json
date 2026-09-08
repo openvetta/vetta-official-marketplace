@@ -1,8 +1,8 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "platforms": {
-    "win32-x64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.5/xiaohongshu-service.zip", "sha256": "9f7df0d99ae390ed142bd508f7194ca5c1408e22b2e00eaf1925c10a4c521c2c", "archive": "zip" }],
-    "darwin-arm64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.5/xiaohongshu-service.zip", "sha256": "9f7df0d99ae390ed142bd508f7194ca5c1408e22b2e00eaf1925c10a4c521c2c", "archive": "zip" }],
-    "linux-x64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.5/xiaohongshu-service.zip", "sha256": "9f7df0d99ae390ed142bd508f7194ca5c1408e22b2e00eaf1925c10a4c521c2c", "archive": "zip" }]
+    "win32-x64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.6/xiaohongshu-service.zip", "sha256": "c8cd741f9499d34dd6f88a3ca736e86ddba7606acb02aacc71cec4cc69ce9283", "archive": "zip" }],
+    "darwin-arm64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.6/xiaohongshu-service.zip", "sha256": "c8cd741f9499d34dd6f88a3ca736e86ddba7606acb02aacc71cec4cc69ce9283", "archive": "zip" }],
+    "linux-x64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.6/xiaohongshu-service.zip", "sha256": "c8cd741f9499d34dd6f88a3ca736e86ddba7606acb02aacc71cec4cc69ce9283", "archive": "zip" }]
   }
 }
