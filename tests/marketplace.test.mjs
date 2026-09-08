@@ -508,8 +508,8 @@ test("Xiaohongshu plugin owns its managed service, account UI and service-backed
     type: "service",
     serviceId: "xhs",
     path: "/mcp",
-    displayName: "%mcp.name%",
-    description: "%mcp.description%",
+    displayName: "Xiaohongshu tools",
+    description: "Use the active Xiaohongshu account for search, note and interaction operations.",
   });
   const qrSource = readFileSync(packageFile(root, `${ability.source.path}/src/qr.ts`), "utf8");
   assert.match(qrSource, /from "qrcode"/);

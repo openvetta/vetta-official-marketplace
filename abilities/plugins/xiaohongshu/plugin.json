@@ -73,8 +73,8 @@
         "type": "service",
         "serviceId": "xhs",
         "path": "/mcp",
-        "displayName": "%mcp.name%",
-        "description": "%mcp.description%"
+        "displayName": "Xiaohongshu tools",
+        "description": "Use the active Xiaohongshu account for search, note and interaction operations."
       }
     }
   },

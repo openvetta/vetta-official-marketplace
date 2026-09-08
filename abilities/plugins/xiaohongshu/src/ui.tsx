@@ -67,6 +67,16 @@ const STATUS_META: Record<
   },
 };
 
+const STATUS_FALLBACKS: Record<UiStatus, string> = {
+  starting: "正在启动服务",
+  notLoggedIn: "尚未登录",
+  waitingQr: "正在获取二维码…",
+  waitingScan: "等待扫码",
+  verifying: "正在验证登录…",
+  connected: "已登录",
+  failed: "操作失败",
+};
+
 function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -161,7 +171,11 @@ export function XhsSetupSlot({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const disposedRef = useRef(false);
-  const statusText = t(`setup.${STATUS_META[status].key}`);
+  const translatedStatus = t(`setup.${STATUS_META[status].key}`);
+  const statusText =
+    translatedStatus === `setup.${STATUS_META[status].key}`
+      ? STATUS_FALLBACKS[status]
+      : translatedStatus;
 
   const refresh = useCallback(async () => {
     try {
