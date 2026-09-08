@@ -10,6 +10,7 @@ const store = createAccountStore(dataRoot);
 const browser = new BrowserManager(store, dataRoot);
 const sessions = new Map<string, { page: import("playwright-core").Page; context: import("playwright-core").BrowserContext; createdAt: number; accountId?: string }>();
 let activeAccountId: string | undefined;
+let latestLoginSessionId: string | undefined;
 
 function json(response: ServerResponse, status: number, body: unknown): void {
 	response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
@@ -29,11 +30,57 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "GET" && url.pathname === "/health") return json(response, 200, { status: "ok", service: "xiaohongshu" });
 	if (request.method === "GET" && url.pathname === "/api/v1/accounts") return json(response, 200, { accounts: await store.list(), activeAccountId });
 	if (request.method === "GET" && url.pathname === "/api/v1/accounts/active") return json(response, 200, { account: activeAccountId ? await store.get(activeAccountId) : undefined });
+	if (request.method === "GET" && url.pathname === "/api/v1/user/me") {
+		const account = activeAccountId ? await store.get(activeAccountId) : undefined;
+		return account
+			? json(response, 200, { data: { nickname: account.username ?? account.name, user_id: account.id } })
+			: json(response, 401, { error: "not logged in" });
+	}
+	if (request.method === "GET" && url.pathname === "/api/v1/login/qrcode") {
+		const login = await browser.createLoginSession();
+		const sessionId = randomUUID();
+		sessions.set(sessionId, { ...login, createdAt: Date.now() });
+		latestLoginSessionId = sessionId;
+		const qr = await login.page.locator("img").first().getAttribute("src").catch(() => null);
+		return json(response, 200, { url: qr, id: sessionId, status: "waiting", expiresAt: Date.now() + 180_000 });
+	}
+	if (request.method === "GET" && url.pathname === "/api/v1/login/status") {
+		const sessionId = latestLoginSessionId;
+		const session = sessionId ? sessions.get(sessionId) : undefined;
+		if (session) {
+			const cookies = await session.context.cookies("https://www.xiaohongshu.com");
+			if (cookies.length === 0 && Date.now() - session.createdAt < 180_000)
+				return json(response, 200, { data: { is_logged_in: false } });
+			const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
+			const account: AccountMetadata = { id: accountId, name: "小红书账号", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+			await store.upsert(account);
+			await browser.persist(accountId, session.context);
+			activeAccountId = accountId;
+			await session.context.close();
+			if (sessionId) sessions.delete(sessionId);
+			latestLoginSessionId = undefined;
+			return json(response, 200, { data: { is_logged_in: true, nickname: account.name, user_id: account.id } });
+		}
+		if (!activeAccountId) return json(response, 200, { data: { is_logged_in: false } });
+		const status = await browser.checkLogin(activeAccountId);
+		return json(response, 200, { data: { is_logged_in: status.loggedIn, username: status.username } });
+	}
+	if (request.method === "DELETE" && url.pathname === "/api/v1/login/cookies") {
+		if (latestLoginSessionId) {
+			const session = sessions.get(latestLoginSessionId);
+			await session?.context.close();
+			sessions.delete(latestLoginSessionId);
+			latestLoginSessionId = undefined;
+		}
+		activeAccountId = undefined;
+		return json(response, 200, { ok: true });
+	}
 	if (request.method === "POST" && url.pathname === "/api/v1/login/sessions") {
 		const input = await body(request);
 		const sessionId = randomUUID();
 		const login = await browser.createLoginSession();
 		sessions.set(sessionId, { ...login, createdAt: Date.now(), accountId: typeof input.accountId === "string" ? input.accountId : undefined });
+		latestLoginSessionId = sessionId;
 		const qr = await login.page.locator("img").first().getAttribute("src").catch(() => null);
 		return json(response, 201, { id: sessionId, accountId: typeof input.accountId === "string" ? input.accountId : undefined, status: "waiting", qrCode: qr, expiresAt: Date.now() + 180_000 });
 	}
@@ -68,7 +115,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "POST" && url.pathname === "/mcp") {
 		const rpc = await body(request);
 		const id = rpc.id ?? null;
-		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.2" } } });
+		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.4" } } });
 		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: [
 			{ name: "xiaohongshu_list_accounts", description: "List locally managed Xiaohongshu accounts.", inputSchema: { type: "object", properties: {} } },
 			{ name: "xiaohongshu_active_account", description: "Get the active Xiaohongshu account.", inputSchema: { type: "object", properties: {} } },
