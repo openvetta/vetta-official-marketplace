@@ -6,7 +6,7 @@ import type { ManagedPluginContext } from "./runtime-contract";
 import "./style.css";
 
 export default definePlugin({
-  activate(ctx) {
+  async activate(ctx) {
     const context = ctx as ManagedPluginContext;
     const setup = context.ui.registerAbilityDetailSlot({
       id: "setup",
@@ -19,8 +19,15 @@ export default definePlugin({
       description: "%accounts.subtitle%",
       component: () => createElement(XhsAccountsView, { context }),
     });
-    void ensureServiceStarted(context)
-      .catch((reason: unknown) => context.ui.notify({ message: "小红书服务启动失败", error: reason, variant: "error" }));
+    // Wait for the service before committing the activation.  The host builds
+    // the Agent MCP snapshot immediately after activation; returning early
+    // used to race that snapshot and temporarily drop the MCP server while the
+    // old UI was still polling the service during a plugin update.
+    try {
+      await ensureServiceStarted(context);
+    } catch (reason: unknown) {
+      context.ui.notify({ message: "小红书服务启动失败", error: reason, variant: "error" });
+    }
     return async () => {
       accounts.dispose();
       setup.dispose();

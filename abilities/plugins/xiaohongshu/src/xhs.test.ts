@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderQrCode, renderQrPayload } from "./qr";
 import { loginStatus, readAccountState, requestQrPayload, switchAccount } from "./xhs";
+import { isAbortError } from "./ui";
 
 function context() {
   const files = new Map<string, unknown>();
@@ -39,6 +40,12 @@ function context() {
 }
 
 describe("xiaohongshu plugin account handling", () => {
+  it("treats service aborts during plugin reload as transient lifecycle events", () => {
+    expect(isAbortError(new DOMException("The operation was aborted", "AbortError"))).toBe(true);
+    expect(isAbortError({ name: "AbortError" })).toBe(true);
+    expect(isAbortError(new Error("network request failed"))).toBe(false);
+  });
+
   it("renders QR codes inside the plugin without a host QR API", async () => {
     expect(await renderQrCode("https://example.test/login")).toMatch(/^data:image\/png;base64,/);
   });

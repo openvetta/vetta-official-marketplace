@@ -1,5 +1,5 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
-import { useCallback, useEffect, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import type { ManagedPluginContext } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime";
 import { renderQrPayload } from "./qr";
@@ -31,6 +31,16 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Reloading a plugin stops its local service before starting the new activation.
+ * Requests from the previous activation are therefore expected to be aborted;
+ * they must not become a user-visible login failure.
+ */
+export function isAbortError(error: unknown): boolean {
+  if (typeof error === "object" && error !== null && "name" in error && (error as { name?: unknown }).name === "AbortError") return true;
+  return messageOf(error).toLowerCase().includes("operation was aborted");
+}
+
 function errorText(t: (key: string, params?: Record<string, string | number>) => string, key: string, details: string): string {
   const translated = t(key, { details });
   // Older host bridges returned the catalog string without applying params.
@@ -45,6 +55,7 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
   const [qr, setQr] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const disposedRef = useRef(false);
   const statusText = status === "failed" ? t("setup.failedStatus") : t(`setup.${status}`);
   const actionText = busy
     ? t(`setup.${status === "waitingScan" ? "waitingScan" : status === "verifying" ? "verifying" : "waitingQr"}`)
@@ -55,21 +66,28 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
       const state = await readAccountState(context);
       const active = state.accounts.find((item) => item.id === state.activeAccountId);
       const loggedIn = await loginStatus(context);
+      if (disposedRef.current) return;
       setAccount(active ? { ...active, status: loggedIn.loggedIn ? "connected" : "expired" } : undefined);
       setStatus(loggedIn.loggedIn ? "connected" : "notLoggedIn");
     } catch (reason) {
+      if (disposedRef.current || isAbortError(reason)) return;
       setStatus("failed");
       setError(messageOf(reason));
     }
   }, [context]);
 
   useEffect(() => {
+    disposedRef.current = false;
     void ensureServiceStarted(context)
       .then(() => refresh())
       .catch((reason: unknown) => {
+        if (disposedRef.current || isAbortError(reason)) return;
         setStatus("failed");
         setError(messageOf(reason));
       });
+    return () => {
+      disposedRef.current = true;
+    };
   }, [context, refresh]);
 
   const login = useCallback(async () => {
@@ -79,6 +97,7 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
     try {
       await ensureServiceStarted(context);
       const existing = await loginStatus(context);
+      if (disposedRef.current) return;
       if (existing.loggedIn) {
         await refresh();
         return;
@@ -96,8 +115,9 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
       setQr(await renderQrPayload(qrPayload));
       setStatus("waitingScan");
       const deadline = Date.now() + 180_000;
-      while (Date.now() < deadline) {
+      while (!disposedRef.current && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (disposedRef.current) return;
         const current = await loginStatus(context);
         if (current.loggedIn) {
           setStatus("verifying");
@@ -110,6 +130,13 @@ export function XhsSetupSlot({ context, compact = false }: { context: ManagedPlu
       }
       throw new Error("QR login timed out");
     } catch (reason) {
+      if (disposedRef.current || isAbortError(reason)) {
+        if (!disposedRef.current) {
+          setStatus("starting");
+          void ensureServiceStarted(context).then(() => refresh()).catch(() => undefined);
+        }
+        return;
+      }
       setStatus("failed");
       setError(messageOf(reason));
     } finally {
@@ -146,6 +173,7 @@ export function XhsAccountsView({ context }: { context: ManagedPluginContext }):
   const [activeId, setActiveId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const disposedRef = useRef(false);
 
   const refresh = useCallback(async () => {
     const state = await readAccountState(context);
@@ -153,7 +181,15 @@ export function XhsAccountsView({ context }: { context: ManagedPluginContext }):
     setActiveId(state.activeAccountId);
   }, [context]);
 
-  useEffect(() => { void refresh().catch((reason: unknown) => setError(messageOf(reason))); }, [refresh]);
+  useEffect(() => {
+    disposedRef.current = false;
+    void refresh().catch((reason: unknown) => {
+      if (!disposedRef.current && !isAbortError(reason)) setError(messageOf(reason));
+    });
+    return () => {
+      disposedRef.current = true;
+    };
+  }, [refresh]);
 
   const activate = useCallback(async (id: string) => {
     setBusy(true);
@@ -162,7 +198,7 @@ export function XhsAccountsView({ context }: { context: ManagedPluginContext }):
       await switchAccount(context, id);
       await refresh();
     } catch (reason) {
-      setError(messageOf(reason));
+      if (!disposedRef.current && !isAbortError(reason)) setError(messageOf(reason));
     } finally {
       setBusy(false);
     }
@@ -175,7 +211,7 @@ export function XhsAccountsView({ context }: { context: ManagedPluginContext }):
       await removeAccount(context, account.id);
       await refresh();
     } catch (reason) {
-      setError(messageOf(reason));
+      if (!disposedRef.current && !isAbortError(reason)) setError(messageOf(reason));
     } finally {
       setBusy(false);
     }
