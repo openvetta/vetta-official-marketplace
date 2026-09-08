@@ -8,5 +8,8 @@
   },
   "dependencies": {
     "playwright-core": "^1.55.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0"
   }
 }
