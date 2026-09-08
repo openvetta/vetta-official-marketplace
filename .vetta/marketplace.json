@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.08-13",
+  "marketplaceVersion": "2026.09.08-14",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -16,18 +16,36 @@
       "license": "MIT",
       "author": "Vetta / Lark Suite",
       "category": "Productivity",
-      "categoryI18n": { "zh": "效率", "en": "Productivity" },
-      "tags": ["feishu", "lark", "documents", "calendar", "base", "tasks"],
+      "categoryI18n": {
+        "zh": "效率",
+        "en": "Productivity"
+      },
+      "tags": [
+        "feishu",
+        "lark",
+        "documents",
+        "calendar",
+        "base",
+        "tasks"
+      ],
       "detail": {
         "i18n": {
           "zh": {
             "name": "飞书",
             "description": "使用官方 lark-cli 及其内置 Skills 处理飞书文档、消息、日历、多维表格、任务等内容。",
-            "tags": ["飞书", "文档", "日历", "多维表格", "任务"]
+            "tags": [
+              "飞书",
+              "文档",
+              "日历",
+              "多维表格",
+              "任务"
+            ]
           }
         }
       },
-      "source": { "path": "abilities/plugins/feishu" }
+      "source": {
+        "path": "abilities/plugins/feishu"
+      }
     },
     {
       "type": "plugin",
@@ -39,18 +57,37 @@
       "license": "MIT",
       "author": "Vetta / Router For Me",
       "category": "Development",
-      "categoryI18n": { "zh": "开发", "en": "Development" },
-      "tags": ["models", "oauth", "gateway", "gemini", "codex", "claude"],
+      "categoryI18n": {
+        "zh": "开发",
+        "en": "Development"
+      },
+      "tags": [
+        "models",
+        "oauth",
+        "gateway",
+        "gemini",
+        "codex",
+        "claude"
+      ],
       "detail": {
         "i18n": {
           "zh": {
             "name": "CLIProxyAPI",
             "description": "运行受管的本地模型网关，连接 Gemini CLI、Codex、Claude、Antigravity、Kimi 与 xAI 账号，并在 Vetta 中使用动态发现的模型。",
-            "tags": ["模型", "OAuth", "网关", "Gemini", "Codex", "Claude"]
+            "tags": [
+              "模型",
+              "OAuth",
+              "网关",
+              "Gemini",
+              "Codex",
+              "Claude"
+            ]
           }
         }
       },
-      "source": { "path": "abilities/plugins/cli-proxy-api" }
+      "source": {
+        "path": "abilities/plugins/cli-proxy-api"
+      }
     },
     {
       "type": "mcp",
@@ -61,18 +98,35 @@
       "configVersion": 1,
       "author": "Notion",
       "category": "Productivity",
-      "categoryI18n": { "zh": "效率", "en": "Productivity" },
-      "tags": ["notion", "notes", "wiki", "knowledge-base", "oauth"],
+      "categoryI18n": {
+        "zh": "效率",
+        "en": "Productivity"
+      },
+      "tags": [
+        "notion",
+        "notes",
+        "wiki",
+        "knowledge-base",
+        "oauth"
+      ],
       "detail": {
         "i18n": {
           "zh": {
             "name": "Notion",
             "description": "通过浏览器授权连接 Notion 工作区，之后可直接让 Vetta 搜索、读取、新建和更新页面。",
-            "tags": ["Notion", "笔记", "知识库", "工作区", "授权"]
+            "tags": [
+              "Notion",
+              "笔记",
+              "知识库",
+              "工作区",
+              "授权"
+            ]
           }
         }
       },
-      "source": { "path": "abilities/mcp/notion" }
+      "source": {
+        "path": "abilities/mcp/notion"
+      }
     },
     {
       "type": "bundle",
@@ -84,29 +138,52 @@
       "license": "MIT",
       "author": "Vetta",
       "category": "Education",
-      "categoryI18n": { "zh": "学习", "en": "Education" },
-      "tags": ["reading", "poetry", "pdf", "pinyin", "notes", "bilingual"],
+      "categoryI18n": {
+        "zh": "学习",
+        "en": "Education"
+      },
+      "tags": [
+        "reading",
+        "poetry",
+        "pdf",
+        "pinyin",
+        "notes",
+        "bilingual"
+      ],
       "detail": {
         "i18n": {
           "zh": {
             "name": "拾墨",
             "description": "在 Vetta 中沉浸式阅读书籍与诗歌，划选内容即可提问、解析、标注拼音并保存阅读记录。",
-            "tags": ["阅读", "诗歌", "PDF", "拼音", "笔记", "中英文"]
+            "tags": [
+              "阅读",
+              "诗歌",
+              "PDF",
+              "拼音",
+              "笔记",
+              "中英文"
+            ]
           }
         }
       },
-      "source": { "path": "abilities/bundles/shimo" },
+      "source": {
+        "path": "abilities/bundles/shimo"
+      },
       "config": {
         "members": [
           {
             "type": "plugin",
             "slug": "shimo-reader",
-            "source": { "path": "abilities/plugins/shimo" }
+            "source": {
+              "path": "abilities/plugins/shimo"
+            }
           },
           {
             "type": "skill",
             "slug": "pdf",
-            "source": { "path": "abilities/skills/pdf" }
+            "source": {
+              "path": "abilities/skills/pdf"
+            }
           }
         ]
       }
@@ -121,8 +198,17 @@
       "license": "Apache-2.0",
       "author": "Cloudflare / Vetta",
       "category": "Development",
-      "categoryI18n": { "zh": "开发", "en": "Development" },
-      "tags": ["cloudflare", "workers", "wrangler", "documentation", "api"],
+      "categoryI18n": {
+        "zh": "开发",
+        "en": "Development"
+      },
+      "tags": [
+        "cloudflare",
+        "workers",
+        "wrangler",
+        "documentation",
+        "api"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -138,33 +224,45 @@
           }
         }
       },
-      "source": { "path": "abilities/bundles/cloudflare-developer-platform" },
+      "source": {
+        "path": "abilities/bundles/cloudflare-developer-platform"
+      },
       "config": {
         "members": [
           {
             "type": "skill",
             "slug": "cloudflare",
-            "source": { "path": "abilities/skills/cloudflare" }
+            "source": {
+              "path": "abilities/skills/cloudflare"
+            }
           },
           {
             "type": "skill",
             "slug": "wrangler",
-            "source": { "path": "abilities/skills/wrangler" }
+            "source": {
+              "path": "abilities/skills/wrangler"
+            }
           },
           {
             "type": "skill",
             "slug": "workers-best-practices",
-            "source": { "path": "abilities/skills/workers-best-practices" }
+            "source": {
+              "path": "abilities/skills/workers-best-practices"
+            }
           },
           {
             "type": "mcp",
             "slug": "cloudflare-docs",
-            "source": { "path": "abilities/mcp/cloudflare-docs" }
+            "source": {
+              "path": "abilities/mcp/cloudflare-docs"
+            }
           },
           {
             "type": "mcp",
             "slug": "cloudflare-api",
-            "source": { "path": "abilities/mcp/cloudflare-api" }
+            "source": {
+              "path": "abilities/mcp/cloudflare-api"
+            }
           }
         ]
       }
@@ -178,8 +276,16 @@
       "configVersion": 1,
       "license": "MIT",
       "category": "Documents",
-      "categoryI18n": { "zh": "文档", "en": "Documents" },
-      "tags": ["spreadsheet", "excel", "csv", "data"],
+      "categoryI18n": {
+        "zh": "文档",
+        "en": "Documents"
+      },
+      "tags": [
+        "spreadsheet",
+        "excel",
+        "csv",
+        "data"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -188,7 +294,9 @@
           }
         }
       },
-      "source": { "path": "abilities/skills/xlsx" }
+      "source": {
+        "path": "abilities/skills/xlsx"
+      }
     },
     {
       "type": "skill",
@@ -199,8 +307,16 @@
       "configVersion": 1,
       "license": "MIT",
       "category": "Documents",
-      "categoryI18n": { "zh": "文档", "en": "Documents" },
-      "tags": ["word", "docx", "document", "template"],
+      "categoryI18n": {
+        "zh": "文档",
+        "en": "Documents"
+      },
+      "tags": [
+        "word",
+        "docx",
+        "document",
+        "template"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -209,7 +325,9 @@
           }
         }
       },
-      "source": { "path": "abilities/skills/docx" }
+      "source": {
+        "path": "abilities/skills/docx"
+      }
     },
     {
       "type": "skill",
@@ -220,8 +338,15 @@
       "configVersion": 1,
       "license": "Apache-2.0",
       "category": "Documents",
-      "categoryI18n": { "zh": "文档", "en": "Documents" },
-      "tags": ["pdf", "document", "render"],
+      "categoryI18n": {
+        "zh": "文档",
+        "en": "Documents"
+      },
+      "tags": [
+        "pdf",
+        "document",
+        "render"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -230,7 +355,9 @@
           }
         }
       },
-      "source": { "path": "abilities/skills/pdf" }
+      "source": {
+        "path": "abilities/skills/pdf"
+      }
     },
     {
       "type": "skill",
@@ -240,8 +367,16 @@
       "version": "1.0.0",
       "configVersion": 1,
       "category": "Development",
-      "categoryI18n": { "zh": "开发", "en": "Development" },
-      "tags": ["remotion", "video", "react", "animation"],
+      "categoryI18n": {
+        "zh": "开发",
+        "en": "Development"
+      },
+      "tags": [
+        "remotion",
+        "video",
+        "react",
+        "animation"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -250,7 +385,9 @@
           }
         }
       },
-      "source": { "path": "abilities/skills/remotion-best-practices" }
+      "source": {
+        "path": "abilities/skills/remotion-best-practices"
+      }
     },
     {
       "type": "plugin",
@@ -262,8 +399,17 @@
       "license": "Apache-2.0",
       "author": "Vetta / xpzouying",
       "category": "Social",
-      "categoryI18n": { "zh": "社交", "en": "Social" },
-      "tags": ["xiaohongshu", "rednote", "social", "content", "automation"],
+      "categoryI18n": {
+        "zh": "社交",
+        "en": "Social"
+      },
+      "tags": [
+        "xiaohongshu",
+        "rednote",
+        "social",
+        "content",
+        "automation"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -272,7 +418,9 @@
           }
         }
       },
-      "source": { "path": "abilities/plugins/xiaohongshu" }
+      "source": {
+        "path": "abilities/plugins/xiaohongshu"
+      }
     },
     {
       "type": "mcp",
@@ -283,8 +431,18 @@
       "configVersion": 1,
       "author": "X Developer Platform",
       "category": "Social",
-      "categoryI18n": { "zh": "社交", "en": "Social" },
-      "tags": ["x", "twitter", "social", "search", "news", "api"],
+      "categoryI18n": {
+        "zh": "社交",
+        "en": "Social"
+      },
+      "tags": [
+        "x",
+        "twitter",
+        "social",
+        "search",
+        "news",
+        "api"
+      ],
       "detail": {
         "i18n": {
           "zh": {
@@ -293,7 +451,9 @@
           }
         }
       },
-      "source": { "path": "abilities/mcp/x-api-mcp" }
+      "source": {
+        "path": "abilities/mcp/x-api-mcp"
+      }
     },
     {
       "type": "bundle",
@@ -304,29 +464,48 @@
       "configVersion": 1,
       "author": "Vetta / Klarkxy",
       "category": "Social",
-      "categoryI18n": { "zh": "社交", "en": "Social" },
-      "tags": ["zhihu", "research", "search", "chinese-community"],
+      "categoryI18n": {
+        "zh": "社交",
+        "en": "Social"
+      },
+      "tags": [
+        "zhihu",
+        "research",
+        "search",
+        "chinese-community"
+      ],
       "detail": {
         "i18n": {
           "zh": {
             "name": "知乎调研",
             "description": "让 Vetta 帮你调研知乎口碑与热点讨论，整理不同观点，并附上可核查的来源链接。",
-            "tags": ["知乎", "调研", "搜索", "中文社区"]
+            "tags": [
+              "知乎",
+              "调研",
+              "搜索",
+              "中文社区"
+            ]
           }
         }
       },
-      "source": { "path": "abilities/bundles/zhihu-research" },
+      "source": {
+        "path": "abilities/bundles/zhihu-research"
+      },
       "config": {
         "members": [
           {
             "type": "skill",
             "slug": "zhihu-search",
-            "source": { "path": "abilities/skills/zhihu-search" }
+            "source": {
+              "path": "abilities/skills/zhihu-search"
+            }
           },
           {
             "type": "mcp",
             "slug": "zhihu-search-mcp",
-            "source": { "path": "abilities/mcp/zhihu-search-mcp" }
+            "source": {
+              "path": "abilities/mcp/zhihu-search-mcp"
+            }
           }
         ]
       }
