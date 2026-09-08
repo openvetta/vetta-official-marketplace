@@ -43,6 +43,7 @@ vi.mock("@vetta-org/plugin-sdk", () => ({
         "accounts.title": "小红书账号",
         "accounts.subtitle": "在这里管理小红书登录账号",
         "accounts.currentLabel": "当前账号",
+        "accounts.active": "当前使用",
         "accounts.savedLabel": "已保存账号",
         "accounts.securityLabel": "会话存储",
         "accounts.localOnly": "仅本机",
@@ -105,7 +106,7 @@ describe("xiaohongshu plugin account UI", () => {
     await waitFor(() =>
       expect(screen.getAllByText("花酒").length).toBeGreaterThanOrEqual(2),
     );
-    expect(screen.getByText("当前账号")).toBeTruthy();
-    expect(screen.getByText("会话存储")).toBeTruthy();
+    expect(screen.getByText(/当前账号/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "删除" })).toBeTruthy();
   });
 });

@@ -3,6 +3,7 @@ import { renderQrCode, renderQrPayload } from "./qr";
 import {
   accountDisplayName,
   accountInitial,
+  identityFromProfile,
   loginStatus,
   readAccountState,
   requestQrPayload,
@@ -138,6 +139,70 @@ describe("xiaohongshu plugin account handling", () => {
       nickname: "花酒",
       userId: "user-8023",
     });
+  });
+
+  it("falls back to the current-profile endpoint when login status has no nickname", async () => {
+    const { ctx, service } = context();
+    service.request
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        body: { data: { is_logged_in: true } },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        body: {
+          data: {
+            data: {
+              basicInfo: {
+                nickname: "花酒",
+                userId: "user-8023",
+              },
+            },
+          },
+        },
+      } as never);
+
+    await expect(loginStatus(ctx)).resolves.toEqual({
+      loggedIn: true,
+      nickname: "花酒",
+      userId: "user-8023",
+    });
+    expect(service.request).toHaveBeenNthCalledWith(
+      2,
+      "xhs",
+      expect.objectContaining({ path: "/api/v1/user/me" }),
+    );
+  });
+
+  it("keeps a valid login when profile enrichment is temporarily unavailable", async () => {
+    const { ctx, service } = context();
+    service.request
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        body: { data: { is_logged_in: true, user_id: "user-8023" } },
+      } as never)
+      .mockRejectedValueOnce(new Error("profile timed out"));
+
+    await expect(loginStatus(ctx)).resolves.toEqual({
+      loggedIn: true,
+      nickname: undefined,
+      userId: "user-8023",
+    });
+  });
+
+  it("parses nested upstream profile identities without trusting unrelated fields", () => {
+    expect(
+      identityFromProfile({
+        data: { data: { basicInfo: { nickname: " 花酒 ", redId: "8023" } } },
+        message: "ignored",
+      }),
+    ).toEqual({ nickname: "花酒", userId: "8023" });
   });
 
   it("does not present generated storage labels as a known account identity", () => {

@@ -2,14 +2,17 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "xiaohongshu",
-  "version": "1.0.8",
+  "version": "1.0.11",
   "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "dist/assets/detail.json",
     "i18n": { "zh": { "path": "dist/assets/detail.zh.json" } },
     "meta": [
-      { "key": "repository", "value": "https://github.com/xpzouying/xiaohongshu-mcp" },
+      {
+        "key": "repository",
+        "value": "https://github.com/xpzouying/xiaohongshu-mcp"
+      },
       { "key": "license", "value": "Apache-2.0" }
     ]
   }

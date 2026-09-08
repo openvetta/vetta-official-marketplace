@@ -35,9 +35,6 @@ const PRIMARY_BUTTON =
   "inline-flex min-h-9 cursor-pointer items-center justify-center rounded-lg bg-primary px-3.5 py-2 text-xs font-medium text-background shadow-sm transition hover:brightness-110 disabled:cursor-wait disabled:opacity-50";
 const SECONDARY_BUTTON =
   "inline-flex min-h-9 cursor-pointer items-center justify-center rounded-lg border border-border/70 bg-muted/35 px-3.5 py-2 text-xs font-medium text-foreground transition hover:bg-muted/60 disabled:cursor-wait disabled:opacity-50";
-const DANGER_BUTTON =
-  "inline-flex min-h-9 cursor-pointer items-center justify-center rounded-lg border border-destructive/40 px-3.5 py-2 text-xs font-medium text-destructive transition hover:bg-destructive/10 disabled:cursor-wait disabled:opacity-50";
-
 const STATUS_META: Record<
   UiStatus,
   { tone: string; dot: string; key: string }
@@ -321,25 +318,33 @@ export function XhsSetupSlot({
     <section
       className={
         compact
-          ? "rounded-xl border border-border/60 bg-card/35 p-4"
+          ? "rounded-xl border border-border/60 bg-card/35 px-3 py-2.5"
           : "rounded-2xl border border-border/60 bg-card/45 p-5 shadow-sm"
       }
       aria-live="polite"
     >
-      <div className="flex items-start gap-3">
+      <div
+        className={`flex ${compact ? "items-center gap-2.5" : "items-start gap-3"}`}
+      >
         <div
-          className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${isConnected ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}
+          className={`flex shrink-0 items-center justify-center ${compact ? "size-8 rounded-lg" : "size-10 rounded-xl"} ${isConnected ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"}`}
           aria-hidden="true"
         >
           {isConnected ? "✓" : "↗"}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <div>
-              <p className="m-0 text-sm font-semibold text-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+            <div
+              className={
+                compact ? "flex min-w-0 items-center gap-2" : undefined
+              }
+            >
+              <p className="m-0 shrink-0 text-sm font-semibold text-foreground">
                 {compact ? t("setup.connectionTitle") : t("setup.title")}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p
+                className={`${compact ? "m-0 truncate" : "mt-1"} text-xs text-muted-foreground`}
+              >
                 {isConnected
                   ? t("setup.connectedHint", {
                       name: displayName ?? t("setup.identityPending"),
@@ -351,7 +356,7 @@ export function XhsSetupSlot({
           </div>
         </div>
       </div>
-      {isConnected ? (
+      {isConnected && !compact ? (
         <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/5 p-3">
           <AccountAvatar
             account={account ?? { name: t("setup.identityPending") }}
@@ -393,7 +398,9 @@ export function XhsSetupSlot({
           {errorText(t, "setup.failed", error)}
         </p>
       ) : null}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div
+        className={`${compact ? "mt-2" : "mt-4"} flex flex-wrap items-center gap-2`}
+      >
         <button
           className={isConnected ? SECONDARY_BUTTON : PRIMARY_BUTTON}
           type="button"
@@ -413,6 +420,10 @@ export function XhsSetupSlot({
             onClick={() => void login(true)}
             disabled={busy}
           >
+            <span
+              className="icon-[solar--user-plus-linear] size-3.5"
+              aria-hidden="true"
+            />
             {t("accounts.loginNew")}
           </button>
         ) : null}
@@ -422,6 +433,10 @@ export function XhsSetupSlot({
           onClick={() => void refresh()}
           disabled={busy}
         >
+          <span
+            className="icon-[solar--refresh-linear] size-3.5"
+            aria-hidden="true"
+          />
           {t("setup.refresh")}
         </button>
         {!compact && isConnected ? (
@@ -458,69 +473,60 @@ function AccountCard({
   const name = accountDisplayName(account);
   return (
     <article
-      className={`rounded-xl border p-4 transition ${active ? "border-primary/50 bg-primary/8 shadow-sm" : "border-border/55 bg-card/30 hover:border-border"}`}
+      className={`flex min-h-12 items-center gap-2.5 rounded-lg border px-3 py-2 transition-colors ${active ? "border-primary/50 bg-primary/8" : "border-border/55 bg-card/30 hover:border-border"}`}
     >
-      <div className="flex items-start gap-3">
-        <AccountAvatar account={account} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="m-0 truncate text-sm font-semibold">
-              {name ?? t("accounts.identityPending")}
-            </h3>
-            {active ? (
-              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
-                {t("accounts.active")}
-              </span>
-            ) : null}
-          </div>
-          <StatusLine
-            status={
-              account.status === "connected" && active
-                ? "connected"
-                : account.status === "expired"
-                  ? "notLoggedIn"
-                  : "starting"
-            }
-            label={t(`accounts.status.${account.status}`)}
-          />
-        </div>
+      <AccountAvatar account={account} size="size-8" />
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+        <h3 className="m-0 min-w-28 truncate text-sm font-semibold">
+          {name ?? t("accounts.identityPending")}
+        </h3>
+        {active ? (
+          <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary">
+            {t("accounts.active")}
+          </span>
+        ) : null}
+        <StatusLine
+          status={
+            account.status === "connected" && active
+              ? "connected"
+              : account.status === "expired"
+                ? "notLoggedIn"
+                : "starting"
+          }
+          label={t(`accounts.status.${account.status}`)}
+        />
+        <span className="text-[11px] text-muted-foreground">
+          {t("accounts.checked")}{" "}
+          {formatAccountDate(account.lastCheckedAt, locale) ?? "—"}
+        </span>
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-[11px]">
-        <div>
-          <dt className="text-muted-foreground">{t("accounts.created")}</dt>
-          <dd className="m-0 mt-1 text-foreground/80">
-            {formatAccountDate(account.createdAt, locale) ?? "—"}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">{t("accounts.checked")}</dt>
-          <dd className="m-0 mt-1 text-foreground/80">
-            {formatAccountDate(account.lastCheckedAt, locale) ?? "—"}
-          </dd>
-        </div>
-      </dl>
-      <div className="mt-4 flex items-center justify-end gap-2">
+      <div className="flex shrink-0 items-center gap-1">
         {!active ? (
           <button
-            className={SECONDARY_BUTTON}
+            className={`${SECONDARY_BUTTON} min-h-8 px-2.5 py-1.5`}
             type="button"
             onClick={onSwitch}
             disabled={busy}
           >
+            <span
+              className="icon-[solar--alt-arrow-right-linear] size-3.5"
+              aria-hidden="true"
+            />
             {t("accounts.switch")}
           </button>
-        ) : (
-          <span className="text-[11px] text-muted-foreground">
-            {t("accounts.currentHint")}
-          </span>
-        )}
+        ) : null}
         <button
-          className={DANGER_BUTTON}
+          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-destructive/40 text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-wait disabled:opacity-50"
           type="button"
           onClick={onRemove}
           disabled={busy}
+          aria-label={t("accounts.remove")}
+          title={t("accounts.remove")}
         >
-          {t("accounts.remove")}
+          <span
+            className="icon-[solar--trash-bin-trash-linear] size-4"
+            aria-hidden="true"
+          />
         </button>
       </div>
     </article>
@@ -605,7 +611,7 @@ export function XhsAccountsView({
       aria-live="polite"
     >
       <div className="mx-auto max-w-5xl">
-        <header className="border-b border-border/50 pb-6">
+        <header className="border-b border-border/50 pb-5">
           <div>
             <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-primary">
               <span
@@ -622,7 +628,7 @@ export function XhsAccountsView({
             </p>
           </div>
         </header>
-        <div className="mt-6">
+        <div className="mt-5">
           <XhsSetupSlot
             context={context}
             compact
@@ -630,56 +636,36 @@ export function XhsAccountsView({
             onAccountChanged={handleAccountChanged}
           />
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/50 bg-card/30 p-4">
-            <p className="m-0 text-xs text-muted-foreground">
-              {t("accounts.currentLabel")}
-            </p>
-            <p className="m-0 mt-2 truncate text-lg font-semibold">
-              {active
-                ? (accountDisplayName(active) ?? t("accounts.identityPending"))
-                : t("accounts.none")}
-            </p>
-            <p className="m-0 mt-1 text-[11px] text-muted-foreground">
-              {active ? t("accounts.currentHint") : t("accounts.addFirst")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border/50 bg-card/30 p-4">
-            <p className="m-0 text-xs text-muted-foreground">
-              {t("accounts.savedLabel")}
-            </p>
-            <p className="m-0 mt-2 text-lg font-semibold">{accounts.length}</p>
-            <p className="m-0 mt-1 text-[11px] text-muted-foreground">
-              {t("accounts.savedHint")}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border/50 bg-card/30 p-4">
-            <p className="m-0 text-xs text-muted-foreground">
-              {t("accounts.securityLabel")}
-            </p>
-            <p className="m-0 mt-2 text-lg font-semibold text-emerald-300">
-              {t("accounts.localOnly")}
-            </p>
-            <p className="m-0 mt-1 text-[11px] text-muted-foreground">
-              {t("accounts.securityHint")}
-            </p>
-          </div>
-        </div>
-        <section className="mt-8">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
+        <section className="mt-6">
+          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h2 className="m-0 text-base font-semibold">
                 {t("accounts.savedTitle")}
               </h2>
-              <p className="m-0 mt-1 text-xs text-muted-foreground">
-                {t("accounts.savedSubtitle")}
-              </p>
-            </div>
-            {accounts.length > 0 ? (
               <span className="text-xs text-muted-foreground">
-                {accounts.length} / {t("accounts.accountUnit")}
+                {accounts.length}
               </span>
-            ) : null}
+              {active ? (
+                <div className="flex items-center gap-2 border-l border-border/70 pl-2 text-xs text-muted-foreground">
+                  <span>{t("accounts.currentLabel")}:</span>
+                  <span className="font-medium text-foreground">
+                    {accountDisplayName(active) ??
+                      t("accounts.identityPending")}
+                  </span>
+                  <StatusLine
+                    status={
+                      active.status === "connected"
+                        ? "connected"
+                        : "notLoggedIn"
+                    }
+                    label={t(`accounts.status.${active.status}`)}
+                  />
+                </div>
+              ) : null}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {t("accounts.savedSubtitle")}
+            </span>
           </div>
           {error ? (
             <p
@@ -705,7 +691,7 @@ export function XhsAccountsView({
               </p>
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-2">
               {accounts.map((account) => (
                 <AccountCard
                   key={account.id}

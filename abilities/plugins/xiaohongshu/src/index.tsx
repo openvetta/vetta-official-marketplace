@@ -17,6 +17,7 @@ export default definePlugin({
       id: "accounts",
       label: "%accounts.title%",
       description: "%accounts.subtitle%",
+      iconTint: false,
       component: () => createElement(XhsAccountsView, { context }),
     });
     // Wait for the service before committing the activation.  The host builds
@@ -26,7 +27,11 @@ export default definePlugin({
     try {
       await ensureServiceStarted(context);
     } catch (reason: unknown) {
-      context.ui.notify({ message: "小红书服务启动失败", error: reason, variant: "error" });
+      context.ui.notify({
+        message: "小红书服务启动失败",
+        error: reason,
+        variant: "error",
+      });
     }
     return async () => {
       accounts.dispose();

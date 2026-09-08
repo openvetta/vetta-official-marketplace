@@ -61,6 +61,66 @@ function newId(): string {
   return `account-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function recordOf(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function nonEmptyString(
+  record: Record<string, unknown> | undefined,
+  keys: readonly string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = record?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+export function identityFromProfile(value: unknown): Omit<LoginStatus, "loggedIn"> {
+  const root = recordOf(value);
+  const firstData = recordOf(root?.data);
+  const secondData = recordOf(firstData?.data);
+  const candidates = [
+    root,
+    firstData,
+    secondData,
+    recordOf(root?.basicInfo),
+    recordOf(firstData?.basicInfo),
+    recordOf(secondData?.basicInfo),
+  ];
+  return {
+    nickname: candidates
+      .map((candidate) =>
+        nonEmptyString(candidate, ["nickname", "username", "nick_name"]),
+      )
+      .find(Boolean),
+    userId: candidates
+      .map((candidate) =>
+        nonEmptyString(candidate, ["user_id", "userId", "red_id", "redId"]),
+      )
+      .find(Boolean),
+  };
+}
+
+async function currentProfileIdentity(
+  ctx: PluginContext,
+): Promise<Omit<LoginStatus, "loggedIn">> {
+  try {
+    const response = await services(ctx).request<unknown>(SERVICE_ID, {
+      path: "/api/v1/user/me",
+      responseType: "json",
+      timeoutMs: 30_000,
+    });
+    return response.ok ? identityFromProfile(response.body) : {};
+  } catch {
+    // Profile identity enriches the account card; it must not downgrade a valid
+    // login when the upstream browser page is temporarily slow or unavailable.
+    return {};
+  }
+}
+
 export async function readAccountState(
   ctx: PluginContext,
 ): Promise<AccountState> {
@@ -135,20 +195,16 @@ export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
     throw new Error(`Login status failed: HTTP ${response.status}`);
   const body = response.body as Record<string, unknown>;
   const data = body?.data as Record<string, unknown> | undefined;
+  const loggedIn = data?.is_logged_in === true;
+  const statusIdentity = identityFromProfile(data);
+  if (!loggedIn || statusIdentity.nickname) {
+    return { loggedIn, ...statusIdentity };
+  }
+  const profileIdentity = await currentProfileIdentity(ctx);
   return {
-    loggedIn: data?.is_logged_in === true,
-    nickname:
-      typeof data?.nickname === "string"
-        ? data.nickname
-        : typeof data?.username === "string"
-          ? data.username
-          : undefined,
-    userId:
-      typeof data?.user_id === "string"
-        ? data.user_id
-        : typeof data?.userId === "string"
-          ? data.userId
-          : undefined,
+    loggedIn,
+    nickname: profileIdentity.nickname,
+    userId: statusIdentity.userId ?? profileIdentity.userId,
   };
 }
 
@@ -171,7 +227,7 @@ export function accountInitial(
   return (accountDisplayName(account) ?? "小").trim().slice(0, 1).toUpperCase();
 }
 
-/** Persist identity discovered by the upstream login/status endpoint. */
+/** Persist identity discovered through the managed upstream runtime. */
 export async function updateAccountIdentity(
   ctx: PluginContext,
   accountId: string,
