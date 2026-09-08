@@ -68,7 +68,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "POST" && url.pathname === "/mcp") {
 		const rpc = await body(request);
 		const id = rpc.id ?? null;
-		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.1" } } });
+		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.2" } } });
 		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: [
 			{ name: "xiaohongshu_list_accounts", description: "List locally managed Xiaohongshu accounts.", inputSchema: { type: "object", properties: {} } },
 			{ name: "xiaohongshu_active_account", description: "Get the active Xiaohongshu account.", inputSchema: { type: "object", properties: {} } },

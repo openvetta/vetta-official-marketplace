@@ -2,14 +2,13 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { createRequire } from "node:module";
-import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { dirname, join, resolve } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 import type { AccountStore } from "../accounts/account-store.js";
 
 const HOME_URL = "https://www.xiaohongshu.com/";
 const execFileAsync = promisify(execFile);
-const require = createRequire(import.meta.url);
 const browserInstallations = new Map<string, Promise<void>>();
 
 export interface ChromiumProvisionOptions {
@@ -50,11 +49,9 @@ async function findChromiumExecutable(cacheDir: string): Promise<string | undefi
 }
 
 function defaultCliPath(): string | undefined {
-	try {
-		return require.resolve("playwright-core/cli.js");
-	} catch {
-		return undefined;
-	}
+	const serviceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+	const cliPath = join(serviceRoot, "node_modules", "playwright-core", "cli.js");
+	return existsSync(cliPath) ? cliPath : undefined;
 }
 
 async function installChromium(cliPath: string, cacheDir: string): Promise<void> {
