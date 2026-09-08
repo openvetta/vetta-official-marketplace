@@ -12,14 +12,23 @@ const sessions = new Map<string, { page: import("playwright-core").Page; context
 let activeAccountId: string | undefined;
 let latestLoginSessionId: string | undefined;
 
-async function qrPayload(page: import("playwright-core").Page): Promise<string | null> {
-		const selector = ".login-container .qrcode-img, img[src^='data:image'], img";
+async function qrPayload(page: import("playwright-core").Page): Promise<string> {
+		const image = page.locator(".login-container .qrcode-img, img.qrcode-img, img[class*='qrcode'], img[class*='qr-code']").first();
 		try {
-			await page.locator(selector).first().waitFor({ state: "visible", timeout: 15_000 });
+			await image.waitFor({ state: "visible", timeout: 15_000 });
+			const src = await image.getAttribute("src");
+			if (src) return src;
 		} catch {
-			return null;
+			// Try a canvas QR below.
 		}
-		return page.locator(selector).first().getAttribute("src").catch(() => null);
+		const canvas = page.locator(".login-container canvas, canvas[class*='qrcode'], canvas[class*='qr-code']").first();
+		if (await canvas.count()) {
+			await canvas.waitFor({ state: "visible", timeout: 5_000 });
+			const png = await canvas.screenshot({ type: "png" });
+			return `data:image/png;base64,${png.toString("base64")}`;
+		}
+		const message = (await page.locator("body").innerText().catch(() => "")).trim().replace(/\\s+/gu, " ").slice(0, 180);
+		throw new Error(message ? `小红书未返回二维码：${message}` : "小红书未返回二维码");
 }
 
 function json(response: ServerResponse, status: number, body: unknown): void {
