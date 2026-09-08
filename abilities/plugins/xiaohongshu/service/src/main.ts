@@ -59,7 +59,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const session = sessionId ? sessions.get(sessionId) : undefined;
 		if (session) {
 			const cookies = await session.context.cookies("https://www.xiaohongshu.com");
-			const loggedIn = (await session.page.locator(".main-container .user .link-wrapper .channel, [class*='user-avatar']").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session" || cookie.name === "a1");
+			const loggedIn = (await session.page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
 			if (!loggedIn && Date.now() - session.createdAt < 180_000)
 				return json(response, 200, { data: { is_logged_in: false } });
 			const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;

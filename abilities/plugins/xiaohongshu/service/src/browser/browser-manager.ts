@@ -146,7 +146,7 @@ export class BrowserManager {
 		try {
 			await page.goto(HOME_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
 			const cookies = await context.cookies("https://www.xiaohongshu.com");
-			const loggedIn = (await page.locator(".main-container .user .link-wrapper .channel, [class*='user-avatar']").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session" || cookie.name === "a1");
+			const loggedIn = (await page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
 			return { loggedIn };
 		} finally {
 			await page.close();
