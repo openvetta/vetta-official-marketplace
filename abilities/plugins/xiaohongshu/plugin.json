@@ -2,7 +2,7 @@
   "id": "xiaohongshu",
   "name": "%name%",
   "icon": "assets/icon.png",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
@@ -63,7 +63,7 @@
           }
         },
         "process": {
-          "args": ["-port=:${VETTA_SERVICE_PORT}"],
+          "args": ["-headless=false", "-port=:${VETTA_SERVICE_PORT}"],
           "env": { "COOKIES_PATH": "${VETTA_SERVICE_DATA_DIR}/cookies.json" }
         },
         "health": {
