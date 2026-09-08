@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.08-1",
+  "marketplaceVersion": "2026.09.08-2",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -223,7 +223,7 @@
       "slug": "xiaohongshu",
       "name": "Xiaohongshu Accounts",
       "description": "Sign in, switch and manage Xiaohongshu accounts, then use the built-in MCP through the active account.",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "configVersion": 1,
       "license": "Apache-2.0",
       "author": "Vetta / xpzouying",

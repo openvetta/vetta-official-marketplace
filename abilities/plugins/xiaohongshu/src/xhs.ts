@@ -1,5 +1,8 @@
 import type { PluginContext } from "@vetta-org/plugin-sdk";
-import type { ManagedPluginContext, ManagedServiceApi } from "./runtime-contract";
+import type {
+  ManagedPluginContext,
+  ManagedServiceApi,
+} from "./runtime-contract";
 
 export const SERVICE_ID = "xhs";
 const SESSION_FILE = "cookies.json";
@@ -11,6 +14,10 @@ export type AccountStatus = "connected" | "expired" | "unknown";
 export interface XhsAccount {
   id: string;
   name: string;
+  /** Upstream nickname, when the service can identify the signed-in user. */
+  nickname?: string;
+  /** Stable upstream user id; kept for disambiguating accounts, not shown as a secret. */
+  userId?: string;
   createdAt: string;
   lastCheckedAt?: string;
   status: AccountStatus;
@@ -29,12 +36,17 @@ interface AccountState {
  */
 type FileStorage = {
   readFile(path: string, encoding?: "utf8" | "base64"): Promise<string | null>;
-  writeFile(path: string, data: string, encoding?: "utf8" | "base64"): Promise<unknown>;
+  writeFile(
+    path: string,
+    data: string,
+    encoding?: "utf8" | "base64",
+  ): Promise<unknown>;
 };
 
 export interface LoginStatus {
   loggedIn: boolean;
   nickname?: string;
+  userId?: string;
 }
 
 function services(ctx: PluginContext): ManagedServiceApi {
@@ -49,34 +61,68 @@ function newId(): string {
   return `account-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export async function readAccountState(ctx: PluginContext): Promise<AccountState> {
-  const raw = await (ctx.storage as unknown as FileStorage).readFile(ACCOUNTS_FILE, "utf8");
-  const parsed = raw ? JSON.parse(raw) as Partial<AccountState> : null;
+export async function readAccountState(
+  ctx: PluginContext,
+): Promise<AccountState> {
+  const raw = await (ctx.storage as unknown as FileStorage).readFile(
+    ACCOUNTS_FILE,
+    "utf8",
+  );
+  const parsed = raw ? (JSON.parse(raw) as Partial<AccountState>) : null;
   if (!parsed) return { schemaVersion: 1, accounts: [] };
   try {
-    if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.accounts)) throw new Error("invalid account state");
+    if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.accounts))
+      throw new Error("invalid account state");
     return {
       schemaVersion: 1,
-      activeAccountId: typeof parsed.activeAccountId === "string" ? parsed.activeAccountId : undefined,
-      accounts: parsed.accounts.filter((account): account is XhsAccount => Boolean(
-        account && typeof account === "object" && typeof account.id === "string" && typeof account.name === "string",
-      )),
+      activeAccountId:
+        typeof parsed.activeAccountId === "string"
+          ? parsed.activeAccountId
+          : undefined,
+      accounts: parsed.accounts.filter((account): account is XhsAccount =>
+        Boolean(
+          account &&
+          typeof account === "object" &&
+          typeof account.id === "string" &&
+          typeof account.name === "string",
+        ),
+      ),
     };
   } catch {
     return { schemaVersion: 1, accounts: [] };
   }
 }
 
-async function writeAccountState(ctx: PluginContext, state: AccountState): Promise<void> {
-  await (ctx.storage as unknown as FileStorage).writeFile(ACCOUNTS_FILE, JSON.stringify(state, null, 2), "utf8");
+async function writeAccountState(
+  ctx: PluginContext,
+  state: AccountState,
+): Promise<void> {
+  await (ctx.storage as unknown as FileStorage).writeFile(
+    ACCOUNTS_FILE,
+    JSON.stringify(state, null, 2),
+    "utf8",
+  );
 }
 
-export async function readSession(ctx: PluginContext, accountId: string): Promise<string | undefined> {
-  return (await (ctx as ManagedPluginContext).secrets.get(accountKey(accountId))) ?? undefined;
+export async function readSession(
+  ctx: PluginContext,
+  accountId: string,
+): Promise<string | undefined> {
+  return (
+    (await (ctx as ManagedPluginContext).secrets.get(accountKey(accountId))) ??
+    undefined
+  );
 }
 
-async function saveSession(ctx: PluginContext, accountId: string, session: string): Promise<void> {
-  await (ctx as ManagedPluginContext).secrets.set(accountKey(accountId), session);
+async function saveSession(
+  ctx: PluginContext,
+  accountId: string,
+  session: string,
+): Promise<void> {
+  await (ctx as ManagedPluginContext).secrets.set(
+    accountKey(accountId),
+    session,
+  );
 }
 
 export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
@@ -85,13 +131,70 @@ export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
     responseType: "json",
     timeoutMs: 10_000,
   });
-  if (!response.ok) throw new Error(`Login status failed: HTTP ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Login status failed: HTTP ${response.status}`);
   const body = response.body as Record<string, unknown>;
   const data = body?.data as Record<string, unknown> | undefined;
   return {
     loggedIn: data?.is_logged_in === true,
-    nickname: typeof data?.nickname === "string" ? data.nickname : undefined,
+    nickname:
+      typeof data?.nickname === "string"
+        ? data.nickname
+        : typeof data?.username === "string"
+          ? data.username
+          : undefined,
+    userId:
+      typeof data?.user_id === "string"
+        ? data.user_id
+        : typeof data?.userId === "string"
+          ? data.userId
+          : undefined,
   };
+}
+
+export function accountDisplayName(
+  account: Pick<XhsAccount, "name" | "nickname">,
+): string | undefined {
+  const nickname = account.nickname?.trim();
+  if (nickname) return nickname;
+  const name = account.name.trim();
+  return name &&
+    !/^小红书账号\s*\d+$/.test(name) &&
+    !/^Xiaohongshu account\s*\d+$/i.test(name)
+    ? name
+    : undefined;
+}
+
+export function accountInitial(
+  account: Pick<XhsAccount, "name" | "nickname">,
+): string {
+  return (accountDisplayName(account) ?? "小").trim().slice(0, 1).toUpperCase();
+}
+
+/** Persist identity discovered by the upstream login/status endpoint. */
+export async function updateAccountIdentity(
+  ctx: PluginContext,
+  accountId: string,
+  status: LoginStatus,
+): Promise<XhsAccount | undefined> {
+  const state = await readAccountState(ctx);
+  const current = state.accounts.find((item) => item.id === accountId);
+  if (!current) return undefined;
+  const next: XhsAccount = {
+    ...current,
+    nickname: status.nickname || current.nickname,
+    userId: status.userId || current.userId,
+    name: status.nickname || current.name,
+    status: status.loggedIn ? "connected" : "expired",
+    lastCheckedAt: new Date().toISOString(),
+  };
+  await writeAccountState(ctx, {
+    ...state,
+    accounts: state.accounts.map((item) =>
+      item.id === accountId ? next : item,
+    ),
+  });
+  return next;
 }
 
 export async function requestQrPayload(ctx: PluginContext): Promise<string> {
@@ -100,17 +203,36 @@ export async function requestQrPayload(ctx: PluginContext): Promise<string> {
     responseType: "json",
     timeoutMs: 30_000,
   });
-  if (!response.ok) throw new Error(`QR request failed: HTTP ${response.status}`);
+  if (!response.ok)
+    throw new Error(`QR request failed: HTTP ${response.status}`);
   const body = response.body as Record<string, unknown>;
   const data = body?.data as Record<string, unknown> | undefined;
-  const candidates = [data?.url, data?.qrcode, data?.qr_code, data?.img, body?.url, body?.qrcode, body?.qr_code, body?.img];
-  const payload = candidates.find((value): value is string => typeof value === "string" && value.trim().length > 0);
+  const candidates = [
+    data?.url,
+    data?.qrcode,
+    data?.qr_code,
+    data?.img,
+    body?.url,
+    body?.qrcode,
+    body?.qr_code,
+    body?.img,
+  ];
+  const payload = candidates.find(
+    (value): value is string =>
+      typeof value === "string" && value.trim().length > 0,
+  );
   if (!payload) throw new Error("QR response did not contain a URL");
   return payload;
 }
 
-export async function captureCurrentSession(ctx: PluginContext): Promise<string> {
-  const session = await services(ctx).readDataFile(SERVICE_ID, SESSION_FILE, "utf8");
+export async function captureCurrentSession(
+  ctx: PluginContext,
+): Promise<string> {
+  const session = await services(ctx).readDataFile(
+    SERVICE_ID,
+    SESSION_FILE,
+    "utf8",
+  );
   if (!session) throw new Error("The service did not produce a session file");
   JSON.parse(session) as unknown;
   return session;
@@ -127,11 +249,18 @@ export async function beginLogin(ctx: PluginContext): Promise<XhsAccount> {
   return account;
 }
 
-export async function persistLoggedInAccount(ctx: PluginContext, account: XhsAccount): Promise<XhsAccount> {
+export async function persistLoggedInAccount(
+  ctx: PluginContext,
+  account: XhsAccount,
+): Promise<XhsAccount> {
   const session = await captureCurrentSession(ctx);
   await saveSession(ctx, account.id, session);
   const state = await readAccountState(ctx);
-  const next = { ...account, status: "connected" as const, lastCheckedAt: new Date().toISOString() };
+  const next = {
+    ...account,
+    status: "connected" as const,
+    lastCheckedAt: new Date().toISOString(),
+  };
   await writeAccountState(ctx, {
     schemaVersion: 1,
     activeAccountId: next.id,
@@ -140,7 +269,10 @@ export async function persistLoggedInAccount(ctx: PluginContext, account: XhsAcc
   return next;
 }
 
-export async function switchAccount(ctx: PluginContext, accountId: string): Promise<XhsAccount> {
+export async function switchAccount(
+  ctx: PluginContext,
+  accountId: string,
+): Promise<XhsAccount> {
   const state = await readAccountState(ctx);
   const account = state.accounts.find((item) => item.id === accountId);
   if (!account) throw new Error("Account not found");
@@ -151,19 +283,36 @@ export async function switchAccount(ctx: PluginContext, accountId: string): Prom
   await api.writeDataFile(SERVICE_ID, SESSION_FILE, session, "utf8");
   await api.start(SERVICE_ID);
   const status = await loginStatus(ctx);
-  if (!status.loggedIn) throw new Error("The selected account session is no longer valid");
-  const next = { ...account, status: "connected" as const, lastCheckedAt: new Date().toISOString() };
-  await writeAccountState(ctx, { schemaVersion: 1, activeAccountId: accountId, accounts: state.accounts.map((item) => item.id === accountId ? next : item) });
+  if (!status.loggedIn)
+    throw new Error("The selected account session is no longer valid");
+  const next = {
+    ...account,
+    status: "connected" as const,
+    lastCheckedAt: new Date().toISOString(),
+  };
+  await writeAccountState(ctx, {
+    schemaVersion: 1,
+    activeAccountId: accountId,
+    accounts: state.accounts.map((item) =>
+      item.id === accountId ? next : item,
+    ),
+  });
   return next;
 }
 
-export async function removeAccount(ctx: PluginContext, accountId: string): Promise<void> {
+export async function removeAccount(
+  ctx: PluginContext,
+  accountId: string,
+): Promise<void> {
   const state = await readAccountState(ctx);
   const nextAccounts = state.accounts.filter((item) => item.id !== accountId);
   await (ctx as ManagedPluginContext).secrets.delete(accountKey(accountId));
   await writeAccountState(ctx, {
     schemaVersion: 1,
-    activeAccountId: state.activeAccountId === accountId ? nextAccounts[0]?.id : state.activeAccountId,
+    activeAccountId:
+      state.activeAccountId === accountId
+        ? nextAccounts[0]?.id
+        : state.activeAccountId,
     accounts: nextAccounts,
   });
 }

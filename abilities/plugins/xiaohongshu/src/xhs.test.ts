@@ -1,17 +1,38 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderQrCode, renderQrPayload } from "./qr";
-import { loginStatus, readAccountState, requestQrPayload, switchAccount } from "./xhs";
+import {
+  accountDisplayName,
+  accountInitial,
+  loginStatus,
+  readAccountState,
+  requestQrPayload,
+  switchAccount,
+} from "./xhs";
 import { isAbortError } from "./ui";
 
 function context() {
   const files = new Map<string, unknown>();
-  const secrets = new Map<string, string>([["session:account-a", JSON.stringify({ version: 2, seed: "seed-a", cookies: [{ name: "a" }] })]]);
+  const secrets = new Map<string, string>([
+    [
+      "session:account-a",
+      JSON.stringify({ version: 2, seed: "seed-a", cookies: [{ name: "a" }] }),
+    ],
+  ]);
   const service = {
     stop: vi.fn(async () => ({ phase: "stopped" })),
     start: vi.fn(async () => ({ phase: "starting" })),
-    writeDataFile: vi.fn(async (_service: string, _path: string, data: string) => { files.set("cookies.json", JSON.parse(data)); }),
+    writeDataFile: vi.fn(
+      async (_service: string, _path: string, data: string) => {
+        files.set("cookies.json", JSON.parse(data));
+      },
+    ),
     readDataFile: vi.fn(async () => JSON.stringify(files.get("cookies.json"))),
-    request: vi.fn(async () => ({ ok: true, status: 200, statusText: "OK", body: { data: { is_logged_in: true } } })),
+    request: vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      body: { data: { is_logged_in: true } },
+    })),
   };
   const ctx = {
     storage: {
@@ -19,12 +40,18 @@ function context() {
         const value = files.get(path);
         return value === undefined ? null : JSON.stringify(value);
       }),
-      writeFile: vi.fn(async (path: string, value: string) => { files.set(path, JSON.parse(value)); }),
+      writeFile: vi.fn(async (path: string, value: string) => {
+        files.set(path, JSON.parse(value));
+      }),
     },
     secrets: {
       get: vi.fn(async (key: string) => secrets.get(key)),
-      set: vi.fn(async (key: string, value: string) => { secrets.set(key, value); }),
-      delete: vi.fn(async (key: string) => { secrets.delete(key); }),
+      set: vi.fn(async (key: string, value: string) => {
+        secrets.set(key, value);
+      }),
+      delete: vi.fn(async (key: string) => {
+        secrets.delete(key);
+      }),
     },
     services: service,
   } as never;
@@ -32,8 +59,18 @@ function context() {
     schemaVersion: 1,
     activeAccountId: "account-b",
     accounts: [
-      { id: "account-a", name: "账号 A", createdAt: "2026-01-01", status: "connected" },
-      { id: "account-b", name: "账号 B", createdAt: "2026-01-02", status: "unknown" },
+      {
+        id: "account-a",
+        name: "账号 A",
+        createdAt: "2026-01-01",
+        status: "connected",
+      },
+      {
+        id: "account-b",
+        name: "账号 B",
+        createdAt: "2026-01-02",
+        status: "unknown",
+      },
     ],
   });
   return { ctx, service };
@@ -41,13 +78,17 @@ function context() {
 
 describe("xiaohongshu plugin account handling", () => {
   it("treats service aborts during plugin reload as transient lifecycle events", () => {
-    expect(isAbortError(new DOMException("The operation was aborted", "AbortError"))).toBe(true);
+    expect(
+      isAbortError(new DOMException("The operation was aborted", "AbortError")),
+    ).toBe(true);
     expect(isAbortError({ name: "AbortError" })).toBe(true);
     expect(isAbortError(new Error("network request failed"))).toBe(false);
   });
 
   it("renders QR codes inside the plugin without a host QR API", async () => {
-    expect(await renderQrCode("https://example.test/login")).toMatch(/^data:image\/png;base64,/);
+    expect(await renderQrCode("https://example.test/login")).toMatch(
+      /^data:image\/png;base64,/,
+    );
   });
 
   it("keeps an upstream QR image data URL intact", async () => {
@@ -58,18 +99,66 @@ describe("xiaohongshu plugin account handling", () => {
   it("accepts the upstream login status and QR image response shapes", async () => {
     const { ctx, service } = context();
     service.request
-      .mockResolvedValueOnce({ ok: true, status: 200, statusText: "OK", body: { data: { is_logged_in: false } } })
-      .mockResolvedValueOnce({ ok: true, status: 200, statusText: "OK", body: { data: { img: "data:image/png;base64,ZmFrZQ==" } } } as never);
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        body: { data: { is_logged_in: false } },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        body: { data: { img: "data:image/png;base64,ZmFrZQ==" } },
+      } as never);
     await expect(loginStatus(ctx)).resolves.toMatchObject({ loggedIn: false });
-    await expect(requestQrPayload(ctx)).resolves.toBe("data:image/png;base64,ZmFrZQ==");
+    await expect(requestQrPayload(ctx)).resolves.toBe(
+      "data:image/png;base64,ZmFrZQ==",
+    );
+  });
+
+  it("reads the identity fields returned by the managed upstream runtime", async () => {
+    const { ctx, service } = context();
+    service.request.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      body: {
+        data: {
+          is_logged_in: true,
+          username: "花酒",
+          user_id: "user-8023",
+        },
+      },
+    } as never);
+
+    await expect(loginStatus(ctx)).resolves.toEqual({
+      loggedIn: true,
+      nickname: "花酒",
+      userId: "user-8023",
+    });
+  });
+
+  it("does not present generated storage labels as a known account identity", () => {
+    expect(accountDisplayName({ name: "小红书账号 1" })).toBeUndefined();
+    expect(accountDisplayName({ name: "小红书账号 1", nickname: "花酒" })).toBe(
+      "花酒",
+    );
+    expect(accountInitial({ name: "小红书账号 1", nickname: "花酒" })).toBe(
+      "花",
+    );
   });
 
   it("writes the complete opaque session before restarting the service", async () => {
     const { ctx, service } = context();
     await switchAccount(ctx, "account-a");
     expect(service.stop).toHaveBeenCalledBefore(service.writeDataFile);
-    expect(service.writeDataFile.mock.calls[0]?.[2]).toContain('"seed":"seed-a"');
+    expect(service.writeDataFile.mock.calls[0]?.[2]).toContain(
+      '"seed":"seed-a"',
+    );
     expect(service.start).toHaveBeenCalledAfter(service.writeDataFile);
-    expect(await readAccountState(ctx)).toMatchObject({ activeAccountId: "account-a" });
+    expect(await readAccountState(ctx)).toMatchObject({
+      activeAccountId: "account-a",
+    });
   });
 });
