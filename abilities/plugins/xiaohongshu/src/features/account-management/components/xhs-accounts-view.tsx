@@ -16,6 +16,7 @@ import {
 	persistLoggedInAccount,
 	readAccountState,
 	removeAccount,
+	requestQrPayload,
 	renameAccount,
 	SERVICE_ID,
 	switchAccount,
@@ -162,32 +163,7 @@ export function XhsAccountsView({
 		try {
 			await ensureServiceStarted(context);
 			const next = await beginLogin(context);
-			const payload = await context.services.request<{
-				data?: Record<string, unknown>;
-				url?: string;
-				qrcode?: string;
-				qr_code?: string;
-				img?: string;
-			}>("xhs", {
-				path: "/api/v1/login/qrcode",
-				responseType: "json",
-				timeoutMs: 30_000,
-			});
-
-			const body = payload.body;
-			const qrPayload =
-				body.data?.url ??
-				body.data?.qrcode ??
-				body.data?.qr_code ??
-				body.data?.img ??
-				body.url ??
-				body.qrcode ??
-				body.qr_code ??
-				body.img;
-
-			if (typeof qrPayload !== "string" || !qrPayload) {
-				throw new Error("二维码获取失败，请重试");
-			}
+			const qrPayload = await requestQrPayload(context);
 
 			setQrCodeData(await renderQrPayload(qrPayload));
 			setQrStatus("waitingScan");

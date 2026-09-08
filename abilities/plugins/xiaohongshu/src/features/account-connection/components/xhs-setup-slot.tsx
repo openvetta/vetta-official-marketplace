@@ -14,6 +14,7 @@ import {
 	beginLogin,
 	loginStatus,
 	persistLoggedInAccount,
+	requestQrPayload,
 	readAccountState,
 	updateAccountIdentity,
 	type XhsAccount,
@@ -125,29 +126,7 @@ export function XhsSetupSlot({
 				}
 				const next = await beginLogin(context);
 				setStatus("waitingQr");
-				const payload = await context.services.request<{
-					data?: Record<string, unknown>;
-					url?: string;
-					qrcode?: string;
-					qr_code?: string;
-					img?: string;
-				}>("xhs", {
-					path: "/api/v1/login/qrcode",
-					responseType: "json",
-					timeoutMs: 30_000,
-				});
-				const body = payload.body;
-				const qrPayload =
-					body.data?.url ??
-					body.data?.qrcode ??
-					body.data?.qr_code ??
-					body.data?.img ??
-					body.url ??
-					body.qrcode ??
-					body.qr_code ??
-					body.img;
-				if (typeof qrPayload !== "string" || !qrPayload)
-					throw new Error("QR response did not contain a URL");
+				const qrPayload = await requestQrPayload(context);
 				setQr(await renderQrPayload(qrPayload));
 				setStatus("waitingScan");
 				const deadline = Date.now() + 180_000;

@@ -80,6 +80,17 @@ function nonEmptyString(
 	return undefined;
 }
 
+function errorMessageFromResponse(value: unknown): string | undefined {
+	if (typeof value === "string" && value.trim()) return value.trim();
+	const record = recordOf(value);
+	if (!record) return undefined;
+	for (const key of ["error", "message", "detail"]) {
+		const message = record[key];
+		if (typeof message === "string" && message.trim()) return message.trim();
+	}
+	return undefined;
+}
+
 export function identityFromProfile(
 	value: unknown,
 ): Omit<LoginStatus, "loggedIn"> {
@@ -281,8 +292,14 @@ export async function requestQrPayload(ctx: PluginContext): Promise<string> {
 		responseType: "json",
 		timeoutMs: 30_000,
 	});
-	if (!response.ok)
-		throw new Error(`QR request failed: HTTP ${response.status}`);
+	if (!response.ok) {
+		const detail = errorMessageFromResponse(response.body);
+		throw new Error(
+			detail
+				? `二维码获取失败：${detail}`
+				: `二维码获取失败（HTTP ${response.status}）`,
+		);
+	}
 	const body = response.body as Record<string, unknown>;
 	if (typeof body.id === "string") loginSessionId = body.id;
 	const data = body?.data as Record<string, unknown> | undefined;

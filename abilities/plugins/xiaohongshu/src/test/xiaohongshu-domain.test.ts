@@ -123,6 +123,22 @@ describe("xiaohongshu plugin account handling", () => {
 		);
 	});
 
+	it("surfaces the managed service error when QR generation is blocked", async () => {
+		const { ctx, service } = context();
+		service.request.mockResolvedValueOnce({
+			ok: false,
+			status: 500,
+			statusText: "Internal Server Error",
+			body: {
+				error: "小红书未返回二维码：安全限制 IP存在风险，请切换可靠网络环境后重试 300012",
+			},
+		} as never);
+
+		await expect(requestQrPayload(ctx)).rejects.toThrow(
+			"二维码获取失败：小红书未返回二维码：安全限制 IP存在风险",
+		);
+	});
+
 	it("reads the identity fields returned by the managed upstream runtime", async () => {
 		const { ctx, service } = context();
 		service.request.mockResolvedValueOnce({
