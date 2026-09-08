@@ -36,7 +36,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "1132f4138cb9c5c39bba7ffad75a3bda15423e2478349795c273d2f139c1b1af",
+                  "sha256": "d98a20977a045ab1487f797a7160b037132eafef172c310910999bb8fb07ee93",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -46,7 +46,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "1132f4138cb9c5c39bba7ffad75a3bda15423e2478349795c273d2f139c1b1af",
+                  "sha256": "d98a20977a045ab1487f797a7160b037132eafef172c310910999bb8fb07ee93",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -56,7 +56,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "1132f4138cb9c5c39bba7ffad75a3bda15423e2478349795c273d2f139c1b1af",
+                  "sha256": "d98a20977a045ab1487f797a7160b037132eafef172c310910999bb8fb07ee93",
                   "archive": "zip",
                   "destination": "service"
                 }
