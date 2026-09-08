@@ -65,6 +65,13 @@ jobs:
             const text = fs.readFileSync(file, 'utf8');
             fs.writeFileSync(file, text.replaceAll(/"sha256":\s*"[a-f0-9]{64}"/g, `"sha256": "${process.env.DIGEST}"`));
           }
+          const catalogPath = '.vetta/marketplace.json';
+          const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+          const current = String(catalog.marketplaceVersion ?? '2026.01.01-0');
+          const match = current.match(/^(\d{4}\.\d{2}\.\d{2})-(\d+)$/);
+          const today = new Date().toISOString().slice(0, 10).replaceAll('-', '.');
+          catalog.marketplaceVersion = match && match[1] === today ? `${today}-${Number(match[2]) + 1}` : `${today}-1`;
+          fs.writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
           NODE
 
       - name: Build plugin and validate marketplace
@@ -74,6 +81,9 @@ jobs:
           npm run check
           npm test -- --run
           npm run build
+
+      - name: Validate marketplace contracts
+        run: node --test tests/marketplace.test.mjs
 
       - name: Commit digest and generated plugin files
         env:
