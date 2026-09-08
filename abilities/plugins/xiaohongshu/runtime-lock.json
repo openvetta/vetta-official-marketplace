@@ -1,5 +1,5 @@
 {
-  "version": "1.1.2",
+  "version": "1.1.3",
   "platforms": {
     "win32-x64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.2/xiaohongshu-service.zip", "sha256": "d98a20977a045ab1487f797a7160b037132eafef172c310910999bb8fb07ee93", "archive": "zip" }],
     "darwin-arm64": [{ "destination": "service", "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.2/xiaohongshu-service.zip", "sha256": "d98a20977a045ab1487f797a7160b037132eafef172c310910999bb8fb07ee93", "archive": "zip" }],

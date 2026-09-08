@@ -94,7 +94,7 @@ jobs:
           const fs = require('node:fs');
           const manifest = JSON.parse(fs.readFileSync('abilities/plugins/xiaohongshu/plugin.json', 'utf8'));
           const service = manifest.providers.services.find((item) => item.id === 'xhs');
-          if (manifest.version !== '1.1.2' || service.runtime.kind !== 'host-node' || service.runtime.entry !== 'service/dist/main.js') {
+          if (manifest.version !== '1.1.3' || service.runtime.kind !== 'host-node' || service.runtime.entry !== 'service/dist/main.js') {
             throw new Error('Unexpected Xiaohongshu service manifest');
           }
           NODE
