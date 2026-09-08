@@ -501,7 +501,7 @@ test("Xiaohongshu plugin owns its managed service, account UI and service-backed
   const plugin = readJson(packageFile(root, `${ability.source.path}/plugin.json`));
   assert.equal(plugin.id, "xiaohongshu");
   assert.deepEqual(plugin.providers.services[0].process, {
-    args: ["-port=:${VETTA_SERVICE_PORT}"],
+    args: ["-headless=false", "-port=:${VETTA_SERVICE_PORT}"],
     env: { COOKIES_PATH: "${VETTA_SERVICE_DATA_DIR}/cookies.json" },
   });
   assert.deepEqual(plugin.agent.mcpServers.xiaohongshu, {

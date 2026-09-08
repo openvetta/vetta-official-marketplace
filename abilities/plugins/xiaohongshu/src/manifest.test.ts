@@ -11,6 +11,12 @@ describe("packaged service contract", () => {
     expect("readiness" in manifest.providers.services[0].health).toBe(false);
   });
 
+  it("uses a visible browser for login compatibility", () => {
+    expect(manifest.providers.services[0].process.args).toContain(
+      "-headless=false",
+    );
+  });
+
   it("keeps catalog and package versions aligned and packaged details resolvable", () => {
     const catalog = JSON.parse(readFileSync(new URL("../../../../.vetta/marketplace.json", import.meta.url), "utf8"));
     expect(catalog.abilities.find((item: { slug: string }) => item.slug === manifest.id)?.version).toBe(manifest.version);
