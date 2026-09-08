@@ -82,8 +82,16 @@ jobs:
           npm test -- --run
           npm run build
 
-      - name: Validate marketplace contracts
-        run: node --test tests/marketplace.test.mjs
+      - name: Validate Xiaohongshu manifest
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('abilities/plugins/xiaohongshu/plugin.json', 'utf8'));
+          const service = manifest.providers.services.find((item) => item.id === 'xhs');
+          if (manifest.version !== '1.1.0' || service.runtime.kind !== 'host-node' || service.runtime.entry !== 'service/dist/main.js') {
+            throw new Error('Unexpected Xiaohongshu service manifest');
+          }
+          NODE
 
       - name: Commit digest and generated plugin files
         env:
