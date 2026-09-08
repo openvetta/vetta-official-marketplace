@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "xiaohongshu",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",

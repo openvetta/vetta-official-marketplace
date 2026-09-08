@@ -8,6 +8,7 @@ import {
   readAccountState,
   requestQrPayload,
   switchAccount,
+  renameAccount,
   updateAccountIdentity,
 } from "./xhs";
 import { isAbortError } from "./ui";
@@ -240,5 +241,15 @@ describe("xiaohongshu plugin account handling", () => {
     expect(await readAccountState(ctx)).toMatchObject({
       activeAccountId: "account-a",
     });
+  });
+
+  it("updates account custom name via renameAccount", async () => {
+    const { ctx } = context();
+    const updated = await renameAccount(ctx, "account-a", "我的小红书主号");
+    expect(updated?.name).toBe("我的小红书主号");
+    const state = await readAccountState(ctx);
+    expect(state.accounts.find((item) => item.id === "account-a")?.name).toBe(
+      "我的小红书主号",
+    );
   });
 });

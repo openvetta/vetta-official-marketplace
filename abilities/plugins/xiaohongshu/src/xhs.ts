@@ -373,4 +373,24 @@ export async function removeAccount(
   });
 }
 
+export async function renameAccount(
+  ctx: PluginContext,
+  accountId: string,
+  name: string,
+): Promise<XhsAccount | undefined> {
+  const trimmed = name.trim();
+  if (!trimmed) return undefined;
+  const state = await readAccountState(ctx);
+  const account = state.accounts.find((item) => item.id === accountId);
+  if (!account) return undefined;
+  const next: XhsAccount = { ...account, name: trimmed };
+  await writeAccountState(ctx, {
+    ...state,
+    accounts: state.accounts.map((item) =>
+      item.id === accountId ? next : item,
+    ),
+  });
+  return next;
+}
+
 export { writeAccountState };

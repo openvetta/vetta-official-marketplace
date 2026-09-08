@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 
-import { render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { XhsAccountsView, XhsSetupSlot } from "./ui";
 
 const mocks = vi.hoisted(() => ({
   state: {
     schemaVersion: 1,
-    activeAccountId: "account-a",
+    activeAccountId: "account-a" as string | undefined,
     accounts: [
       {
         id: "account-a",
@@ -59,6 +59,17 @@ vi.mock("@vetta-org/plugin-sdk", () => ({
         "accounts.loginNew": "添加账号",
         "accounts.remove": "删除",
         "accounts.identityPending": "账号身份待识别",
+        "accounts.statActive": "当前生效账号",
+        "accounts.statService": "后台服务状态",
+        "accounts.statSaved": "多账号池",
+        "accounts.emptyTitle": "还没有连接账号",
+        "accounts.emptyDesc": "连接小红书账号后，可以在会话中无缝使用小红书 MCP",
+        "accounts.emptyCta": "添加第一个小红书账号",
+        "accounts.renameTitle": "修改账号备注",
+        "accounts.deleteTitle": "移除账号",
+        "accounts.deleteWarning": "确定要移除账号“{{name}}”吗？",
+        "accounts.cancel": "取消",
+        "accounts.save": "保存",
       };
       return (labels[key] ?? key)
         .replace("{{name}}", String(params?.name ?? ""))
@@ -88,6 +99,10 @@ const context = {
 } as never;
 
 describe("xiaohongshu plugin account UI", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.login = { loggedIn: true, nickname: "花酒", userId: "user-8023" };
@@ -108,5 +123,37 @@ describe("xiaohongshu plugin account UI", () => {
     );
     expect(screen.getByText(/当前账号/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "删除" })).toBeTruthy();
+  });
+
+  it("renders empty state when no accounts are saved", async () => {
+    const originalAccounts = mocks.state.accounts;
+    const originalActive = mocks.state.activeAccountId;
+    mocks.state.accounts = [];
+    mocks.state.activeAccountId = undefined;
+    mocks.login = { loggedIn: false };
+    try {
+      render(<XhsAccountsView context={context} />);
+      await waitFor(() =>
+        expect(screen.getByText("还没有连接账号")).toBeTruthy(),
+      );
+      expect(screen.getByText("添加第一个小红书账号")).toBeTruthy();
+    } finally {
+      mocks.state.accounts = originalAccounts;
+      mocks.state.activeAccountId = originalActive;
+    }
+  });
+
+  it("opens delete confirm modal when clicking remove button", async () => {
+    mocks.login = { loggedIn: true, nickname: "花酒", userId: "user-8023" };
+    render(<XhsAccountsView context={context} />);
+    await waitFor(() =>
+      expect(screen.getAllByRole("button", { name: "删除" }).length).toBeGreaterThan(0),
+    );
+    const deleteBtn = screen.getAllByRole("button", { name: "删除" })[0];
+    deleteBtn.click();
+    await waitFor(() =>
+      expect(screen.getByText("移除账号")).toBeTruthy(),
+    );
+    expect(screen.getByText(/确定要移除账号“花酒”吗？/)).toBeTruthy();
   });
 });
