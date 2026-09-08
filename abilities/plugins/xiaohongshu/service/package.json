@@ -4,13 +4,15 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "playwright-core": "^1.55.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.7"
   }
 }

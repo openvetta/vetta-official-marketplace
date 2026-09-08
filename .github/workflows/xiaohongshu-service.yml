@@ -30,7 +30,8 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run check
-          npx tsc
+          npm test
+          npm run build
 
       - name: Create deterministic service archive
         working-directory: abilities/plugins/xiaohongshu/service
@@ -61,9 +62,14 @@ jobs:
             'abilities/plugins/xiaohongshu/plugin.json',
             'abilities/plugins/xiaohongshu/runtime-lock.json',
           ];
+          const plugin = JSON.parse(fs.readFileSync('abilities/plugins/xiaohongshu/plugin.json', 'utf8'));
+          const version = plugin.version;
           for (const file of files) {
             const text = fs.readFileSync(file, 'utf8');
-            fs.writeFileSync(file, text.replaceAll(/"sha256":\s*"[a-f0-9]{64}"/g, `"sha256": "${process.env.DIGEST}"`));
+            fs.writeFileSync(file, text
+              .replaceAll(/"sha256":\s*"[a-f0-9]{64}"/g, `"sha256": "${process.env.DIGEST}"`)
+              .replaceAll(/xiaohongshu-[0-9]+\.[0-9]+\.[0-9]+/g, `xiaohongshu-${version}`)
+              .replaceAll(/("version":\s*")[0-9]+\.[0-9]+\.[0-9]+("\s*,?)/g, `$1${version}$2`));
           }
           const catalogPath = '.vetta/marketplace.json';
           const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
@@ -88,7 +94,7 @@ jobs:
           const fs = require('node:fs');
           const manifest = JSON.parse(fs.readFileSync('abilities/plugins/xiaohongshu/plugin.json', 'utf8'));
           const service = manifest.providers.services.find((item) => item.id === 'xhs');
-          if (manifest.version !== '1.1.0' || service.runtime.kind !== 'host-node' || service.runtime.entry !== 'service/dist/main.js') {
+          if (manifest.version !== '1.1.1' || service.runtime.kind !== 'host-node' || service.runtime.entry !== 'service/dist/main.js') {
             throw new Error('Unexpected Xiaohongshu service manifest');
           }
           NODE
