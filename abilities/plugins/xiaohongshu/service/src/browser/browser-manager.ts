@@ -68,7 +68,9 @@ async function installOnce(cacheDir: string, cliPath: string, installer: (path: 
 	const key = resolve(cacheDir);
 	const existing = browserInstallations.get(key);
 	if (existing) return existing;
-	const installation = installer(cliPath, key).finally(() => browserInstallations.delete(key));
+	const installation = Promise.resolve()
+		.then(() => installer(cliPath, key))
+		.finally(() => browserInstallations.delete(key));
 	browserInstallations.set(key, installation);
 	return installation;
 }
