@@ -2,7 +2,7 @@
   "id": "xiaohongshu",
   "name": "%name%",
   "icon": "assets/icon.png",
-  "version": "1.0.15",
+  "version": "1.1.0",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
@@ -28,43 +28,45 @@
       {
         "id": "xhs",
         "runtime": {
-          "version": "2.5.0",
+          "kind": "host-node",
+          "version": "1.1.0",
+          "entry": "service/dist/main.js",
           "platforms": {
             "win32-x64": {
-              "executable": "xiaohongshu-mcp-windows-amd64.exe",
+              "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "3578c9fcf3e7be0b79564aeceef8c4f38e0072d9357ca1f911ee14cd37bd454c",
-                  "archive": "file",
-                  "destination": "xiaohongshu-mcp-windows-amd64.exe"
+                  "sha256": "0050b67b6a920fab0ab78e8b6f6678cf7f903a538e916fa0e03ed46ea8164896",
+                  "archive": "zip",
+                  "destination": "service"
                 }
               ]
             },
             "darwin-arm64": {
-              "executable": "xiaohongshu-mcp-darwin-arm64",
+              "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "3e32e08c3403d22a5efef2f06aa52630b458819fc54474cba23e896c7092c38e",
-                  "archive": "file",
-                  "destination": "xiaohongshu-mcp-darwin-arm64"
+                  "sha256": "0050b67b6a920fab0ab78e8b6f6678cf7f903a538e916fa0e03ed46ea8164896",
+                  "archive": "zip",
+                  "destination": "service"
                 }
               ]
             },
             "linux-x64": {
-              "executable": "xiaohongshu-mcp-linux-amd64",
+              "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "2695820af3a924412c0e555042b81a2598d144342539d4ebea18b17d56c85fbf",
-                  "archive": "file",
-                  "destination": "xiaohongshu-mcp-linux-amd64"
+                  "sha256": "0050b67b6a920fab0ab78e8b6f6678cf7f903a538e916fa0e03ed46ea8164896",
+                  "archive": "zip",
+                  "destination": "service"
                 }
               ]
             }
           }
         },
         "process": {
-          "args": ["-headless=false", "-port=:${VETTA_SERVICE_PORT}"],
-          "env": { "COOKIES_PATH": "${VETTA_SERVICE_DATA_DIR}/cookies.json" }
+          "args": [],
+          "env": { "XHS_HEADLESS": "true" }
         },
         "health": {
           "path": "/health",

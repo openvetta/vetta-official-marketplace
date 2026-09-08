@@ -14,7 +14,7 @@ type ServiceStatus = Awaited<
 	ReturnType<ManagedPluginContext["services"]["getStatus"]>
 >;
 
-const assetsByPlatform = runtimeLock.platforms as Record<
+const assetsByPlatform = runtimeLock.platforms as unknown as Record<
 	PlatformTag,
 	RuntimeAsset[]
 >;

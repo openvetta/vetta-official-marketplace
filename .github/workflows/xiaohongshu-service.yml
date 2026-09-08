@@ -1,0 +1,103 @@
+name: Build Xiaohongshu service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "abilities/plugins/xiaohongshu/**"
+      - ".github/workflows/xiaohongshu-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: abilities/plugins/xiaohongshu/service/package-lock.json
+
+      - name: Build and check service
+        working-directory: abilities/plugins/xiaohongshu/service
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+          npx tsc
+
+      - name: Create deterministic service archive
+        working-directory: abilities/plugins/xiaohongshu/service
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+          root = Path('.')
+          files = [p for base in (root / 'dist', root / 'node_modules' / 'playwright-core') for p in base.rglob('*') if p.is_file()]
+          files.append(root / 'package.json')
+          with ZipFile('xiaohongshu-service.zip', 'w', ZIP_DEFLATED) as archive:
+              for path in sorted(files):
+                  name = path.as_posix()
+                  info = ZipInfo(name, (1980, 1, 1, 0, 0, 0))
+                  info.compress_type = ZIP_DEFLATED
+                  archive.writestr(info, path.read_bytes())
+          PY
+          echo "sha256=$(sha256sum xiaohongshu-service.zip | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+        id: archive
+
+      - name: Synchronize runtime digest
+        env:
+          DIGEST: ${{ steps.archive.outputs.sha256 }}
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const files = [
+            'abilities/plugins/xiaohongshu/plugin.json',
+            'abilities/plugins/xiaohongshu/runtime-lock.json',
+          ];
+          for (const file of files) {
+            const text = fs.readFileSync(file, 'utf8');
+            fs.writeFileSync(file, text.replaceAll(/"sha256":\s*"[a-f0-9]{64}"/g, `"sha256": "${process.env.DIGEST}"`));
+          }
+          NODE
+
+      - name: Build plugin and validate marketplace
+        working-directory: abilities/plugins/xiaohongshu
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+          npm test -- --run
+          npm run build
+
+      - name: Commit digest and generated plugin files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "No generated changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add abilities/plugins/xiaohongshu .vetta/marketplace.json
+          git commit -m "chore: 更新小红书服务制品 [skip ci]"
+          git push origin HEAD:main
+
+      - name: Publish service release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: abilities/plugins/xiaohongshu/service
+        run: |
+          version="$(node -p "require('../plugin.json').version")"
+          tag="xiaohongshu-${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" xiaohongshu-service.zip --clobber
+          else
+            gh release create "$tag" xiaohongshu-service.zip --target main --title "Xiaohongshu service ${version}" --notes "Node.js + Playwright service for the Xiaohongshu plugin."
+          fi

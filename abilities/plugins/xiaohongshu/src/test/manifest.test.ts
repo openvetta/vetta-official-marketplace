@@ -11,10 +11,9 @@ describe("packaged service contract", () => {
 		expect("readiness" in manifest.providers.services[0].health).toBe(false);
 	});
 
-	it("uses a visible browser for login compatibility", () => {
-		expect(manifest.providers.services[0].process.args).toContain(
-			"-headless=false",
-		);
+	it("keeps the service headless and reserves visible browser work for login sessions", () => {
+		expect(manifest.providers.services[0].runtime.kind).toBe("host-node");
+		expect(manifest.providers.services[0].process.env?.XHS_HEADLESS).toBe("true");
 	});
 
 	it("keeps catalog and package versions aligned and packaged details resolvable", () => {

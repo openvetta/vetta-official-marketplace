@@ -8,6 +8,8 @@ export const SERVICE_ID = "xhs";
 const SESSION_FILE = "cookies.json";
 const ACCOUNTS_FILE = "accounts.json";
 const SESSION_SECRET_PREFIX = "session:";
+let loginSessionId: string | undefined;
+let pendingAccountId: string | undefined;
 
 export type AccountStatus = "connected" | "expired" | "unknown";
 
@@ -188,6 +190,22 @@ async function saveSession(
 }
 
 export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
+	if (loginSessionId) {
+		const session = await services(ctx).request<unknown>(SERVICE_ID, {
+			path: `/api/v1/login/sessions/${loginSessionId}`,
+			responseType: "json",
+			timeoutMs: 10_000,
+		});
+		if (session.ok) {
+			const value = session.body as Record<string, unknown>;
+			if (value.status === "waiting") return { loggedIn: false };
+			if (value.status === "authenticated") {
+				loginSessionId = undefined;
+				const account = value.account as Record<string, unknown> | undefined;
+				return { loggedIn: true, nickname: nonEmptyString(account, ["name", "username"]) };
+			}
+		}
+	}
 	const response = await services(ctx).request<unknown>(SERVICE_ID, {
 		path: "/api/v1/login/status",
 		responseType: "json",
@@ -257,13 +275,16 @@ export async function updateAccountIdentity(
 
 export async function requestQrPayload(ctx: PluginContext): Promise<string> {
 	const response = await services(ctx).request<unknown>(SERVICE_ID, {
-		path: "/api/v1/login/qrcode",
+		path: "/api/v1/login/sessions",
+		method: "POST",
+		body: pendingAccountId ? { accountId: pendingAccountId } : {},
 		responseType: "json",
 		timeoutMs: 30_000,
 	});
 	if (!response.ok)
 		throw new Error(`QR request failed: HTTP ${response.status}`);
 	const body = response.body as Record<string, unknown>;
+	if (typeof body.id === "string") loginSessionId = body.id;
 	const data = body?.data as Record<string, unknown> | undefined;
 	const candidates = [
 		data?.url,
@@ -304,6 +325,7 @@ export async function beginLogin(ctx: PluginContext): Promise<XhsAccount> {
 		createdAt: new Date().toISOString(),
 		status: "unknown",
 	};
+	pendingAccountId = account.id;
 	return account;
 }
 
@@ -311,8 +333,8 @@ export async function persistLoggedInAccount(
 	ctx: PluginContext,
 	account: XhsAccount,
 ): Promise<XhsAccount> {
-	const session = await captureCurrentSession(ctx);
-	await saveSession(ctx, account.id, session);
+	// The service owns Playwright storage state. Keep only non-sensitive account metadata in the plugin.
+	pendingAccountId = undefined;
 	const state = await readAccountState(ctx);
 	const next = {
 		...account,

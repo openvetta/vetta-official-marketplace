@@ -1,0 +1,12 @@
+{
+  "name": "@vetta-marketplace/xiaohongshu-service",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "playwright-core": "^1.55.0"
+  }
+}
