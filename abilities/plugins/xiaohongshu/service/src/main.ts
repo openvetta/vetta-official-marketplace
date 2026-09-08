@@ -12,6 +12,16 @@ const sessions = new Map<string, { page: import("playwright-core").Page; context
 let activeAccountId: string | undefined;
 let latestLoginSessionId: string | undefined;
 
+async function qrPayload(page: import("playwright-core").Page): Promise<string | null> {
+		const selector = ".login-container .qrcode-img, img[src^='data:image'], img";
+		try {
+			await page.locator(selector).first().waitFor({ state: "visible", timeout: 15_000 });
+		} catch {
+			return null;
+		}
+		return page.locator(selector).first().getAttribute("src").catch(() => null);
+}
+
 function json(response: ServerResponse, status: number, body: unknown): void {
 	response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
 	response.end(JSON.stringify(body));
@@ -41,7 +51,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const sessionId = randomUUID();
 		sessions.set(sessionId, { ...login, createdAt: Date.now() });
 		latestLoginSessionId = sessionId;
-		const qr = await login.page.locator("img").first().getAttribute("src").catch(() => null);
+		const qr = await qrPayload(login.page);
 		return json(response, 200, { url: qr, id: sessionId, status: "waiting", expiresAt: Date.now() + 180_000 });
 	}
 	if (request.method === "GET" && url.pathname === "/api/v1/login/status") {
@@ -49,7 +59,8 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const session = sessionId ? sessions.get(sessionId) : undefined;
 		if (session) {
 			const cookies = await session.context.cookies("https://www.xiaohongshu.com");
-			if (cookies.length === 0 && Date.now() - session.createdAt < 180_000)
+			const loggedIn = (await session.page.locator(".main-container .user .link-wrapper .channel, [class*='user-avatar']").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session" || cookie.name === "a1");
+			if (!loggedIn && Date.now() - session.createdAt < 180_000)
 				return json(response, 200, { data: { is_logged_in: false } });
 			const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
 			const account: AccountMetadata = { id: accountId, name: "小红书账号", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
@@ -81,7 +92,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const login = await browser.createLoginSession();
 		sessions.set(sessionId, { ...login, createdAt: Date.now(), accountId: typeof input.accountId === "string" ? input.accountId : undefined });
 		latestLoginSessionId = sessionId;
-		const qr = await login.page.locator("img").first().getAttribute("src").catch(() => null);
+		const qr = await qrPayload(login.page);
 		return json(response, 201, { id: sessionId, accountId: typeof input.accountId === "string" ? input.accountId : undefined, status: "waiting", qrCode: qr, expiresAt: Date.now() + 180_000 });
 	}
 	const sessionMatch = url.pathname.match(/^\/api\/v1\/login\/sessions\/([^/]+)$/u);

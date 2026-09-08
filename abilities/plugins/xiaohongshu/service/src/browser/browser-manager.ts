@@ -146,7 +146,7 @@ export class BrowserManager {
 		try {
 			await page.goto(HOME_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
 			const cookies = await context.cookies("https://www.xiaohongshu.com");
-			const loggedIn = (await page.locator("[class*='avatar'], [class*='user-avatar']").count()) > 0 || cookies.length > 0;
+			const loggedIn = (await page.locator(".main-container .user .link-wrapper .channel, [class*='user-avatar']").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session" || cookie.name === "a1");
 			return { loggedIn };
 		} finally {
 			await page.close();
@@ -157,7 +157,10 @@ export class BrowserManager {
 		const browser = await this.ensureBrowser();
 		const context = await browser.newContext({ locale: "zh-CN" });
 		const page = await context.newPage();
-		await page.goto(`${HOME_URL}explore`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+		// The login page may keep network requests open indefinitely.  Commit the
+		// navigation promptly and let the caller wait for the QR element instead of
+		// blocking the whole service request on domcontentloaded.
+		await page.goto(`${HOME_URL}explore`, { waitUntil: "commit", timeout: 15_000 }).catch(() => undefined);
 		return { page, context };
 	}
 
