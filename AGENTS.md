@@ -14,6 +14,9 @@
 6. **bump 顶层 `marketplaceVersion`**
 7. 按「提交前检查清单」自检
 
+插件项目的目录、职责拆分、Tailwind 接入和用户流程测试遵循
+[`docs/plugin-project-structure.md`](docs/plugin-project-structure.md)。文件名必须表达职责；不要使用 `ui.ts`、`ui.tsx`、`utils.ts` 或 `primitives.tsx` 作为多个职责的容器。所有 UI `.tsx` 生产文件放在 feature/shared 的 `components/` 下（根目录 `index.tsx` 仅作为插件装配入口），基础组件原则上一个文件只放一个组件；`tools/` 仅用于 `ctx.agent.registerTool()` 的 Agent 工具。
+
 ## 目录结构
 
 ```text

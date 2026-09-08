@@ -511,7 +511,7 @@ test("Xiaohongshu plugin owns its managed service, account UI and service-backed
     displayName: "Xiaohongshu tools",
     description: "Use the active Xiaohongshu account for search, note and interaction operations.",
   });
-  const qrSource = readFileSync(packageFile(root, `${ability.source.path}/src/qr.ts`), "utf8");
+  const qrSource = readFileSync(packageFile(root, `${ability.source.path}/src/features/account-connection/services/qr-code.ts`), "utf8");
   assert.match(qrSource, /from "qrcode"/);
   assert.doesNotMatch(qrSource, /createQrCode/);
 });
