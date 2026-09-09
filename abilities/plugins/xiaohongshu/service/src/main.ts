@@ -87,6 +87,23 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "GET" && url.pathname === "/api/v1/accounts") return json(response, 200, { accounts: await store.list(), activeAccountId });
 	if (request.method === "GET" && url.pathname === "/api/v1/accounts/active") return json(response, 200, { account: activeAccountId ? await store.get(activeAccountId) : undefined });
 	if (request.method === "GET" && url.pathname === "/api/v1/user/me") {
+		if (activeAccountId) {
+			const status = await browser.checkLogin(activeAccountId).catch((): {
+				loggedIn: boolean;
+				username?: string;
+				userId?: string;
+				avatarUrl?: string;
+			} => ({ loggedIn: false }));
+			const current = await store.get(activeAccountId);
+			if (status.loggedIn && current) {
+				const refreshed = accountMetadata(activeAccountId, {
+					nickname: status.username,
+					userId: status.userId,
+					avatarUrl: status.avatarUrl,
+				}, current);
+				await store.upsert(refreshed);
+			}
+		}
 		const account = activeAccountId ? await store.get(activeAccountId) : undefined;
 		return account
 			? json(response, 200, { data: { nickname: account.username ?? account.name, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } })
@@ -105,8 +122,8 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const session = sessionId ? sessions.get(sessionId) : undefined;
 		if (sessionId && session) {
 			const currentSessionId = sessionId;
-			const cookies = await session.context.cookies("https://www.xiaohongshu.com");
-			const loggedIn = (await session.page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
+			const loginState = await browser.loginStatus(session.page, session.context);
+			const loggedIn = loginState.loggedIn;
 			if (!loggedIn && Date.now() - session.createdAt < 180_000)
 				return json(response, 200, { data: { is_logged_in: false } });
 			const account = await completeLoginSession(currentSessionId, session);

@@ -260,7 +260,7 @@ export function accountDisplayName(
 	if (nickname) return nickname;
 	const name = account.name.trim();
 	return name &&
-		!/^小红书账号\s*\d+$/.test(name) &&
+		!/^小红书账号(?:\s*\d+)?$/.test(name) &&
 		!/^Xiaohongshu account\s*\d+$/i.test(name)
 		? name
 		: undefined;

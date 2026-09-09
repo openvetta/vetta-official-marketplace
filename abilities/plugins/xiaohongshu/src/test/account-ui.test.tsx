@@ -165,4 +165,23 @@ describe("xiaohongshu plugin account UI", () => {
 		await waitFor(() => expect(screen.getByText("移除账号")).toBeTruthy());
 		expect(screen.getByText(/确定要移除账号“花酒”吗？/)).toBeTruthy();
 	});
+
+	it("does not present an unverified avatar as the signed-in account", async () => {
+		mocks.state.accounts = [{
+			...mocks.state.accounts[0],
+			nickname: "",
+			avatarUrl: "https://sns-avatar.example/stale.webp",
+		}];
+		try {
+			render(<XhsAccountsView context={context} />);
+			await waitFor(() => expect(screen.getAllByText("账号身份待识别").length).toBeGreaterThan(0));
+			expect(document.querySelector('img[src="https://sns-avatar.example/stale.webp"]')).toBeNull();
+		} finally {
+			mocks.state.accounts = [{
+				...mocks.state.accounts[0],
+				nickname: "花酒",
+				avatarUrl: "https://sns-avatar.example/flower.webp",
+			}];
+		}
+	});
 });

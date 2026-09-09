@@ -25,6 +25,11 @@ export interface ProfileIdentity {
 	avatarUrl?: string;
 }
 
+interface PageUserState {
+	value?: unknown;
+	guest?: boolean;
+}
+
 function stringValue(value: unknown): string | undefined {
 	return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
@@ -209,32 +214,58 @@ export class BrowserManager {
 		return context;
 	}
 
+	private async pageUserState(page: Page): Promise<PageUserState> {
+		return page.evaluate(() => {
+			const root = (globalThis as unknown as { __INITIAL_STATE__?: unknown }).__INITIAL_STATE__;
+			const record = root && typeof root === "object" ? root as Record<string, unknown> : undefined;
+			const user = record?.user;
+			if (!user || typeof user !== "object") return {};
+			const userRecord = user as Record<string, unknown>;
+			const info = userRecord.userInfo;
+			const value = info && typeof info === "object" && "value" in info
+				? (info as Record<string, unknown>).value
+				: info;
+			const valueRecord = value && typeof value === "object" ? value as Record<string, unknown> : undefined;
+			const guest = valueRecord?.guest;
+			return { value, guest: typeof guest === "boolean" ? guest : undefined };
+		}).catch(() => ({}));
+	}
+
 	async readProfile(page: Page): Promise<ProfileIdentity> {
 		let identity: ProfileIdentity = {};
 		for (let attempt = 0; attempt < 4; attempt += 1) {
-			const state = await page.evaluate(() => {
-				const root = (globalThis as unknown as { __INITIAL_STATE__?: unknown }).__INITIAL_STATE__;
-				const record = root && typeof root === "object" ? root as Record<string, unknown> : undefined;
-				const user = record?.user;
-				if (!user || typeof user !== "object") return undefined;
-				const userRecord = user as Record<string, unknown>;
-				const info = userRecord.userInfo;
-				if (info && typeof info === "object" && "value" in info) return (info as Record<string, unknown>).value;
-				return info;
-			}).catch(() => undefined);
-			const next = profileIdentityFromValue(state);
+			const pageState = await this.pageUserState(page);
+			if (pageState.guest === true) return {};
+			const next = profileIdentityFromValue(pageState.value);
 			identity = {
 				nickname: next.nickname ?? identity.nickname,
 				userId: next.userId ?? identity.userId,
 				avatarUrl: next.avatarUrl ?? identity.avatarUrl,
 			};
 			if (identity.nickname && identity.userId && identity.avatarUrl) break;
+			if (identity.userId && !page.url().includes(`/user/profile/${identity.userId}`)) {
+				await page.goto(`${HOME_URL}user/profile/${encodeURIComponent(identity.userId)}`, {
+					waitUntil: "domcontentloaded",
+					timeout: 20_000,
+				}).catch(() => undefined);
+			}
 			if (attempt < 3) await page.waitForTimeout(500);
 		}
 
-		const avatarUrl = identity.avatarUrl ?? avatarValue(await page.locator(".main-container .user .link-wrapper img, .main-container .user img.avatar, img[class*='avatar']").first().getAttribute("src").catch(() => undefined));
-		// `.channel` contains the navigation label “我”, not the account nickname.
-		return { ...identity, avatarUrl };
+		return identity;
+	}
+
+	async loginStatus(page: Page, context: BrowserContext): Promise<{ loggedIn: boolean; profile: ProfileIdentity }> {
+		const pageState = await this.pageUserState(page);
+		if (pageState.guest === true) return { loggedIn: false, profile: {} };
+		const profile = await this.readProfile(page);
+		const hasUserNavigation = (await page.locator(".main-container .user .link-wrapper .channel").count()) > 0;
+		const cookies = await context.cookies("https://www.xiaohongshu.com");
+		const hasSessionCookie = cookies.some((cookie) => cookie.name === "web_session");
+		const loggedIn = pageState.guest === false
+			? hasUserNavigation || hasSessionCookie || Boolean(profile.nickname || profile.userId)
+			: hasUserNavigation || Boolean(profile.nickname || profile.userId);
+		return { loggedIn, profile };
 	}
 
 	async checkLogin(accountId: string): Promise<{ loggedIn: boolean; username?: string; userId?: string; avatarUrl?: string }> {
@@ -242,11 +273,9 @@ export class BrowserManager {
 		const page = await context.newPage();
 		try {
 			await page.goto(HOME_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
-			const cookies = await context.cookies("https://www.xiaohongshu.com");
-			const loggedIn = (await page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
-			if (!loggedIn) return { loggedIn: false };
-			const profile = await this.readProfile(page);
-			return { loggedIn, username: profile.nickname, userId: profile.userId, avatarUrl: profile.avatarUrl };
+			const status = await this.loginStatus(page, context);
+			if (!status.loggedIn) return { loggedIn: false };
+			return { loggedIn: true, username: status.profile.nickname, userId: status.profile.userId, avatarUrl: status.profile.avatarUrl };
 		} finally {
 			await page.close();
 		}
