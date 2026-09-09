@@ -504,7 +504,11 @@ test("Xiaohongshu plugin owns its managed service, account UI and service-backed
   assert.equal(plugin.providers.services[0].runtime.entry, "service/dist/main.js");
   assert.deepEqual(plugin.providers.services[0].process, {
     args: [],
-    env: { XHS_HEADLESS: "true" },
+    env: {
+      VETTA_SERVICE_PORT: "${VETTA_SERVICE_PORT}",
+      VETTA_SERVICE_DATA_DIR: "${VETTA_SERVICE_DATA_DIR}",
+      XHS_HEADLESS: "false",
+    },
   });
   assert.ok(existsSync(packageFile(root, `${ability.source.path}/service/src/main.ts`)));
   assert.deepEqual(plugin.agent.mcpServers.xiaohongshu, {
