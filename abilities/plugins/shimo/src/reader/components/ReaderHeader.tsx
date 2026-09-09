@@ -45,7 +45,8 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
   } = props;
 
   return (
-    <header className="group grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-3 px-4 py-3">
+    <header className="group sticky top-0 z-10 grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,2.6fr)_minmax(0,1fr)] items-center gap-4 border-b border-border/40 bg-background/85 px-4 py-2.5 backdrop-blur-md transition-all duration-200">
+      {/* 左侧：资料库切换 */}
       <div className="justify-self-start">
         <Button
           type="button"
@@ -56,24 +57,37 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
           aria-expanded={libraryOpen}
           aria-controls={libraryId}
           onClick={onToggleLibrary}
-          className="font-serif tracking-wide"
+          className="gap-2 rounded-lg font-serif text-xs tracking-wide text-muted-foreground hover:bg-muted/60 hover:text-foreground"
         >
-          {libraryOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+          {libraryOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
           <span className="@max-[32rem]/shimo-reader:hidden">{t("library.title")}</span>
         </Button>
       </div>
 
+      {/* 中间：文档标题与分类 */}
       <div className="min-w-0 justify-self-center text-center">
-        <h1 className="truncate font-serif text-lg font-medium tracking-wide" title={title}>{title}</h1>
-        <p className="mt-0.5 flex items-center justify-center gap-2 text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
+        <h1
+          className="truncate font-serif text-base font-semibold tracking-wide text-foreground sm:text-lg"
+          title={title}
+        >
+          {title}
+        </h1>
+        <div className="mt-0.5 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
           {category ? <CategoryBadge category={category} t={t} /> : null}
-          {category && subtitle ? <span aria-hidden="true">·</span> : null}
-          {subtitle ? <span className="truncate normal-case tracking-[0.12em]">{subtitle}</span> : null}
-        </p>
+          {category && subtitle ? <span aria-hidden="true" className="opacity-50">·</span> : null}
+          {subtitle ? (
+            <span className="truncate tracking-wide text-muted-foreground/80">{subtitle}</span>
+          ) : null}
+        </div>
       </div>
 
+      {/* 右侧：阅读记录与偏好设置 */}
       {active ? (
-        <div className={`flex items-center justify-self-end gap-0.5 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 ${quiet ? "opacity-30" : "opacity-100"}`}>
+        <div
+          className={`flex items-center justify-self-end gap-1 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 ${
+            quiet ? "opacity-35" : "opacity-100"
+          }`}
+        >
           <Button
             type="button"
             size="sm"
@@ -83,12 +97,19 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
             aria-expanded={recordsOpen}
             aria-controls={recordsId}
             onClick={onToggleRecords}
-            className="font-serif tracking-wide"
+            className={`gap-2 rounded-lg font-serif text-xs tracking-wide transition-colors ${
+              recordsOpen
+                ? "bg-primary/10 text-primary font-medium"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            }`}
           >
-            <NotebookPen />
+            <NotebookPen className="h-4 w-4" />
             <span className="@max-[32rem]/shimo-reader:hidden">{t("records.title")}</span>
-            <span className="font-serif text-[12px] tabular-nums text-muted-foreground">{recordCount}</span>
+            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-muted px-1 font-mono text-[10px] font-medium text-foreground">
+              {recordCount}
+            </span>
           </Button>
+
           <Popover open={preferencesOpen} onOpenChange={onPreferencesOpenChange}>
             <PopoverTrigger asChild>
               <Button
@@ -98,8 +119,11 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
                 aria-label={t("preferences.title")}
                 title={t("preferences.title")}
                 aria-pressed={preferencesOpen}
+                className={`rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground ${
+                  preferencesOpen ? "bg-muted/80 text-foreground" : ""
+                }`}
               >
-                <Settings />
+                <Settings className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             {preferencesPanel}

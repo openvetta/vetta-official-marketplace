@@ -16,8 +16,8 @@ const FILTERS = ["all", "answer", "highlight", "notes"] as const;
 
 export function RecordList({ records, locale, t, streamingRecordId }: RecordListProps): ReactElement {
   const [kindFilter, setKindFilter] = useState<(typeof FILTERS)[number]>("all");
-
   const scrollRoot = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!streamingRecordId) return;
     setKindFilter("all");
@@ -30,7 +30,7 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
   if (records.length === 0) {
     return (
       <div className="grid min-h-48 flex-1 place-items-center px-8 text-center">
-        <p className="max-w-48 font-serif text-sm leading-7 text-muted-foreground">{t("records.empty")}</p>
+        <p className="max-w-xs font-serif text-xs leading-relaxed text-muted-foreground">{t("records.empty")}</p>
       </div>
     );
   }
@@ -52,7 +52,8 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 flex-wrap items-end gap-4 border-b border-border/60 px-6">
+      {/* 过滤选项卡 */}
+      <div className="flex shrink-0 flex-wrap items-end gap-3 border-b border-border/40 px-5 pt-2">
         {FILTERS.map((value) => {
           const selected = kindFilter === value;
           return (
@@ -63,8 +64,10 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
               variant="ghost"
               aria-pressed={selected}
               onClick={() => setKindFilter(value)}
-              className={`h-auto rounded-none border-b-2 px-0 pb-2 font-serif text-[12px] ${
-                selected ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
+              className={`h-auto rounded-none border-b-2 px-1 pb-2 font-serif text-xs transition-colors ${
+                selected
+                  ? "border-primary font-medium text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {filterLabel(value)}
@@ -73,9 +76,12 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
         })}
       </div>
 
-      <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 overflow-y-auto px-6 py-2">
+      {/* 记录卡片流 */}
+      <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
         {filteredRecords.length === 0 ? (
-          <div className="py-10 text-center font-serif text-sm text-muted-foreground">{t("records.filteredEmpty")}</div>
+          <div className="py-12 text-center font-serif text-xs text-muted-foreground">
+            {t("records.filteredEmpty")}
+          </div>
         ) : (
           filteredRecords
             .slice()

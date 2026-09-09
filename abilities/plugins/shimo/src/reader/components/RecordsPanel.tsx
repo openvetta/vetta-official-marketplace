@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import type { Locale } from "../types";
@@ -15,24 +15,56 @@ interface RecordsPanelProps {
   onClose(): void;
 }
 
-export function RecordsPanel({ id, records, locale, t, streamingRecordId, onClose }: RecordsPanelProps): ReactElement {
+export function RecordsPanel({
+  id,
+  records,
+  locale,
+  t,
+  streamingRecordId,
+  onClose
+}: RecordsPanelProps): ReactElement {
   return (
     <aside
       id={id}
       aria-label={t("records.title")}
-      className="flex min-h-0 w-full max-w-[30rem] shrink-0 flex-col overflow-hidden bg-background shadow-[0_28px_60px_-32px_color-mix(in_oklab,var(--foreground)_26%,transparent)] ring-1 ring-border/50 @max-[58rem]/shimo-reader:max-h-[46%] @max-[58rem]/shimo-reader:max-w-none"
+      className="flex min-h-0 w-full max-w-[28rem] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/95 shadow-sm backdrop-blur-md transition-all duration-200 @max-[58rem]/shimo-reader:max-h-[48%] @max-[58rem]/shimo-reader:max-w-none"
     >
-      <header className="flex shrink-0 items-start justify-between gap-3 px-6 pt-6 pb-4">
+      <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/40 px-5 pb-3.5 pt-4">
         <div className="min-w-0">
-          <p className="font-serif text-[11px] tracking-[0.22em] text-muted-foreground uppercase">{t("records.count", { count: records.length })}</p>
-          <h2 className="mt-1 font-serif text-xl font-medium tracking-wide">{t("records.title")}</h2>
-          <p className="mt-2 text-xs leading-6 text-muted-foreground">{t("records.description")}</p>
+          <div className="flex items-center gap-2">
+            <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
+            <h2 className="font-serif text-base font-semibold tracking-wide text-foreground">
+              {t("records.title")}
+            </h2>
+            <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {records.length}
+            </span>
+          </div>
+          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+            {t("records.description")}
+          </p>
         </div>
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={t("records.collapse")} title={t("records.collapse")} onClick={onClose}>
-          <X />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("records.collapse")}
+          title={t("records.collapse")}
+          onClick={onClose}
+          className="rounded-lg hover:bg-muted/70"
+        >
+          <X className="h-4 w-4" />
         </Button>
       </header>
-      <RecordList records={records} locale={locale} t={t} streamingRecordId={streamingRecordId} />
+
+      <RecordList
+        records={records}
+        locale={locale}
+        t={t}
+        streamingRecordId={streamingRecordId}
+      />
     </aside>
   );
 }

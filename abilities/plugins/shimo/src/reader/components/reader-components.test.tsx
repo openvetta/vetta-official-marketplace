@@ -25,6 +25,7 @@ import { ReaderHeader } from "./ReaderHeader";
 import { RecordList } from "./RecordList";
 import { RecordsPanel } from "./RecordsPanel";
 import { SelectionToolbar } from "./SelectionToolbar";
+import { DocumentOutline, extractHeadings } from "./DocumentOutline";
 
 vi.mock("@vetta/ui", () => ({
   Button: ({ children, asChild: _asChild, size: _size, variant: _variant, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean; size?: string; variant?: string }) => <button {...props}>{children}</button>,
@@ -564,5 +565,32 @@ describe("Shimo reader workspace flows", () => {
     expect(records.map((record) => record.kind)).toEqual(["question"]);
     expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain(records[0]!.body);
     expect(container.querySelector('aside[aria-label="Reading records"] [role="status"]')).toBeNull();
+  });
+
+  it("supports document outline extraction and navigation selection", async () => {
+    const markdown = "# Chapter One\nText content\n## Section A\nMore text\n### Detail 1";
+    const headings = extractHeadings(markdown);
+    expect(headings).toHaveLength(3);
+    expect(headings[0].text).toBe("Chapter One");
+    expect(headings[1].level).toBe(2);
+
+    const onSelect = vi.fn();
+    const onClose = vi.fn();
+    const container = await render(
+      <DocumentOutline
+        content={markdown}
+        open
+        t={t}
+        onClose={onClose}
+        onSelect={onSelect}
+      />
+    );
+    const buttons = container.querySelectorAll("button");
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    await act(async () => buttons[1]?.click());
+    expect(onSelect).toHaveBeenCalled();
+
+    await act(async () => buttons[0]?.click());
+    expect(onClose).toHaveBeenCalled();
   });
 });

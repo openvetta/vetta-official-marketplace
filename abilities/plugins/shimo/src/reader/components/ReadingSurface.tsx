@@ -8,22 +8,29 @@ import { TextReader } from "./TextReader";
 const PdfReader = lazy(async () => ({ default: (await import("./PdfReader")).PdfReader }));
 const MarkdownReader = lazy(async () => ({ default: (await import("./MarkdownReader")).MarkdownReader }));
 
-const SHEET = "min-h-full bg-background shadow-[0_28px_60px_-32px_color-mix(in_oklab,var(--foreground)_26%,transparent)] ring-1 ring-border/50";
+export type ReaderFontSize = "small" | "medium" | "large";
+export type ReaderLayoutWidth = "standard" | "wide" | "full";
+
+export interface ReadingSurfaceProps {
+  reader: ReaderController;
+  runtime: ShimoRuntime;
+  spread?: boolean;
+  fontSize?: ReaderFontSize;
+  layoutWidth?: ReaderLayoutWidth;
+}
 
 export function ReadingSurface({
   reader,
   runtime,
-  spread = false
-}: {
-  reader: ReaderController;
-  runtime: ShimoRuntime;
-  spread?: boolean;
-}): ReactElement {
+  spread = false,
+  fontSize = "medium",
+  layoutWidth = "standard"
+}: ReadingSurfaceProps): ReactElement {
   const opening = (
-    <div className={`${SHEET} grid min-h-[32rem] place-items-center text-sm text-muted-foreground`}>
-      <div className="flex items-center gap-2 font-serif">
+    <div className="mx-auto flex min-h-[32rem] w-full max-w-2xl items-center justify-center rounded-2xl border border-border/40 bg-card/60 p-12 text-sm text-muted-foreground shadow-xs backdrop-blur-xs">
+      <div className="flex items-center gap-3 font-serif">
         <Spin size="sm" />
-        <span>{reader.t("status.opening")}</span>
+        <span className="tracking-wider">{reader.t("status.opening")}</span>
       </div>
     </div>
   );
@@ -36,12 +43,37 @@ export function ReadingSurface({
   }
 
   const poetry = reader.manifest.category === "poetry";
-  const sheetWidth = spread ? "w-full" : poetry ? "mx-auto w-full max-w-[38rem]" : "mx-auto w-full max-w-[42rem]";
-  const sheetPad = poetry ? "px-12 py-16 sm:px-16 sm:py-20" : "px-10 py-12 sm:px-14 sm:py-16";
+
+  // 自适应版宽计算
+  let widthClass = "mx-auto w-full max-w-3xl";
+  if (spread) {
+    widthClass = "w-full max-w-none";
+  } else if (poetry) {
+    widthClass = "mx-auto w-full max-w-xl";
+  } else if (layoutWidth === "wide") {
+    widthClass = "mx-auto w-full max-w-5xl";
+  } else if (layoutWidth === "full") {
+    widthClass = "w-full max-w-none";
+  }
+
+  // 内边距
+  const padClass = poetry
+    ? "px-8 py-12 sm:px-14 sm:py-16"
+    : "px-6 py-10 sm:px-12 sm:py-14";
+
+  // 字号适配
+  const fontClass =
+    fontSize === "small"
+      ? "text-sm leading-relaxed"
+      : fontSize === "large"
+      ? "text-lg leading-loose"
+      : "text-base leading-relaxed";
+
+  const sheetStyle = `min-h-full rounded-2xl border border-border/40 bg-card/90 shadow-xs backdrop-blur-xs transition-all ${widthClass} ${padClass} ${fontClass}`;
 
   if (reader.manifest.kind === "markdown") {
     return (
-      <div className={`${SHEET} ${sheetWidth} ${sheetPad}`}>
+      <div className={sheetStyle}>
         <Suspense fallback={opening}>
           <MarkdownReader
             content={reader.content}
@@ -53,9 +85,10 @@ export function ReadingSurface({
       </div>
     );
   }
+
   if (reader.manifest.kind === "text") {
     return (
-      <div className={`${SHEET} ${sheetWidth} ${sheetPad}`}>
+      <div className={sheetStyle}>
         <TextReader
           content={reader.content}
           pinyinRecords={reader.pinyinRecords}
