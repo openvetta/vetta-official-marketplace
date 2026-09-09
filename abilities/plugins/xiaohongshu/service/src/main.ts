@@ -1,8 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { createAccountStore, type AccountMetadata } from "./accounts/account-store.js";
 import { BrowserManager, type ProfileIdentity } from "./browser/browser-manager.js";
+import { loginSessionStatus } from "./login/session-status.js";
 
 const port = Number(process.env.VETTA_SERVICE_PORT ?? 0);
 const dataRoot = process.env.VETTA_SERVICE_DATA_DIR ?? "./service-data";
@@ -18,6 +20,38 @@ type LoginSession = {
 const sessions = new Map<string, LoginSession>();
 let activeAccountId: string | undefined;
 let latestLoginSessionId: string | undefined;
+const activeAccountPath = join(dataRoot, "active-account.json");
+
+async function persistActiveAccountId(): Promise<void> {
+	await writeFile(
+		activeAccountPath,
+		JSON.stringify({ accountId: activeAccountId ?? null }),
+		{ mode: 0o600 },
+	);
+}
+
+async function restoreActiveAccountId(): Promise<void> {
+	try {
+		const parsed: unknown = JSON.parse(await readFile(activeAccountPath, "utf8"));
+		const accountId = parsed && typeof parsed === "object" && "accountId" in parsed
+			? (parsed as { accountId?: unknown }).accountId
+			: undefined;
+		if (typeof accountId === "string" && await store.get(accountId)) {
+			activeAccountId = accountId;
+			return;
+		}
+	} catch {
+		// Older service data did not persist the active account.
+	}
+	const accounts = await store.list();
+	const latest = [...accounts].sort((left, right) =>
+		(left.updatedAt ?? "").localeCompare(right.updatedAt ?? ""),
+	).at(-1);
+	if (latest) {
+		activeAccountId = latest.id;
+		await persistActiveAccountId();
+	}
+}
 
 function accountMetadata(id: string, profile: ProfileIdentity, previous?: AccountMetadata): AccountMetadata {
 	const now = new Date().toISOString();
@@ -60,12 +94,19 @@ async function completeLoginSession(sessionId: string, session: LoginSession): P
 		await store.upsert(account);
 		await browser.persist(accountId, session.context);
 		activeAccountId = accountId;
+		await persistActiveAccountId();
 		await session.context.close();
 		sessions.delete(sessionId);
 		if (latestLoginSessionId === sessionId) latestLoginSessionId = undefined;
 		return account;
 	})();
 	return session.completion;
+}
+
+async function discardLoginSession(sessionId: string, session: LoginSession): Promise<void> {
+	await session.context.close().catch(() => undefined);
+	sessions.delete(sessionId);
+	if (latestLoginSessionId === sessionId) latestLoginSessionId = undefined;
 }
 
 function json(response: ServerResponse, status: number, body: unknown): void {
@@ -123,9 +164,17 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		if (sessionId && session) {
 			const currentSessionId = sessionId;
 			const loginState = await browser.loginStatus(session.page, session.context);
-			const loggedIn = loginState.loggedIn;
-			if (!loggedIn && Date.now() - session.createdAt < 180_000)
+			const status = loginSessionStatus({
+				createdAt: session.createdAt,
+				now: Date.now(),
+				loggedIn: loginState.loggedIn,
+			});
+			if (status === "waiting")
 				return json(response, 200, { data: { is_logged_in: false } });
+			if (status === "expired") {
+				await discardLoginSession(currentSessionId, session);
+				return json(response, 200, { data: { is_logged_in: false } });
+			}
 			const account = await completeLoginSession(currentSessionId, session);
 			return json(response, 200, { data: { is_logged_in: true, nickname: account.username ?? account.name, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } });
 		}
@@ -147,6 +196,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 			latestLoginSessionId = undefined;
 		}
 		activeAccountId = undefined;
+		await persistActiveAccountId();
 		return json(response, 200, { ok: true });
 	}
 	if (request.method === "POST" && url.pathname === "/api/v1/login/sessions") {
@@ -162,28 +212,50 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "GET" && sessionMatch) {
 		const session = sessions.get(sessionMatch[1]);
 		if (!session) return json(response, 404, { error: "login session not found" });
-		const cookies = await session.context.cookies("https://www.xiaohongshu.com");
-		if (cookies.length === 0 && Date.now() - session.createdAt < 180_000) return json(response, 200, { id: sessionMatch[1], status: "waiting" });
+		const loginState = await browser.loginStatus(session.page, session.context);
+		const status = loginSessionStatus({ createdAt: session.createdAt, now: Date.now(), loggedIn: loginState.loggedIn });
+		if (status === "waiting")
+			return json(response, 200, { id: sessionMatch[1], status: "waiting" });
+		if (status === "expired") {
+			await discardLoginSession(sessionMatch[1], session);
+			return json(response, 410, { id: sessionMatch[1], status: "expired" });
+		}
 		const account = await completeLoginSession(sessionMatch[1], session);
 		return json(response, 200, { id: sessionMatch[1], status: "authenticated", account });
 	}
 	const activateMatch = url.pathname.match(/^\/api\/v1\/accounts\/([^/]+)\/activate$/u);
 	if (request.method === "POST" && activateMatch) {
-		const account = await store.get(activateMatch[1]);
-		if (!account) return json(response, 404, { error: "account not found" });
-		activeAccountId = account.id;
-		return json(response, 200, { account });
+		const accountId = activateMatch[1];
+		const status = await browser.checkLogin(accountId);
+		if (!status.loggedIn) return json(response, 401, { error: "account session expired" });
+		const account = await store.get(accountId) ?? accountMetadata(accountId, {
+			nickname: status.username,
+			userId: status.userId,
+			avatarUrl: status.avatarUrl,
+		});
+		const refreshed = accountMetadata(accountId, {
+			nickname: status.username,
+			userId: status.userId,
+			avatarUrl: status.avatarUrl,
+		}, account);
+		await store.upsert(refreshed);
+		activeAccountId = accountId;
+		await persistActiveAccountId();
+		return json(response, 200, { account: refreshed });
 	}
 	const accountMatch = url.pathname.match(/^\/api\/v1\/accounts\/([^/]+)$/u);
 	if (request.method === "DELETE" && accountMatch) {
-		await store.remove(accountMatch[1]);
-		if (activeAccountId === accountMatch[1]) activeAccountId = undefined;
+		await browser.removeAccount(accountMatch[1]);
+		if (activeAccountId === accountMatch[1]) {
+			activeAccountId = (await store.list())[0]?.id;
+			await persistActiveAccountId();
+		}
 		return json(response, 204, undefined);
 	}
 	if (request.method === "POST" && url.pathname === "/mcp") {
 		const rpc = await body(request);
 		const id = rpc.id ?? null;
-		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.4" } } });
+		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.16" } } });
 		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: [
 			{ name: "xiaohongshu_list_accounts", description: "List locally managed Xiaohongshu accounts.", inputSchema: { type: "object", properties: {} } },
 			{ name: "xiaohongshu_active_account", description: "Get the active Xiaohongshu account.", inputSchema: { type: "object", properties: {} } },
@@ -201,6 +273,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 }
 
 await mkdir(dataRoot, { recursive: true });
+await restoreActiveAccountId();
 const server = createServer((request, response) => void route(request, response).catch((error: unknown) => json(response, 500, { error: error instanceof Error ? error.message : String(error) })));
 server.listen(port, "127.0.0.1", () => process.stdout.write(`ready:${(server.address() as { port: number }).port}\n`));
 const shutdown = () => void browser.close().finally(() => server.close());

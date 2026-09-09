@@ -25,6 +25,17 @@ export interface ProfileIdentity {
 	avatarUrl?: string;
 }
 
+export function loggedInFromSignals(input: {
+	guest?: boolean;
+	hasUserNavigation: boolean;
+	hasSessionCookie: boolean;
+	profile: ProfileIdentity;
+}): boolean {
+	if (input.guest === true) return false;
+	return input.hasUserNavigation || input.hasSessionCookie ||
+		(input.guest === false && Boolean(input.profile.userId));
+}
+
 interface PageUserState {
 	value?: unknown;
 	guest?: boolean;
@@ -262,9 +273,12 @@ export class BrowserManager {
 		const hasUserNavigation = (await page.locator(".main-container .user .link-wrapper .channel").count()) > 0;
 		const cookies = await context.cookies("https://www.xiaohongshu.com");
 		const hasSessionCookie = cookies.some((cookie) => cookie.name === "web_session");
-		const loggedIn = pageState.guest === false
-			? hasUserNavigation || hasSessionCookie || Boolean(profile.nickname || profile.userId)
-			: hasUserNavigation || Boolean(profile.nickname || profile.userId);
+		const loggedIn = loggedInFromSignals({
+			guest: pageState.guest,
+			hasUserNavigation,
+			hasSessionCookie,
+			profile,
+		});
 		return { loggedIn, profile };
 	}
 
@@ -295,6 +309,15 @@ export class BrowserManager {
 	async persist(accountId: string, context: BrowserContext): Promise<void> {
 		await mkdir(this.dataRoot, { recursive: true });
 		await context.storageState({ path: this.store.storagePath(accountId) });
+	}
+
+	async removeAccount(accountId: string): Promise<void> {
+		const context = this.contexts.get(accountId);
+		if (context) {
+			await context.close();
+			this.contexts.delete(accountId);
+		}
+		await this.store.remove(accountId);
 	}
 
 	async close(): Promise<void> {

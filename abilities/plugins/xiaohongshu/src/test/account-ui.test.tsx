@@ -132,6 +132,31 @@ describe("xiaohongshu plugin account UI", () => {
 				(image) => image.getAttribute("src") === "https://sns-avatar.example/flower.webp",
 			),
 		).toBe(true);
+		expect(document.body.textContent).not.toContain("📋");
+		expect(document.body.textContent).not.toContain("✎");
+		expect(
+			Array.from(
+				screen
+					.getByRole("button", { name: "修改账号备注" })
+					.querySelectorAll("span"),
+			).some((element) =>
+				String(element.className).includes("icon-[solar--pen-2-linear]"),
+			),
+		).toBe(true);
+	});
+
+	it("keeps the account workspace scrollable when the account list overflows", async () => {
+		render(<XhsAccountsView context={context} />);
+		await waitFor(() => expect(screen.getByText("已保存的账号")).toBeTruthy());
+		expect(document.querySelector("main")?.className).toContain("overflow-y-auto");
+	});
+
+	it("keeps the three account summary cards in one row", async () => {
+		render(<XhsAccountsView context={context} />);
+		await waitFor(() => expect(screen.getByText("当前生效账号")).toBeTruthy());
+		const summary = screen.getByTestId("account-summary-grid");
+		expect(summary.className).toContain("grid-cols-3");
+		expect(summary.className).not.toContain("grid-cols-1");
 	});
 
 	it("renders empty state when no accounts are saved", async () => {

@@ -2,7 +2,7 @@
   "id": "xiaohongshu",
   "name": "%name%",
   "icon": "assets/icon.png",
-  "version": "1.1.13",
+  "version": "1.1.16",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
@@ -29,14 +29,14 @@
         "id": "xhs",
         "runtime": {
           "kind": "host-node",
-          "version": "1.1.13",
+          "version": "1.1.16",
           "entry": "service/dist/main.js",
           "platforms": {
             "win32-x64": {
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "7e845c79eddd2e920f96c06873d7e8201784800ffe48d7996d3d9198d050ee14",
+                  "sha256": "9c4ff0e75ee8a923bf0452918fc4220623c971b4cd3a4f29c08c031574f59540",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -46,7 +46,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "7e845c79eddd2e920f96c06873d7e8201784800ffe48d7996d3d9198d050ee14",
+                  "sha256": "9c4ff0e75ee8a923bf0452918fc4220623c971b4cd3a4f29c08c031574f59540",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -56,7 +56,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "7e845c79eddd2e920f96c06873d7e8201784800ffe48d7996d3d9198d050ee14",
+                  "sha256": "9c4ff0e75ee8a923bf0452918fc4220623c971b4cd3a4f29c08c031574f59540",
                   "archive": "zip",
                   "destination": "service"
                 }

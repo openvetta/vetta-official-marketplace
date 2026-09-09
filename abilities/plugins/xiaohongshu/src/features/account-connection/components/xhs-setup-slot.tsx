@@ -145,7 +145,7 @@ export function XhsSetupSlot({
 								nickname: current.nickname,
 								userId: current.userId,
 								avatarUrl: current.avatarUrl,
-							name: current.nickname || next.name,
+							name: next.name,
 						});
 						setAccount(saved);
 						setStatus("connected");

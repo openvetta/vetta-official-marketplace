@@ -257,13 +257,19 @@ export function accountDisplayName(
 	account: Pick<XhsAccount, "name" | "nickname">,
 ): string | undefined {
 	const nickname = account.nickname?.trim();
-	if (nickname) return nickname;
 	const name = account.name.trim();
-	return name &&
-		!/^小红书账号(?:\s*\d+)?$/.test(name) &&
-		!/^Xiaohongshu account\s*\d+$/i.test(name)
-		? name
-		: undefined;
+	const generated =
+		/^小红书账号(?:\s*\d+)?$/.test(name) ||
+		/^Xiaohongshu account\s*\d+$/i.test(name) ||
+		name === "扫码流程验证号";
+	if (name && !generated && name !== nickname) return name;
+	if (
+		nickname &&
+		!/^小红书账号(?:\s*\d+)?$/.test(nickname) &&
+		!/^Xiaohongshu account\s*\d+$/i.test(nickname)
+	)
+		return nickname;
+	return name && !generated ? name : undefined;
 }
 
 export function accountInitial(
@@ -286,7 +292,7 @@ export async function updateAccountIdentity(
 		nickname: status.nickname || current.nickname,
 		userId: status.userId || current.userId,
 		avatarUrl: status.avatarUrl || current.avatarUrl,
-		name: status.nickname || current.name,
+		name: current.name,
 		status: status.loggedIn ? "connected" : "expired",
 		lastCheckedAt: new Date().toISOString(),
 	};
@@ -391,16 +397,28 @@ export async function switchAccount(
 	const account = state.accounts.find((item) => item.id === accountId);
 	if (!account) throw new Error("Account not found");
 	const session = await readSession(ctx, accountId);
-	if (!session) throw new Error("Account session is missing; sign in again");
 	const api = services(ctx);
 	await api.stop(SERVICE_ID);
-	await api.writeDataFile(SERVICE_ID, SESSION_FILE, session, "utf8");
+	if (session)
+		await api.writeDataFile(SERVICE_ID, SESSION_FILE, session, "utf8");
 	await api.start(SERVICE_ID);
-	const status = await loginStatus(ctx);
-	if (!status.loggedIn)
-		throw new Error("The selected account session is no longer valid");
+	const activation = await api.request<unknown>(SERVICE_ID, {
+		path: `/api/v1/accounts/${encodeURIComponent(accountId)}/activate`,
+		method: "POST",
+		responseType: "json",
+		timeoutMs: 10_000,
+	});
+	if (!activation.ok) {
+		if (activation.status === 401 || activation.status === 404)
+			throw new Error("The selected account session is no longer valid; sign in again");
+		throw new Error(`Unable to activate account: HTTP ${activation.status}`);
+	}
+	const identity = identityFromProfile(activation.body);
 	const next = {
 		...account,
+		nickname: identity.nickname ?? account.nickname,
+		userId: identity.userId ?? account.userId,
+		avatarUrl: identity.avatarUrl ?? account.avatarUrl,
 		status: "connected" as const,
 		lastCheckedAt: new Date().toISOString(),
 	};
@@ -420,6 +438,14 @@ export async function removeAccount(
 ): Promise<void> {
 	const state = await readAccountState(ctx);
 	const nextAccounts = state.accounts.filter((item) => item.id !== accountId);
+	const response = await services(ctx).request<unknown>(SERVICE_ID, {
+		path: `/api/v1/accounts/${encodeURIComponent(accountId)}`,
+		method: "DELETE",
+		responseType: "json",
+		timeoutMs: 10_000,
+	});
+	if (!response.ok && response.status !== 404)
+		throw new Error(`Unable to remove account: HTTP ${response.status}`);
 	await (ctx as ManagedPluginContext).secrets.delete(accountKey(accountId));
 	await writeAccountState(ctx, {
 		schemaVersion: 1,

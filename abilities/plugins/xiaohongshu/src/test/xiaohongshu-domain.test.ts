@@ -9,6 +9,7 @@ import {
 	identityFromProfile,
 	loginStatus,
 	readAccountState,
+	removeAccount,
 	requestQrPayload,
 	switchAccount,
 	renameAccount,
@@ -79,7 +80,7 @@ function context() {
 			},
 		],
 	});
-	return { ctx, service };
+	return { ctx, service, secrets };
 }
 
 describe("xiaohongshu plugin account handling", () => {
@@ -230,6 +231,9 @@ describe("xiaohongshu plugin account handling", () => {
 		expect(accountDisplayName({ name: "小红书账号 1", nickname: "花酒" })).toBe(
 			"花酒",
 		);
+		expect(accountDisplayName({ name: "扫码流程验证号", nickname: "花酒" })).toBe(
+			"花酒",
+		);
 		expect(accountInitial({ name: "小红书账号 1", nickname: "花酒" })).toBe(
 			"花",
 		);
@@ -249,7 +253,7 @@ describe("xiaohongshu plugin account handling", () => {
 		).toBe("expired");
 	});
 
-	it("writes the complete opaque session before restarting the service", async () => {
+	it("writes the complete opaque session before restarting and activating it", async () => {
 		const { ctx, service } = context();
 		await switchAccount(ctx, "account-a");
 		expect(service.stop).toHaveBeenCalledBefore(service.writeDataFile);
@@ -257,9 +261,31 @@ describe("xiaohongshu plugin account handling", () => {
 			'"seed":"seed-a"',
 		);
 		expect(service.start).toHaveBeenCalledAfter(service.writeDataFile);
+		expect(service.request).toHaveBeenCalledWith(
+			"xhs",
+			expect.objectContaining({
+				path: "/api/v1/accounts/account-a/activate",
+				method: "POST",
+			}),
+		);
 		expect(await readAccountState(ctx)).toMatchObject({
 			activeAccountId: "account-a",
 		});
+	});
+
+	it("switches a service-owned account when no legacy secret exists", async () => {
+		const { ctx, service } = context();
+		await switchAccount(ctx, "account-b");
+		expect(service.writeDataFile).not.toHaveBeenCalled();
+		expect(await readAccountState(ctx)).toMatchObject({
+			activeAccountId: "account-b",
+		});
+	});
+
+	it("shows a custom account note before the upstream nickname", () => {
+		expect(accountDisplayName({ name: "我的主号", nickname: "花酒" })).toBe(
+			"我的主号",
+		);
 	});
 
 	it("updates account custom name via renameAccount", async () => {
@@ -270,5 +296,19 @@ describe("xiaohongshu plugin account handling", () => {
 		expect(state.accounts.find((item) => item.id === "account-a")?.name).toBe(
 			"我的小红书主号",
 		);
+	});
+
+	it("removes the service account before deleting the local secret", async () => {
+		const { ctx, service, secrets } = context();
+		await removeAccount(ctx, "account-a");
+		expect(service.request).toHaveBeenCalledWith(
+			"xhs",
+			expect.objectContaining({
+				path: "/api/v1/accounts/account-a",
+				method: "DELETE",
+			}),
+		);
+		expect(secrets.has("session:account-a")).toBe(false);
+		expect((await readAccountState(ctx)).accounts.map((account) => account.id)).toEqual(["account-b"]);
 	});
 });

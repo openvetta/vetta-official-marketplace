@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ensureChromiumExecutable, profileIdentityFromValue } from "../browser/browser-manager.js";
+import { ensureChromiumExecutable, loggedInFromSignals, profileIdentityFromValue } from "../browser/browser-manager.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -17,6 +17,22 @@ afterEach(async () => {
 });
 
 describe("ensureChromiumExecutable", () => {
+	it("does not treat a placeholder profile nickname as a login", () => {
+		expect(loggedInFromSignals({
+			profile: { nickname: "小红书账号" },
+			hasUserNavigation: false,
+			hasSessionCookie: false,
+		})).toBe(false);
+	});
+
+	it("accepts an explicit logged-in identity when navigation has not rendered", () => {
+		expect(loggedInFromSignals({
+			guest: false,
+			profile: { nickname: "花酒", userId: "u-8023" },
+			hasUserNavigation: false,
+			hasSessionCookie: false,
+		})).toBe(true);
+	});
 	it("extracts identity fields from the different upstream state shapes", () => {
 		expect(profileIdentityFromValue({
 			user: { userInfo: { value: { nickname: " 花酒 ", userId: "u-8023", avatar: "https://img.example/avatar.png" } } },

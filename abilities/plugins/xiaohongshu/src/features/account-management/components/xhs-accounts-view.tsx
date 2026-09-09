@@ -232,7 +232,7 @@ export function XhsAccountsView({
 
 	return (
 		<main
-			className="min-h-full bg-background px-5 py-6 text-foreground sm:px-8"
+			className="h-full min-h-0 overflow-y-auto bg-background px-5 py-6 text-foreground sm:px-8"
 			aria-live="polite"
 		>
 			<div className="mx-auto max-w-5xl">
@@ -285,7 +285,10 @@ export function XhsAccountsView({
 				{serviceError ? (
 					<div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
 						<div className="flex items-center gap-2">
-							<span className="font-semibold">⚠️</span>
+							<span
+								className="icon-[solar--danger-triangle-linear] size-4 shrink-0"
+								aria-hidden="true"
+							/>
 							<span>{errorText(t, "accounts.error", serviceError)}</span>
 						</div>
 						<button
@@ -302,7 +305,10 @@ export function XhsAccountsView({
 				) : null}
 
 				{/* 3 张 KPI / 状态概览卡片 */}
-				<div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+				<div
+					data-testid="account-summary-grid"
+					className="mt-5 grid grid-cols-3 gap-3"
+				>
 					{/* 卡片 1：当前活跃账号 */}
 					<div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/45 p-4 shadow-xs">
 						<div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -377,7 +383,10 @@ export function XhsAccountsView({
 								onClick={() => void handleRestartService()}
 								disabled={busy}
 							>
-								<span>↻</span>
+								<span
+									className={`icon-[solar--restart-linear] size-3.5 ${busy ? "animate-spin" : ""}`}
+									aria-hidden="true"
+								/>
 								<span>
 									{busy
 										? t("accounts.serviceRestarting")

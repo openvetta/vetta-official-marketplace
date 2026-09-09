@@ -80,7 +80,13 @@ export function AccountCardItem({
 							>
 								<span>ID: {account.userId}</span>
 								<span className="text-[10px] opacity-70">
-									{copied ? "✓ 已复制" : "📋"}
+									<span
+										className={`icon-[solar--${copied ? "check" : "copy"}-linear] size-3`}
+										aria-hidden="true"
+									/>
+									<span className="sr-only">
+										{copied ? "已复制" : "复制用户 ID"}
+									</span>
 								</span>
 							</button>
 						) : null}
@@ -114,10 +120,13 @@ export function AccountCardItem({
 					onClick={onRename}
 					disabled={busy}
 					title={t("accounts.renameTitle")}
-					aria-label={t("accounts.renameTitle")}
-				>
-					<span className="text-xs">✎</span>
-				</button>
+						aria-label={t("accounts.renameTitle")}
+					>
+						<span
+							className="icon-[solar--pen-2-linear] size-4"
+							aria-hidden="true"
+						/>
+					</button>
 
 				<button
 					className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-destructive/30 text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
