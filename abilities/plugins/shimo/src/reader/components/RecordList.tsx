@@ -1,6 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import type { Locale } from "../types";
@@ -30,13 +29,8 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
 
   if (records.length === 0) {
     return (
-      <div className="grid min-h-48 place-items-center px-6 text-center">
-        <div className="flex max-w-52 flex-col items-center">
-          <span className="mb-3 grid size-10 place-items-center rounded-2xl bg-muted/50 text-muted-foreground">
-            <NotebookPen aria-hidden="true" className="size-4" />
-          </span>
-          <p className="text-xs leading-relaxed text-muted-foreground">{t("records.empty")}</p>
-        </div>
+      <div className="grid min-h-48 flex-1 place-items-center px-8 text-center">
+        <p className="max-w-48 font-serif text-sm leading-7 text-muted-foreground">{t("records.empty")}</p>
       </div>
     );
   }
@@ -58,25 +52,30 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border/40 px-3 py-2">
-        {FILTERS.map((value) => (
-          <Button
-            key={value}
-            type="button"
-            size="xs"
-            variant={kindFilter === value ? "secondary" : "ghost"}
-            aria-pressed={kindFilter === value}
-            onClick={() => setKindFilter(value)}
-            className={`h-auto rounded-lg px-2 py-1 text-[11px] font-medium ${kindFilter === value ? "shadow-sm" : "text-muted-foreground"}`}
-          >
-            {filterLabel(value)}
-          </Button>
-        ))}
+      <div className="flex shrink-0 flex-wrap items-end gap-4 border-b border-border/60 px-6">
+        {FILTERS.map((value) => {
+          const selected = kindFilter === value;
+          return (
+            <Button
+              key={value}
+              type="button"
+              size="xs"
+              variant="ghost"
+              aria-pressed={selected}
+              onClick={() => setKindFilter(value)}
+              className={`h-auto rounded-none border-b-2 px-0 pb-2 font-serif text-[12px] ${
+                selected ? "border-foreground text-foreground" : "border-transparent text-muted-foreground"
+              }`}
+            >
+              {filterLabel(value)}
+            </Button>
+          );
+        })}
       </div>
 
-      <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+      <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 overflow-y-auto px-6 py-2">
         {filteredRecords.length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">{t("records.filteredEmpty")}</div>
+          <div className="py-10 text-center font-serif text-sm text-muted-foreground">{t("records.filteredEmpty")}</div>
         ) : (
           filteredRecords
             .slice()

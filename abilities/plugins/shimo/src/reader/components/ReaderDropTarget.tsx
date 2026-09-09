@@ -21,7 +21,7 @@ export function ReaderDropTarget({
 
   return (
     <main
-      className="@container/shimo-workspace relative flex h-full min-h-0 overflow-hidden bg-background text-foreground outline-primary/60 data-[dragging=true]:-outline-offset-10 data-[dragging=true]:outline-2 data-[dragging=true]:outline-dashed"
+      className="@container/shimo-workspace relative flex h-full min-h-0 overflow-hidden bg-muted/45 text-foreground outline-primary/50 data-[dragging=true]:-outline-offset-8 data-[dragging=true]:outline-2 data-[dragging=true]:outline-dashed"
       data-dragging={dragging}
       onDragOver={(event) => {
         if (!isFileDrag(event)) return;

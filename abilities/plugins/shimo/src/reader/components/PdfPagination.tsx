@@ -12,11 +12,11 @@ interface PdfPaginationProps {
 
 export function PdfPagination({ page, pageCount, t, onPage }: PdfPaginationProps): ReactElement {
   return (
-    <nav aria-label={t("pagination.label")} className="flex h-11 shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-3 backdrop-blur-md">
+    <nav aria-label={t("pagination.label")} className="flex h-12 shrink-0 items-center justify-center gap-3 bg-background/80">
       <Button type="button" size="icon-sm" variant="ghost" disabled={page <= 1} aria-label={t("pagination.previous")} onClick={() => onPage(page - 1)}>
         <ChevronLeft />
       </Button>
-      <span className="min-w-24 text-center text-[11px] tabular-nums text-muted-foreground">
+      <span className="min-w-24 text-center font-serif text-xs tabular-nums tracking-wide text-muted-foreground">
         {t("pagination.progress", { page, count: pageCount || "…" })}
       </span>
       <Button type="button" size="icon-sm" variant="ghost" disabled={pageCount > 0 && page >= pageCount} aria-label={t("pagination.next")} onClick={() => onPage(page + 1)}>

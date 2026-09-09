@@ -27,6 +27,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
     headerControls.current?.querySelector<HTMLButtonElement>(`[aria-controls="${recordsId}"]`)?.focus();
   };
   const subtitle = reader.manifest ? reader.t("reader.offline") : undefined;
+  const spread = reader.recordsOpen && Boolean(reader.manifest);
 
   return (
     <ReaderDropTarget onFiles={reader.importFiles}>
@@ -82,26 +83,28 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         />
 
         <div
-          className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] data-[records-open=true]:grid-cols-[minmax(0,1fr)_minmax(19rem,34%)] @max-[58rem]/shimo-reader:data-[records-open=true]:grid-cols-1 @max-[58rem]/shimo-reader:data-[records-open=true]:grid-rows-[minmax(0,1fr)_minmax(13rem,0.78fr)]"
-          data-records-open={reader.recordsOpen && Boolean(reader.manifest)}
+          className={`flex min-h-0 min-w-0 flex-1 overflow-hidden p-3 sm:p-5 ${
+            spread ? "flex-row gap-4 @max-[58rem]/shimo-reader:flex-col @max-[58rem]/shimo-reader:gap-3" : ""
+          }`}
+          data-records-open={spread}
         >
-          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <div className={`flex min-h-0 min-w-0 flex-col ${spread ? "flex-1" : "mx-auto w-full max-w-[48rem] flex-1"}`}>
             <div
-              className="shimo-scroll min-h-0 flex-1 overflow-auto bg-[radial-gradient(920px_420px_at_50%_-12%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_64%)] bg-background p-4 [scrollbar-gutter:stable]"
+              className="shimo-scroll min-h-0 flex-1 overflow-auto [scrollbar-gutter:stable]"
               onMouseUp={reader.captureSelection}
               onKeyUp={reader.captureSelection}
               onScroll={reader.handleReaderScroll}
               onPointerMove={reader.restoreChrome}
             >
-              <ReadingSurface reader={reader} runtime={runtime} />
+              <ReadingSurface reader={reader} runtime={runtime} spread={spread} />
             </div>
             {reader.manifest?.kind === "pdf" ? (
               <PdfPagination page={reader.page} pageCount={reader.pageCount} t={reader.t} onPage={reader.setPage} />
             ) : null}
           </div>
-          {reader.recordsOpen && reader.manifest ? (
+          {spread ? (
             <RecordsPanel
-              key={reader.manifest.id}
+              key={reader.manifest!.id}
               id={recordsId}
               records={reader.records}
               locale={reader.locale}

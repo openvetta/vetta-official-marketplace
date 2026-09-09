@@ -58,7 +58,7 @@ export function SelectionToolbar({ selection, actions, locale, t, onAction }: Se
       role="toolbar"
       aria-label={t("selection.actions")}
       style={position}
-      className="fixed z-[9999] flex max-w-[min(28rem,calc(100vw-1.5rem))] origin-top-left flex-nowrap items-center gap-0.5 overflow-x-auto rounded-2xl border border-border/80 bg-popover/95 p-1.5 shadow-2xl ring-1 ring-border/30 backdrop-blur-xl select-none motion-safe:animate-shimo-in"
+      className="fixed z-[9999] flex max-w-[min(32rem,calc(100vw-1.5rem))] origin-top-left flex-nowrap items-center gap-0 overflow-x-auto bg-background px-1.5 py-1 shadow-[0_18px_40px_-24px_color-mix(in_oklab,var(--foreground)_40%,transparent)] ring-1 ring-border/70 select-none motion-safe:animate-shimo-in"
     >
       {actions.map((action, index) => {
         const isCommonStart = action.id === "ask";
@@ -68,17 +68,17 @@ export function SelectionToolbar({ selection, actions, locale, t, onAction }: Se
         return (
           <span key={action.id} className="inline-flex items-center">
             {isCommonStart && (
-              <span className="mx-1 h-3.5 w-px self-center bg-border/70" aria-hidden="true" />
+              <span className="mx-1 h-4 w-px self-center bg-border" aria-hidden="true" />
             )}
             <Button
               type="button"
-              variant={isPrimaryAction ? "secondary" : "ghost"}
+              variant="ghost"
               size="xs"
               onClick={() => void onAction(action)}
-              className={`gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors ${
+              className={`gap-1.5 rounded-none px-2 py-1 font-serif text-xs ${
                 isPrimaryAction
-                  ? "bg-primary/15 font-semibold text-primary shadow-2xs hover:bg-primary/25"
-                  : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon aria-hidden="true" className="size-3.5 shrink-0" />

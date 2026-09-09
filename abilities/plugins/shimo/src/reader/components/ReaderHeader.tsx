@@ -45,51 +45,56 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
   } = props;
 
   return (
-    <header className="group flex min-h-14 shrink-0 items-center gap-3 border-b border-border/50 bg-background/80 px-4 py-2.5 backdrop-blur-md">
-      <Button
-        type="button"
-        size="sm"
-        variant={libraryOpen ? "secondary" : "ghost"}
-        aria-label={libraryOpen ? t("library.collapse") : t("library.expand")}
-        title={libraryOpen ? t("library.collapse") : t("library.expand")}
-        aria-expanded={libraryOpen}
-        aria-controls={libraryId}
-        onClick={onToggleLibrary}
-      >
-        {libraryOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-        <span className="@max-[32rem]/shimo-reader:hidden">{t("library.title")}</span>
-      </Button>
+    <header className="group grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-3 px-4 py-3">
+      <div className="justify-self-start">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-label={libraryOpen ? t("library.collapse") : t("library.expand")}
+          title={libraryOpen ? t("library.collapse") : t("library.expand")}
+          aria-expanded={libraryOpen}
+          aria-controls={libraryId}
+          onClick={onToggleLibrary}
+          className="font-serif tracking-wide"
+        >
+          {libraryOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+          <span className="@max-[32rem]/shimo-reader:hidden">{t("library.title")}</span>
+        </Button>
+      </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-2">
-          <h1 className="truncate font-serif text-[15px] font-semibold tracking-tight" title={title}>{title}</h1>
+      <div className="min-w-0 justify-self-center text-center">
+        <h1 className="truncate font-serif text-lg font-medium tracking-wide" title={title}>{title}</h1>
+        <p className="mt-0.5 flex items-center justify-center gap-2 text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
           {category ? <CategoryBadge category={category} t={t} /> : null}
-        </div>
-        {subtitle ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{subtitle}</p> : null}
+          {category && subtitle ? <span aria-hidden="true">·</span> : null}
+          {subtitle ? <span className="truncate normal-case tracking-[0.12em]">{subtitle}</span> : null}
+        </p>
       </div>
 
       {active ? (
-        <div className={`flex shrink-0 items-center gap-1 rounded-xl bg-muted/25 p-0.5 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 ${quiet ? "opacity-35" : "opacity-100"}`}>
+        <div className={`flex items-center justify-self-end gap-0.5 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 ${quiet ? "opacity-30" : "opacity-100"}`}>
           <Button
             type="button"
             size="sm"
-            variant={recordsOpen ? "secondary" : "ghost"}
+            variant="ghost"
             aria-label={t("records.title")}
             title={recordsOpen ? t("records.collapse") : t("records.expand")}
             aria-expanded={recordsOpen}
             aria-controls={recordsId}
             onClick={onToggleRecords}
+            className="font-serif tracking-wide"
           >
             <NotebookPen />
             <span className="@max-[32rem]/shimo-reader:hidden">{t("records.title")}</span>
-            <span className="rounded-md bg-background/80 px-1.5 text-[11px] tabular-nums text-muted-foreground">{recordCount}</span>
+            <span className="font-serif text-[12px] tabular-nums text-muted-foreground">{recordCount}</span>
           </Button>
           <Popover open={preferencesOpen} onOpenChange={onPreferencesOpenChange}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 size="icon-sm"
-                variant={preferencesOpen ? "secondary" : "ghost"}
+                variant="ghost"
                 aria-label={t("preferences.title")}
                 title={t("preferences.title")}
                 aria-pressed={preferencesOpen}
@@ -100,7 +105,9 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
             {preferencesPanel}
           </Popover>
         </div>
-      ) : null}
+      ) : (
+        <div />
+      )}
     </header>
   );
 }

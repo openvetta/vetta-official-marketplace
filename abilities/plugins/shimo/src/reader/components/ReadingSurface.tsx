@@ -8,12 +8,20 @@ import { TextReader } from "./TextReader";
 const PdfReader = lazy(async () => ({ default: (await import("./PdfReader")).PdfReader }));
 const MarkdownReader = lazy(async () => ({ default: (await import("./MarkdownReader")).MarkdownReader }));
 
-const PARCHMENT = "mx-auto rounded-[1.15rem] border border-border/70 bg-card/80 p-[clamp(1.25rem,4cqw,3rem)] shadow-[0_1px_0_color-mix(in_oklab,var(--foreground)_4%,transparent),0_28px_56px_-36px_color-mix(in_oklab,var(--foreground)_22%,transparent)]";
+const SHEET = "min-h-full bg-background shadow-[0_28px_60px_-32px_color-mix(in_oklab,var(--foreground)_26%,transparent)] ring-1 ring-border/50";
 
-export function ReadingSurface({ reader, runtime }: { reader: ReaderController; runtime: ShimoRuntime }): ReactElement {
+export function ReadingSurface({
+  reader,
+  runtime,
+  spread = false
+}: {
+  reader: ReaderController;
+  runtime: ShimoRuntime;
+  spread?: boolean;
+}): ReactElement {
   const opening = (
-    <div className="grid min-h-[30rem] place-items-center text-xs text-muted-foreground">
-      <div className="flex items-center gap-2">
+    <div className={`${SHEET} grid min-h-[32rem] place-items-center text-sm text-muted-foreground`}>
+      <div className="flex items-center gap-2 font-serif">
         <Spin size="sm" />
         <span>{reader.t("status.opening")}</span>
       </div>
@@ -27,39 +35,53 @@ export function ReadingSurface({ reader, runtime }: { reader: ReaderController; 
     return <EmptyLibrary t={reader.t} onFiles={reader.importFiles} />;
   }
 
-  const paperWidth = reader.manifest.category === "poetry" ? "max-w-2xl" : "max-w-3xl";
+  const poetry = reader.manifest.category === "poetry";
+  const sheetWidth = spread ? "w-full" : poetry ? "mx-auto w-full max-w-[38rem]" : "mx-auto w-full max-w-[42rem]";
+  const sheetPad = poetry ? "px-12 py-16 sm:px-16 sm:py-20" : "px-10 py-12 sm:px-14 sm:py-16";
 
   if (reader.manifest.kind === "markdown") {
     return (
-      <div className={`${PARCHMENT} ${paperWidth}`}>
+      <div className={`${SHEET} ${sheetWidth} ${sheetPad}`}>
         <Suspense fallback={opening}>
-          <MarkdownReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
+          <MarkdownReader
+            content={reader.content}
+            pinyinRecords={reader.pinyinRecords}
+            rootRef={reader.textRoot}
+            category={reader.manifest.category}
+          />
         </Suspense>
       </div>
     );
   }
   if (reader.manifest.kind === "text") {
     return (
-      <div className={`${PARCHMENT} ${paperWidth}`}>
-        <TextReader content={reader.content} pinyinRecords={reader.pinyinRecords} rootRef={reader.textRoot} />
+      <div className={`${SHEET} ${sheetWidth} ${sheetPad}`}>
+        <TextReader
+          content={reader.content}
+          pinyinRecords={reader.pinyinRecords}
+          rootRef={reader.textRoot}
+          category={reader.manifest.category}
+        />
       </div>
     );
   }
 
   return (
-    <Suspense fallback={opening}>
-      <PdfReader
-        runtime={runtime}
-        manifest={reader.manifest}
-        preferences={reader.preferences}
-        url={reader.sourceUrl}
-        page={reader.page}
-        onPage={reader.setPage}
-        onCount={reader.setPageCount}
-        records={reader.pinyinRecords}
-        t={reader.t}
-        rootRef={reader.pdfRoot}
-      />
-    </Suspense>
+    <div className="grid min-h-full place-items-center py-4">
+      <Suspense fallback={opening}>
+        <PdfReader
+          runtime={runtime}
+          manifest={reader.manifest}
+          preferences={reader.preferences}
+          url={reader.sourceUrl}
+          page={reader.page}
+          onPage={reader.setPage}
+          onCount={reader.setPageCount}
+          records={reader.pinyinRecords}
+          t={reader.t}
+          rootRef={reader.pdfRoot}
+        />
+      </Suspense>
+    </div>
   );
 }

@@ -3,13 +3,16 @@ import type { ReaderNotice } from "../types";
 
 export function StatusToast({ notice }: { notice: ReaderNotice }): ReactElement {
   const toneClass = notice.tone === "error"
-    ? "border-destructive/30 bg-destructive/10 text-destructive"
+    ? "text-destructive"
     : notice.tone === "success"
-      ? "border-primary/25 bg-primary/10 text-primary"
-      : "border-border/65 bg-popover/95 text-popover-foreground";
+      ? "text-primary"
+      : "text-foreground";
 
   return (
-    <div role={notice.tone === "error" ? "alert" : "status"} className={`absolute right-4 bottom-4 z-40 max-w-sm rounded-xl border px-3.5 py-2.5 text-xs shadow-xl backdrop-blur ${toneClass}`}>
+    <div
+      role={notice.tone === "error" ? "alert" : "status"}
+      className={`absolute right-5 bottom-5 z-40 max-w-sm bg-background px-4 py-3 font-serif text-xs leading-6 shadow-[0_18px_40px_-24px_color-mix(in_oklab,var(--foreground)_40%,transparent)] ring-1 ring-border/70 ${toneClass}`}
+    >
       {notice.message}
     </div>
   );

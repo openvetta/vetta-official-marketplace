@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { NotebookPen, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import type { Locale } from "../types";
@@ -20,18 +20,13 @@ export function RecordsPanel({ id, records, locale, t, streamingRecordId, onClos
     <aside
       id={id}
       aria-label={t("records.title")}
-      className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/70 bg-card/70 @max-[58rem]/shimo-reader:border-t @max-[58rem]/shimo-reader:border-l-0"
+      className="flex min-h-0 w-full max-w-[30rem] shrink-0 flex-col overflow-hidden bg-background shadow-[0_28px_60px_-32px_color-mix(in_oklab,var(--foreground)_26%,transparent)] ring-1 ring-border/50 @max-[58rem]/shimo-reader:max-h-[46%] @max-[58rem]/shimo-reader:max-w-none"
     >
-      <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/50 px-4 py-4">
+      <header className="flex shrink-0 items-start justify-between gap-3 px-6 pt-6 pb-4">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2 font-serif text-sm font-semibold">
-            <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
-              <NotebookPen aria-hidden="true" className="size-3.5" />
-            </span>
-            {t("records.title")}
-            <span className="rounded-md bg-muted/60 px-1.5 text-xs font-normal tabular-nums text-muted-foreground">{records.length}</span>
-          </h2>
-          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{t("records.description")}</p>
+          <p className="font-serif text-[11px] tracking-[0.22em] text-muted-foreground uppercase">{t("records.count", { count: records.length })}</p>
+          <h2 className="mt-1 font-serif text-xl font-medium tracking-wide">{t("records.title")}</h2>
+          <p className="mt-2 text-xs leading-6 text-muted-foreground">{t("records.description")}</p>
         </div>
         <Button type="button" variant="ghost" size="icon-sm" aria-label={t("records.collapse")} title={t("records.collapse")} onClick={onClose}>
           <X />

@@ -38,11 +38,17 @@
 /* Generated reading/markdown HTML cannot take utility classes. */
 .shimo-reading-text {
   font-family: var(--font-serif);
-  font-size: clamp(1.02rem, 0.96rem + 0.24vw, 1.18rem);
-  line-height: 1.95;
-  letter-spacing: 0.012em;
+  font-size: clamp(1.06rem, 0.98rem + 0.28vw, 1.22rem);
+  line-height: 2.05;
+  letter-spacing: 0.02em;
   overflow-wrap: anywhere;
   text-wrap: pretty;
+}
+
+.shimo-reading-text[data-category="poetry"] {
+  font-size: clamp(1.12rem, 1.02rem + 0.36vw, 1.36rem);
+  line-height: 2.4;
+  letter-spacing: 0.08em;
 }
 
 .shimo-reading-text::selection,

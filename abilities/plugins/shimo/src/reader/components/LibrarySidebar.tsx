@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { BookOpen, PanelLeftClose } from "lucide-react";
+import { PanelLeftClose } from "lucide-react";
 import { useState, type ReactElement } from "react";
 import type { LibraryEntry, ReadingCategory } from "../../domain";
 import { CategoryBadge } from "./CategoryBadge";
@@ -37,15 +37,13 @@ export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSe
       aria-label={t("library.title")}
       aria-hidden={!open}
       inert={!open}
-      className={`min-h-0 shrink-0 overflow-hidden border-r border-border/60 bg-card/40 @max-[44rem]/shimo-workspace:max-w-[45cqw] ${open ? "w-64" : "hidden"}`}
+      className={`min-h-0 shrink-0 overflow-hidden border-r border-border/40 bg-background @max-[44rem]/shimo-workspace:max-w-[48cqw] ${open ? "w-72" : "hidden"}`}
     >
-      <div className="flex h-full w-full flex-col px-3 pb-3 pt-4">
-        <div className="mb-4 flex items-center justify-between gap-2 px-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
-              <BookOpen className="size-3.5" />
-            </span>
-            <span className="truncate font-serif text-[15px] font-semibold tracking-tight">{t("library.title")}</span>
+      <div className="flex h-full w-full flex-col px-5 pb-5 pt-6">
+        <div className="mb-6 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-serif text-2xl leading-none text-primary">{t("brand.mark")}</p>
+            <p className="mt-3 font-serif text-base tracking-wide">{t("library.title")}</p>
           </div>
           <div className="flex items-center gap-0.5">
             <ImportButton t={t} onFiles={onFiles} />
@@ -57,55 +55,68 @@ export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSe
           </div>
         </div>
 
-        <div className="mb-3 grid grid-cols-3 gap-0.5 rounded-xl bg-muted/35 p-1">
-          {FILTERS.map((value) => (
-            <Button
-              key={value}
-              type="button"
-              size="xs"
-              variant={filter === value ? "secondary" : "ghost"}
-              aria-pressed={filter === value}
-              onClick={() => setFilter(value)}
-              className={`h-auto rounded-lg px-1.5 py-1.5 text-center text-[11px] font-medium ${filter === value ? "shadow-sm" : "text-muted-foreground"}`}
-            >
-              {value === "all" ? t("library.filterAll") : t(`category.${value}`)} ({filterCount(value)})
-            </Button>
-          ))}
+        <div className="mb-5 flex items-end gap-4 border-b border-border/60">
+          {FILTERS.map((value) => {
+            const selected = filter === value;
+            return (
+              <Button
+                key={value}
+                type="button"
+                size="xs"
+                variant="ghost"
+                aria-pressed={selected}
+                onClick={() => setFilter(value)}
+                className={`h-auto rounded-none border-b-2 px-0 pb-2 font-serif text-[13px] ${
+                  selected
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {value === "all" ? t("library.filterAll") : t(`category.${value}`)} ({filterCount(value)})
+              </Button>
+            );
+          })}
         </div>
 
-        <nav className="shimo-scroll min-h-0 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={t("library.materials")}>
+        <nav className="shimo-scroll min-h-0 flex-1 overflow-y-auto" aria-label={t("library.materials")}>
           {filteredEntries.length === 0 ? (
-            <div className="grid min-h-40 place-items-center px-3 text-center">
-              <p className="max-w-40 text-xs leading-relaxed text-muted-foreground">
+            <div className="grid min-h-40 place-items-center px-2 text-center">
+              <p className="max-w-40 font-serif text-sm leading-relaxed text-muted-foreground">
                 {filter === "all" ? t("library.empty") : t("library.filteredEmpty")}
               </p>
             </div>
           ) : (
-            filteredEntries.map((entry) => {
-              const active = selectedId === entry.id;
-              return (
-                <Button
-                  key={entry.id}
-                  type="button"
-                  size="lg"
-                  variant={active ? "secondary" : "ghost"}
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => void onSelect(entry.id)}
-                  className={`relative grid h-auto w-full justify-start gap-1.5 rounded-xl px-3 py-2.5 text-left whitespace-normal ${active ? "bg-primary/10 shadow-sm" : ""}`}
-                >
-                  {active ? <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" aria-hidden="true" /> : null}
-                  <div className="flex min-w-0 items-center gap-2">
-                    <CategoryBadge category={entry.category} t={t} glyphOnly />
-                    <span className="truncate text-[13px] font-medium text-foreground">{entry.title}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 pl-5 text-[10px] text-muted-foreground">
-                    <CategoryBadge category={entry.category} t={t} />
-                    <span aria-hidden="true">·</span>
-                    <span className="uppercase tracking-[0.12em]">{entry.kind}</span>
-                  </div>
-                </Button>
-              );
-            })
+            <ol className="m-0 list-none p-0">
+              {filteredEntries.map((entry, index) => {
+                const active = selectedId === entry.id;
+                return (
+                  <li key={entry.id} className="border-b border-border/40 last:border-b-0">
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="ghost"
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => void onSelect(entry.id)}
+                      className={`h-auto w-full items-start justify-start gap-3 rounded-none px-0 py-4 text-left whitespace-normal ${
+                        active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="w-7 shrink-0 pt-0.5 font-serif text-xs tabular-nums text-muted-foreground">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-serif text-[15px] leading-snug text-foreground">{entry.title}</span>
+                        <span className="mt-1.5 flex items-center gap-2 text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
+                          <CategoryBadge category={entry.category} t={t} />
+                          <span aria-hidden="true">/</span>
+                          <span>{entry.kind}</span>
+                        </span>
+                      </span>
+                    </Button>
+                  </li>
+                );
+              })}
+            </ol>
           )}
         </nav>
       </div>

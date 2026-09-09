@@ -1,16 +1,7 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import {
-  Highlighter,
-  Languages,
-  Lightbulb,
-  LoaderCircle,
-  MessageCircleQuestion,
-  NotebookPen,
-  Sparkles,
-  type LucideIcon
-} from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import type { ReactElement } from "react";
-import type { ReadingRecord, RecordKind } from "../../domain";
+import type { ReadingRecord } from "../../domain";
 import { locationLabel } from "../prompts";
 import type { Locale } from "../types";
 import { AnswerMarkdown } from "./AnswerMarkdown";
@@ -23,47 +14,38 @@ interface RecordCardProps {
   streaming?: boolean;
 }
 
-const KIND_ICON: Record<RecordKind, LucideIcon> = {
-  answer: Sparkles,
-  highlight: Highlighter,
-  note: NotebookPen,
-  reflection: Lightbulb,
-  question: MessageCircleQuestion,
-  pinyin: Languages
-};
-
 export function RecordCard({ record, question, locale, t, streaming = false }: RecordCardProps): ReactElement {
   const isAnswer = record.kind === "answer";
-  const Icon = KIND_ICON[record.kind] ?? NotebookPen;
 
   return (
-    <article className={`min-w-0 rounded-xl border p-4 text-sm ${isAnswer ? "border-primary/20 bg-background shadow-sm" : "border-border/50 bg-background/60"}`}>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-        <span className={`inline-flex items-center gap-1.5 font-medium ${isAnswer ? "text-primary" : "text-foreground/80"}`}>
-          <Icon aria-hidden="true" className="size-3" />
+    <article className="min-w-0 border-b border-border/40 py-5 last:border-b-0">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] tracking-[0.14em] text-muted-foreground">
+        <span className={`font-serif ${isAnswer ? "text-primary" : "text-foreground/80"}`}>
           {t(`records.kind.${record.kind}`)}
         </span>
         <span>{locationLabel(record.anchor, locale)}</span>
         {streaming ? (
-          <span role="status" className="ml-auto inline-flex items-center gap-1 text-primary">
+          <span role="status" className="ml-auto inline-flex items-center gap-1 tracking-normal text-primary">
             <LoaderCircle aria-hidden="true" className="size-3 animate-spin" />
             {t("records.generating")}
           </span>
         ) : null}
       </div>
-      <blockquote className="my-3 border-l-2 border-primary/30 pl-3 font-serif text-[13px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+      <blockquote className="mt-3 font-serif text-[15px] leading-7 text-foreground/80 [overflow-wrap:anywhere]">
         {record.quote}
       </blockquote>
       {isAnswer && question?.body ? (
-        <p className="mb-3 whitespace-pre-wrap text-sm font-medium leading-relaxed [overflow-wrap:anywhere]">{question.body}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm font-medium leading-7 [overflow-wrap:anywhere]">{question.body}</p>
       ) : null}
       {isAnswer && (record.body || streaming) ? (
-        <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
+        <div className="mt-3">
+          <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
+        </div>
       ) : record.body ? (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90 [overflow-wrap:anywhere]">{record.body}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-foreground/90 [overflow-wrap:anywhere]">{record.body}</p>
       ) : null}
       {isAnswer && record.modelKey ? (
-        <p className="mt-4 truncate border-t border-border/40 pt-2 text-[10px] text-muted-foreground" title={record.modelKey}>{record.modelKey}</p>
+        <p className="mt-4 truncate text-[10px] tracking-wide text-muted-foreground" title={record.modelKey}>{record.modelKey}</p>
       ) : null}
     </article>
   );
