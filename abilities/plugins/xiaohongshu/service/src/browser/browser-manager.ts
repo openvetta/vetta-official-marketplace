@@ -19,6 +19,50 @@ export interface ChromiumProvisionOptions {
 	locate?: (cacheDir: string) => Promise<string | undefined>;
 }
 
+export interface ProfileIdentity {
+	nickname?: string;
+	userId?: string;
+	avatarUrl?: string;
+}
+
+function stringValue(value: unknown): string | undefined {
+	return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+/**
+ * 小红书把当前用户信息放在不同版本的 __INITIAL_STATE__ 层级中。
+ * 只读取明确的身份字段，避免把页面其它文本误当成用户资料。
+ */
+export function profileIdentityFromValue(value: unknown): ProfileIdentity {
+	const candidates: Record<string, unknown>[] = [];
+	const pending: unknown[] = [value];
+	const seen = new Set<unknown>();
+	while (pending.length > 0 && candidates.length < 32) {
+		const current = pending.shift();
+		if (!current || typeof current !== "object" || seen.has(current)) continue;
+		seen.add(current);
+		const record = current as Record<string, unknown>;
+		candidates.push(record);
+		for (const key of ["user", "userInfo", "value", "data", "basicInfo", "userBasicInfo"]) {
+			if (record[key] && typeof record[key] === "object") pending.push(record[key]);
+		}
+	}
+	const first = (keys: string[]): string | undefined => {
+		for (const candidate of candidates) {
+			for (const key of keys) {
+				const value = stringValue(candidate[key]);
+				if (value) return value;
+			}
+		}
+		return undefined;
+	};
+	return {
+		nickname: first(["nickname", "username", "nick_name"]),
+		userId: first(["userId", "user_id", "redId", "red_id"]),
+		avatarUrl: first(["avatar", "avatarUrl", "avatar_url", "image", "images"]),
+	};
+}
+
 async function findChromiumExecutable(cacheDir: string): Promise<string | undefined> {
 	const pending = [resolve(cacheDir)];
 	while (pending.length > 0) {
@@ -140,14 +184,35 @@ export class BrowserManager {
 		return context;
 	}
 
-	async checkLogin(accountId: string): Promise<{ loggedIn: boolean; username?: string }> {
+	async readProfile(page: Page): Promise<ProfileIdentity> {
+		const state = await page.evaluate(() => {
+			const root = (globalThis as unknown as { __INITIAL_STATE__?: unknown }).__INITIAL_STATE__;
+			const record = root && typeof root === "object" ? root as Record<string, unknown> : undefined;
+			const user = record?.user;
+			if (!user || typeof user !== "object") return undefined;
+			const userRecord = user as Record<string, unknown>;
+			const info = userRecord.userInfo;
+			if (info && typeof info === "object" && "value" in info) return (info as Record<string, unknown>).value;
+			return info;
+		}).catch(() => undefined);
+		const identity = profileIdentityFromValue(state);
+		if (identity.nickname && identity.userId && identity.avatarUrl) return identity;
+
+		const nickname = identity.nickname ?? stringValue(await page.locator(".main-container .user .link-wrapper .channel").first().textContent().catch(() => undefined));
+		const avatarUrl = identity.avatarUrl ?? stringValue(await page.locator(".main-container .user .link-wrapper img, .main-container .user img.avatar, img[class*='avatar']").first().getAttribute("src").catch(() => undefined));
+		return { ...identity, nickname, avatarUrl };
+	}
+
+	async checkLogin(accountId: string): Promise<{ loggedIn: boolean; username?: string; userId?: string; avatarUrl?: string }> {
 		const context = await this.contextFor(accountId);
 		const page = await context.newPage();
 		try {
 			await page.goto(HOME_URL, { waitUntil: "domcontentloaded", timeout: 30_000 });
 			const cookies = await context.cookies("https://www.xiaohongshu.com");
 			const loggedIn = (await page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
-			return { loggedIn };
+			if (!loggedIn) return { loggedIn: false };
+			const profile = await this.readProfile(page);
+			return { loggedIn, username: profile.nickname, userId: profile.userId, avatarUrl: profile.avatarUrl };
 		} finally {
 			await page.close();
 		}

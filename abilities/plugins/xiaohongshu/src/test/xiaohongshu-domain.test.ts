@@ -219,10 +219,10 @@ describe("xiaohongshu plugin account handling", () => {
 	it("parses nested upstream profile identities without trusting unrelated fields", () => {
 		expect(
 			identityFromProfile({
-				data: { data: { basicInfo: { nickname: " 花酒 ", redId: "8023" } } },
+				data: { data: { basicInfo: { nickname: " 花酒 ", redId: "8023", avatar: "https://img.example/avatar.png" } } },
 				message: "ignored",
 			}),
-		).toEqual({ nickname: "花酒", userId: "8023" });
+		).toEqual({ nickname: "花酒", userId: "8023", avatarUrl: "https://img.example/avatar.png" });
 	});
 
 	it("does not present generated storage labels as a known account identity", () => {

@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { createAccountStore, type AccountMetadata } from "./accounts/account-store.js";
-import { BrowserManager } from "./browser/browser-manager.js";
+import { BrowserManager, type ProfileIdentity } from "./browser/browser-manager.js";
 
 const port = Number(process.env.VETTA_SERVICE_PORT ?? 0);
 const dataRoot = process.env.VETTA_SERVICE_DATA_DIR ?? "./service-data";
@@ -11,6 +11,19 @@ const browser = new BrowserManager(store, dataRoot);
 const sessions = new Map<string, { page: import("playwright-core").Page; context: import("playwright-core").BrowserContext; createdAt: number; accountId?: string }>();
 let activeAccountId: string | undefined;
 let latestLoginSessionId: string | undefined;
+
+function accountMetadata(id: string, profile: ProfileIdentity, previous?: AccountMetadata): AccountMetadata {
+	const now = new Date().toISOString();
+	return {
+		id,
+		name: previous?.name ?? "小红书账号",
+		username: profile.nickname ?? previous?.username,
+		userId: profile.userId ?? previous?.userId,
+		avatarUrl: profile.avatarUrl ?? previous?.avatarUrl,
+		createdAt: previous?.createdAt ?? now,
+		updatedAt: now,
+	};
+}
 
 async function qrPayload(page: import("playwright-core").Page): Promise<string> {
 		const image = page.locator(".login-container .qrcode-img, img.qrcode-img, img[class*='qrcode'], img[class*='qr-code']").first();
@@ -52,7 +65,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "GET" && url.pathname === "/api/v1/user/me") {
 		const account = activeAccountId ? await store.get(activeAccountId) : undefined;
 		return account
-			? json(response, 200, { data: { nickname: account.username ?? account.name, user_id: account.id } })
+			? json(response, 200, { data: { nickname: account.username ?? account.name, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } })
 			: json(response, 401, { error: "not logged in" });
 	}
 	if (request.method === "GET" && url.pathname === "/api/v1/login/qrcode") {
@@ -72,18 +85,25 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 			if (!loggedIn && Date.now() - session.createdAt < 180_000)
 				return json(response, 200, { data: { is_logged_in: false } });
 			const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
-			const account: AccountMetadata = { id: accountId, name: "小红书账号", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+			const profile = await browser.readProfile(session.page);
+			const account = accountMetadata(accountId, profile, await store.get(accountId));
 			await store.upsert(account);
 			await browser.persist(accountId, session.context);
 			activeAccountId = accountId;
 			await session.context.close();
 			if (sessionId) sessions.delete(sessionId);
 			latestLoginSessionId = undefined;
-			return json(response, 200, { data: { is_logged_in: true, nickname: account.name, user_id: account.id } });
+			return json(response, 200, { data: { is_logged_in: true, nickname: account.username ?? account.name, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } });
 		}
 		if (!activeAccountId) return json(response, 200, { data: { is_logged_in: false } });
 		const status = await browser.checkLogin(activeAccountId);
-		return json(response, 200, { data: { is_logged_in: status.loggedIn, username: status.username } });
+		const current = await store.get(activeAccountId);
+		if (current && status.loggedIn) {
+			const account = accountMetadata(activeAccountId, { nickname: status.username, userId: status.userId, avatarUrl: status.avatarUrl }, current);
+			await store.upsert(account);
+			return json(response, 200, { data: { is_logged_in: true, username: account.username, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } });
+		}
+		return json(response, 200, { data: { is_logged_in: status.loggedIn, username: status.username, user_id: status.userId, avatar_url: status.avatarUrl } });
 	}
 	if (request.method === "DELETE" && url.pathname === "/api/v1/login/cookies") {
 		if (latestLoginSessionId) {
@@ -111,7 +131,8 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		const cookies = await session.context.cookies("https://www.xiaohongshu.com");
 		if (cookies.length === 0 && Date.now() - session.createdAt < 180_000) return json(response, 200, { id: sessionMatch[1], status: "waiting" });
 		const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
-		const account: AccountMetadata = { id: accountId, name: "小红书账号", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+		const profile = await browser.readProfile(session.page);
+		const account = accountMetadata(accountId, profile, await store.get(accountId));
 		await store.upsert(account);
 		await browser.persist(accountId, session.context);
 		activeAccountId = accountId;

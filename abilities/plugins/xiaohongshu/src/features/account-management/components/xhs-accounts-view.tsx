@@ -70,7 +70,8 @@ export function XhsAccountsView({
 		try {
 			const state = await readAccountState(context);
 			if (disposedRef.current) return;
-			setAccounts(state.accounts);
+			let nextAccounts = state.accounts;
+			setAccounts(nextAccounts);
 			setActiveId(state.activeAccountId);
 
 			// 同步当前在线状态
@@ -80,7 +81,11 @@ export function XhsAccountsView({
 					(a) => a.id === state.activeAccountId,
 				);
 				if (active && curLogin) {
-					await updateAccountIdentity(context, active.id, curLogin);
+					const updated = await updateAccountIdentity(context, active.id, curLogin);
+					if (updated) {
+						nextAccounts = nextAccounts.map((account) => account.id === updated.id ? updated : account);
+						setAccounts(nextAccounts);
+					}
 				}
 			} catch {
 				// 后台若未完全 ready，不阻断界面渲染
@@ -180,6 +185,7 @@ export function XhsAccountsView({
 						...next,
 						nickname: current.nickname,
 						userId: current.userId,
+						avatarUrl: current.avatarUrl,
 						name: current.nickname || next.name,
 					});
 					setQrModalOpen(false);

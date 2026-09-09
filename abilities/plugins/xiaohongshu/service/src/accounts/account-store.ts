@@ -5,6 +5,7 @@ export interface AccountMetadata {
 	id: string;
 	name: string;
 	username?: string;
+	userId?: string;
 	avatarUrl?: string;
 	createdAt: string;
 	updatedAt: string;

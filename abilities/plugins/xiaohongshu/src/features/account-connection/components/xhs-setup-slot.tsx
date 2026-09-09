@@ -138,8 +138,9 @@ export function XhsSetupSlot({
 						setStatus("verifying");
 						const saved = await persistLoggedInAccount(context, {
 							...next,
-							nickname: current.nickname,
-							userId: current.userId,
+								nickname: current.nickname,
+								userId: current.userId,
+								avatarUrl: current.avatarUrl,
 							name: current.nickname || next.name,
 						});
 						setAccount(saved);

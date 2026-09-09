@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ensureChromiumExecutable } from "../browser/browser-manager.js";
+import { ensureChromiumExecutable, profileIdentityFromValue } from "../browser/browser-manager.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -17,6 +17,12 @@ afterEach(async () => {
 });
 
 describe("ensureChromiumExecutable", () => {
+	it("extracts identity fields from the different upstream state shapes", () => {
+		expect(profileIdentityFromValue({
+			user: { userInfo: { value: { nickname: " 花酒 ", userId: "u-8023", avatar: "https://img.example/avatar.png" } } },
+		})).toEqual({ nickname: "花酒", userId: "u-8023", avatarUrl: "https://img.example/avatar.png" });
+	});
+
 	it("reuses an executable already present in the account service cache", async () => {
 		const cacheDir = await temporaryDirectory();
 		const executable = join(cacheDir, "chromium", "chrome.exe");

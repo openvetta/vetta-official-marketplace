@@ -20,6 +20,8 @@ export interface XhsAccount {
 	nickname?: string;
 	/** Stable upstream user id; kept for disambiguating accounts, not shown as a secret. */
 	userId?: string;
+	/** Upstream profile avatar URL, when available. */
+	avatarUrl?: string;
 	createdAt: string;
 	lastCheckedAt?: string;
 	status: AccountStatus;
@@ -49,6 +51,7 @@ export interface LoginStatus {
 	loggedIn: boolean;
 	nickname?: string;
 	userId?: string;
+	avatarUrl?: string;
 }
 
 function services(ctx: PluginContext): ManagedServiceApi {
@@ -114,6 +117,11 @@ export function identityFromProfile(
 		userId: candidates
 			.map((candidate) =>
 				nonEmptyString(candidate, ["user_id", "userId", "red_id", "redId"]),
+			)
+			.find(Boolean),
+		avatarUrl: candidates
+			.map((candidate) =>
+				nonEmptyString(candidate, ["avatarUrl", "avatar_url", "avatar", "image", "images"]),
 			)
 			.find(Boolean),
 	};
@@ -213,7 +221,12 @@ export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
 			if (value.status === "authenticated") {
 				loginSessionId = undefined;
 				const account = value.account as Record<string, unknown> | undefined;
-				return { loggedIn: true, nickname: nonEmptyString(account, ["name", "username"]) };
+				return {
+					loggedIn: true,
+					nickname: nonEmptyString(account, ["username", "nickname", "name"]),
+					userId: nonEmptyString(account, ["userId", "user_id"]),
+					avatarUrl: nonEmptyString(account, ["avatarUrl", "avatar_url", "avatar"]),
+				};
 			}
 		}
 	}
@@ -236,6 +249,7 @@ export async function loginStatus(ctx: PluginContext): Promise<LoginStatus> {
 		loggedIn,
 		nickname: profileIdentity.nickname,
 		userId: statusIdentity.userId ?? profileIdentity.userId,
+		avatarUrl: statusIdentity.avatarUrl ?? profileIdentity.avatarUrl,
 	};
 }
 
@@ -271,6 +285,7 @@ export async function updateAccountIdentity(
 		...current,
 		nickname: status.nickname || current.nickname,
 		userId: status.userId || current.userId,
+		avatarUrl: status.avatarUrl || current.avatarUrl,
 		name: status.nickname || current.name,
 		status: status.loggedIn ? "connected" : "expired",
 		lastCheckedAt: new Date().toISOString(),
