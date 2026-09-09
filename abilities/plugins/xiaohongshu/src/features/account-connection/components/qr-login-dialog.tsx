@@ -31,6 +31,9 @@ export function QrLoginDialog({
 	t: Translation;
 }): ReactElement | null {
 	if (!isOpen) return null;
+	const showQr = Boolean(
+		qr && (status === "waitingQr" || status === "waitingScan"),
+	);
 
 	return (
 		<ModalDialog
@@ -59,7 +62,7 @@ export function QrLoginDialog({
 		>
 			<div className="flex flex-col items-center text-center">
 				<div className="relative flex size-56 items-center justify-center rounded-2xl border border-rose-500/25 bg-white p-3 shadow-xl shadow-rose-500/10">
-					{qr ? (
+					{showQr ? (
 						<img
 							src={qr}
 							alt={t("setup.qrAlt")}

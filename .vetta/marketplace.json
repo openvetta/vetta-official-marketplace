@@ -394,7 +394,7 @@
       "slug": "xiaohongshu",
       "name": "Xiaohongshu Accounts",
       "description": "Sign in, switch and manage Xiaohongshu accounts, then use the built-in MCP through the active account.",
-      "version": "1.1.11",
+      "version": "1.1.12",
       "configVersion": 1,
       "license": "Apache-2.0",
       "author": "Vetta / xpzouying",

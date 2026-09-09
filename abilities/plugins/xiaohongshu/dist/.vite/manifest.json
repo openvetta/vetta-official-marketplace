@@ -12,7 +12,11 @@
     "name": "vite-preload-helper"
   },
   "src/index.tsx": {
+<<<<<<< HEAD
     "file": "assets/index-B1qxx7v8.js",
+=======
+    "file": "assets/index-pNnJDr2q.js",
+>>>>>>> 475b1e7 (修复小红书账号资料与扫码状态)
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -42,7 +46,11 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__xiaohongshu__remoteEntry_js": {
+<<<<<<< HEAD
     "file": "assets/virtualExposes-wMvhRcUm.js",
+=======
+    "file": "assets/virtualExposes-DlD_gKNv.js",
+>>>>>>> 475b1e7 (修复小红书账号资料与扫码状态)
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__xiaohongshu__remoteEntry_js",
     "isDynamicEntry": true,

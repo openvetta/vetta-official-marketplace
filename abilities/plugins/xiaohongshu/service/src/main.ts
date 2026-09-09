@@ -8,7 +8,14 @@ const port = Number(process.env.VETTA_SERVICE_PORT ?? 0);
 const dataRoot = process.env.VETTA_SERVICE_DATA_DIR ?? "./service-data";
 const store = createAccountStore(dataRoot);
 const browser = new BrowserManager(store, dataRoot);
-const sessions = new Map<string, { page: import("playwright-core").Page; context: import("playwright-core").BrowserContext; createdAt: number; accountId?: string }>();
+type LoginSession = {
+	page: import("playwright-core").Page;
+	context: import("playwright-core").BrowserContext;
+	createdAt: number;
+	accountId?: string;
+	completion?: Promise<AccountMetadata>;
+};
+const sessions = new Map<string, LoginSession>();
 let activeAccountId: string | undefined;
 let latestLoginSessionId: string | undefined;
 
@@ -42,6 +49,23 @@ async function qrPayload(page: import("playwright-core").Page): Promise<string> 
 		}
 		const message = (await page.locator("body").innerText().catch(() => "")).trim().replace(/\\s+/gu, " ").slice(0, 180);
 		throw new Error(message ? `小红书未返回二维码：${message}` : "小红书未返回二维码");
+}
+
+async function completeLoginSession(sessionId: string, session: LoginSession): Promise<AccountMetadata> {
+	if (session.completion) return session.completion;
+	session.completion = (async () => {
+		const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
+		const profile = await browser.readProfile(session.page);
+		const account = accountMetadata(accountId, profile, await store.get(accountId));
+		await store.upsert(account);
+		await browser.persist(accountId, session.context);
+		activeAccountId = accountId;
+		await session.context.close();
+		sessions.delete(sessionId);
+		if (latestLoginSessionId === sessionId) latestLoginSessionId = undefined;
+		return account;
+	})();
+	return session.completion;
 }
 
 function json(response: ServerResponse, status: number, body: unknown): void {
@@ -79,20 +103,13 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "GET" && url.pathname === "/api/v1/login/status") {
 		const sessionId = latestLoginSessionId;
 		const session = sessionId ? sessions.get(sessionId) : undefined;
-		if (session) {
+		if (sessionId && session) {
+			const currentSessionId = sessionId;
 			const cookies = await session.context.cookies("https://www.xiaohongshu.com");
 			const loggedIn = (await session.page.locator(".main-container .user .link-wrapper .channel").count()) > 0 || cookies.some((cookie) => cookie.name === "web_session");
 			if (!loggedIn && Date.now() - session.createdAt < 180_000)
 				return json(response, 200, { data: { is_logged_in: false } });
-			const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
-			const profile = await browser.readProfile(session.page);
-			const account = accountMetadata(accountId, profile, await store.get(accountId));
-			await store.upsert(account);
-			await browser.persist(accountId, session.context);
-			activeAccountId = accountId;
-			await session.context.close();
-			if (sessionId) sessions.delete(sessionId);
-			latestLoginSessionId = undefined;
+			const account = await completeLoginSession(currentSessionId, session);
 			return json(response, 200, { data: { is_logged_in: true, nickname: account.username ?? account.name, user_id: account.userId ?? account.id, avatar_url: account.avatarUrl } });
 		}
 		if (!activeAccountId) return json(response, 200, { data: { is_logged_in: false } });
@@ -130,14 +147,7 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 		if (!session) return json(response, 404, { error: "login session not found" });
 		const cookies = await session.context.cookies("https://www.xiaohongshu.com");
 		if (cookies.length === 0 && Date.now() - session.createdAt < 180_000) return json(response, 200, { id: sessionMatch[1], status: "waiting" });
-		const accountId = session.accountId ?? `account-${Date.now().toString(36)}`;
-		const profile = await browser.readProfile(session.page);
-		const account = accountMetadata(accountId, profile, await store.get(accountId));
-		await store.upsert(account);
-		await browser.persist(accountId, session.context);
-		activeAccountId = accountId;
-		await session.context.close();
-		sessions.delete(sessionMatch[1]);
+		const account = await completeLoginSession(sessionMatch[1], session);
 		return json(response, 200, { id: sessionMatch[1], status: "authenticated", account });
 	}
 	const activateMatch = url.pathname.match(/^\/api\/v1\/accounts\/([^/]+)\/activate$/u);

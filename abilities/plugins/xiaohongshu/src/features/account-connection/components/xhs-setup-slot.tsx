@@ -135,6 +135,10 @@ export function XhsSetupSlot({
 					if (disposedRef.current) return;
 					const current = await loginStatus(context);
 					if (current.loggedIn) {
+						// Hide the one-time QR as soon as the service confirms the scan.
+						// Profile persistence can take another request and must not leave
+						// an apparently active QR code on screen during that interval.
+						setQr(undefined);
 						setStatus("verifying");
 						const saved = await persistLoggedInAccount(context, {
 							...next,
@@ -144,7 +148,6 @@ export function XhsSetupSlot({
 							name: current.nickname || next.name,
 						});
 						setAccount(saved);
-						setQr(undefined);
 						setStatus("connected");
 						onAccountChanged?.();
 						return;
@@ -251,7 +254,7 @@ export function XhsSetupSlot({
 				</div>
 			) : null}
 
-			{qr ? (
+			{qr && (status === "waitingQr" || status === "waitingScan") ? (
 				<div className="mt-4 flex flex-col items-center gap-3 rounded-xl border border-border/50 bg-white p-4">
 					<img className="size-52 rounded-lg" src={qr} alt={t("setup.qrAlt")} />
 					<div className="text-center">

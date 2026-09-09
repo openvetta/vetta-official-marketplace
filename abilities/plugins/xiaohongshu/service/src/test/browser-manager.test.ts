@@ -23,6 +23,25 @@ describe("ensureChromiumExecutable", () => {
 		})).toEqual({ nickname: "花酒", userId: "u-8023", avatarUrl: "https://img.example/avatar.png" });
 	});
 
+	it("normalizes avatar arrays and image objects without using navigation labels", () => {
+		expect(profileIdentityFromValue({
+			user: {
+				userInfo: {
+					value: {
+						nickname: "哈米vvv",
+						userId: "68ee46a50000000037032877",
+						images: [{ url: "https://sns-avatar.example/avatar.webp" }],
+					},
+				},
+			},
+			channel: "我",
+		})).toEqual({
+			nickname: "哈米vvv",
+			userId: "68ee46a50000000037032877",
+			avatarUrl: "https://sns-avatar.example/avatar.webp",
+		});
+	});
+
 	it("reuses an executable already present in the account service cache", async () => {
 		const cacheDir = await temporaryDirectory();
 		const executable = join(cacheDir, "chromium", "chrome.exe");

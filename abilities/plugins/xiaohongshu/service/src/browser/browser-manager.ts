@@ -29,6 +29,25 @@ function stringValue(value: unknown): string | undefined {
 	return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function avatarValue(value: unknown): string | undefined {
+	const direct = stringValue(value);
+	if (direct) return direct;
+	if (Array.isArray(value)) {
+		for (const item of value) {
+			const avatar = avatarValue(item);
+			if (avatar) return avatar;
+		}
+		return undefined;
+	}
+	if (!value || typeof value !== "object") return undefined;
+	const record = value as Record<string, unknown>;
+	for (const key of ["url", "src", "original", "default"]) {
+		const avatar = stringValue(record[key]);
+		if (avatar) return avatar;
+	}
+	return undefined;
+}
+
 /**
  * 小红书把当前用户信息放在不同版本的 __INITIAL_STATE__ 层级中。
  * 只读取明确的身份字段，避免把页面其它文本误当成用户资料。
@@ -59,7 +78,13 @@ export function profileIdentityFromValue(value: unknown): ProfileIdentity {
 	return {
 		nickname: first(["nickname", "username", "nick_name"]),
 		userId: first(["userId", "user_id", "redId", "red_id"]),
-		avatarUrl: first(["avatar", "avatarUrl", "avatar_url", "image", "images"]),
+		avatarUrl: candidates
+			.map((candidate) =>
+				["avatar", "avatarUrl", "avatar_url", "image", "images"]
+					.map((key) => avatarValue(candidate[key]))
+					.find(Boolean),
+			)
+			.find(Boolean),
 	};
 }
 
@@ -185,22 +210,31 @@ export class BrowserManager {
 	}
 
 	async readProfile(page: Page): Promise<ProfileIdentity> {
-		const state = await page.evaluate(() => {
-			const root = (globalThis as unknown as { __INITIAL_STATE__?: unknown }).__INITIAL_STATE__;
-			const record = root && typeof root === "object" ? root as Record<string, unknown> : undefined;
-			const user = record?.user;
-			if (!user || typeof user !== "object") return undefined;
-			const userRecord = user as Record<string, unknown>;
-			const info = userRecord.userInfo;
-			if (info && typeof info === "object" && "value" in info) return (info as Record<string, unknown>).value;
-			return info;
-		}).catch(() => undefined);
-		const identity = profileIdentityFromValue(state);
-		if (identity.nickname && identity.userId && identity.avatarUrl) return identity;
+		let identity: ProfileIdentity = {};
+		for (let attempt = 0; attempt < 4; attempt += 1) {
+			const state = await page.evaluate(() => {
+				const root = (globalThis as unknown as { __INITIAL_STATE__?: unknown }).__INITIAL_STATE__;
+				const record = root && typeof root === "object" ? root as Record<string, unknown> : undefined;
+				const user = record?.user;
+				if (!user || typeof user !== "object") return undefined;
+				const userRecord = user as Record<string, unknown>;
+				const info = userRecord.userInfo;
+				if (info && typeof info === "object" && "value" in info) return (info as Record<string, unknown>).value;
+				return info;
+			}).catch(() => undefined);
+			const next = profileIdentityFromValue(state);
+			identity = {
+				nickname: next.nickname ?? identity.nickname,
+				userId: next.userId ?? identity.userId,
+				avatarUrl: next.avatarUrl ?? identity.avatarUrl,
+			};
+			if (identity.nickname && identity.userId && identity.avatarUrl) break;
+			if (attempt < 3) await page.waitForTimeout(500);
+		}
 
-		const nickname = identity.nickname ?? stringValue(await page.locator(".main-container .user .link-wrapper .channel").first().textContent().catch(() => undefined));
-		const avatarUrl = identity.avatarUrl ?? stringValue(await page.locator(".main-container .user .link-wrapper img, .main-container .user img.avatar, img[class*='avatar']").first().getAttribute("src").catch(() => undefined));
-		return { ...identity, nickname, avatarUrl };
+		const avatarUrl = identity.avatarUrl ?? avatarValue(await page.locator(".main-container .user .link-wrapper img, .main-container .user img.avatar, img[class*='avatar']").first().getAttribute("src").catch(() => undefined));
+		// `.channel` contains the navigation label “我”, not the account nickname.
+		return { ...identity, avatarUrl };
 	}
 
 	async checkLogin(accountId: string): Promise<{ loggedIn: boolean; username?: string; userId?: string; avatarUrl?: string }> {

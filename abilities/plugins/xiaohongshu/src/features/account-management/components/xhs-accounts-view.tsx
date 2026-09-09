@@ -180,6 +180,9 @@ export function XhsAccountsView({
 				if (disposedRef.current) return;
 				const current = await loginStatus(context);
 				if (current.loggedIn) {
+					// Remove the QR immediately after the scan is accepted. The
+					// account write and refresh below may take a little longer.
+					setQrCodeData(undefined);
 					setQrStatus("verifying");
 					await persistLoggedInAccount(context, {
 						...next,
