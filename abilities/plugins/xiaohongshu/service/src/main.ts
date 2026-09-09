@@ -3,7 +3,13 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createAccountStore, type AccountMetadata } from "./accounts/account-store.js";
-import { BrowserManager, type ProfileIdentity } from "./browser/browser-manager.js";
+import {
+	BrowserManager,
+	type FeedDetailOptions,
+	type ProfileIdentity,
+	type PublishOptions,
+	type SearchFilters,
+} from "./browser/browser-manager.js";
 import { loginSessionStatus } from "./login/session-status.js";
 
 const port = Number(process.env.VETTA_SERVICE_PORT ?? 0);
@@ -112,6 +118,341 @@ async function discardLoginSession(sessionId: string, session: LoginSession): Pr
 function json(response: ServerResponse, status: number, body: unknown): void {
 	response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
 	response.end(JSON.stringify(body));
+}
+
+type McpTool = {
+	name: string;
+	description: string;
+	inputSchema: { type: "object"; properties: Record<string, unknown>; required?: string[] };
+};
+
+const mcpTools: McpTool[] = [
+	{
+		name: "get_login_qrcode",
+		description: "获取小红书登录二维码。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "delete_cookies",
+		description: "清除当前登录会话并重置登录状态。此工具具有破坏性。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "publish_content",
+		description: "发布小红书图文内容，支持本地图片或 HTTP(S) 图片地址、标签、定时、可见范围、原创声明和商品绑定。此工具会改变账号内容。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				title: { type: "string" }, content: { type: "string" }, images: { type: "array", items: { type: "string" } },
+				tags: { type: "array", items: { type: "string" }, maxItems: 10 }, schedule_at: { type: "string", description: "ISO8601 时间，提前 1 小时至 14 天" },
+				is_original: { type: "boolean" }, visibility: { type: "string", enum: ["公开可见", "仅自己可见", "仅互关好友可见"] }, products: { type: "array", items: { type: "string" } },
+			},
+			required: ["title", "content", "images"],
+		},
+	},
+	{
+		name: "publish_with_video",
+		description: "发布小红书视频内容，支持标签、定时、可见范围和商品绑定。视频使用本地文件。此工具会改变账号内容。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				title: { type: "string" }, content: { type: "string" }, video: { type: "string" },
+				tags: { type: "array", items: { type: "string" }, maxItems: 10 }, schedule_at: { type: "string", description: "ISO8601 时间，提前 1 小时至 14 天" },
+				visibility: { type: "string", enum: ["公开可见", "仅自己可见", "仅互关好友可见"] }, products: { type: "array", items: { type: "string" } },
+			},
+			required: ["title", "content", "video"],
+		},
+	},
+	{
+		name: "xiaohongshu_list_accounts",
+		description: "List locally managed Xiaohongshu accounts.",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "xiaohongshu_active_account",
+		description: "Get the active Xiaohongshu account.",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "check_login_status",
+		description: "检查当前激活的小红书账号登录状态。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "list_feeds",
+		description: "获取当前激活账号的小红书首页笔记流。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "search_feeds",
+		description: "搜索小红书笔记。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				keyword: { type: "string", description: "搜索关键词" },
+				sort_by: { type: "string", enum: ["综合", "最新", "最多点赞", "最多评论", "最多收藏"] }, note_type: { type: "string", enum: ["不限", "视频", "图文"] },
+				publish_time: { type: "string", enum: ["不限", "一天内", "一周内", "半年内"] }, search_scope: { type: "string", enum: ["不限", "已看过", "未看过", "已关注"] }, location: { type: "string", enum: ["不限", "同城", "附近"] },
+			},
+			required: ["keyword"],
+		},
+	},
+	{
+		name: "get_feed_detail",
+		description: "获取小红书笔记详情、互动状态和已加载的评论。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				feed_id: { type: "string", description: "笔记 ID" },
+				xsec_token: { type: "string", description: "笔记访问令牌，可从列表结果获取" },
+				load_all_comments: { type: "boolean" }, limit: { type: "integer", minimum: 1, maximum: 100 }, click_more_replies: { type: "boolean" }, reply_limit: { type: "integer", minimum: 1, maximum: 100 }, scroll_speed: { type: "string", enum: ["slow", "normal", "fast"] },
+			},
+			required: ["feed_id"],
+		},
+	},
+	{
+		name: "user_profile",
+		description: "获取指定小红书用户主页及笔记。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				user_id: { type: "string", description: "用户 ID" },
+				xsec_token: { type: "string", description: "用户主页访问令牌，可从列表结果获取" },
+				tab: { type: "string", enum: ["note", "fav", "liked"] },
+			},
+			required: ["user_id"],
+		},
+	},
+	{
+		name: "get_my_profile",
+		description: "获取当前激活账号的小红书个人主页。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "post_comment_to_feed",
+		description: "发表评论到小红书笔记。此工具会改变账号内容。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				feed_id: { type: "string" },
+				xsec_token: { type: "string" },
+				content: { type: "string" },
+			},
+			required: ["feed_id", "content"],
+		},
+	},
+	{
+		name: "reply_comment_in_feed",
+		description: "回复小红书笔记下的指定评论。此工具会改变账号内容。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				feed_id: { type: "string" },
+				xsec_token: { type: "string" },
+				comment_id: { type: "string" },
+				user_id: { type: "string" },
+				content: { type: "string" },
+			},
+			required: ["feed_id", "content"],
+		},
+	},
+	{
+		name: "like_feed",
+		description: "给小红书笔记点赞或取消点赞。此工具会改变账号状态。",
+		inputSchema: {
+			type: "object",
+			properties: { feed_id: { type: "string" }, xsec_token: { type: "string" }, unlike: { type: "boolean" } },
+			required: ["feed_id"],
+		},
+	},
+	{
+		name: "favorite_feed",
+		description: "收藏或取消收藏小红书笔记。此工具会改变账号状态。",
+		inputSchema: {
+			type: "object",
+			properties: { feed_id: { type: "string" }, xsec_token: { type: "string" }, unfavorite: { type: "boolean" } },
+			required: ["feed_id"],
+		},
+	},
+	{
+		name: "like_notification",
+		description: "给通知中的评论点赞或取消点赞。此工具会改变账号状态。",
+		inputSchema: { type: "object", properties: { comment_id: { type: "string" }, unlike: { type: "boolean" } }, required: ["comment_id"] },
+	},
+	{
+		name: "reply_notification",
+		description: "回复通知中的评论。此工具会改变账号内容。",
+		inputSchema: { type: "object", properties: { comment_id: { type: "string" }, content: { type: "string" } }, required: ["comment_id", "content"] },
+	},
+	{
+		name: "get_unread_count",
+		description: "获取当前激活账号的通知未读数。",
+		inputSchema: { type: "object", properties: {} },
+	},
+	{
+		name: "list_notifications",
+		description: "获取当前激活账号的通知列表。",
+		inputSchema: {
+			type: "object",
+			properties: {
+				tab: { type: "string", enum: ["mentions", "likes", "connections"] },
+				limit: { type: "integer", minimum: 1, maximum: 100 },
+			},
+		},
+	},
+];
+const notificationTabs = new Set(["mentions", "likes", "connections"]);
+
+function recordOf(value: unknown): Record<string, unknown> | undefined {
+	return value && typeof value === "object" && !Array.isArray(value)
+		? value as Record<string, unknown>
+		: undefined;
+}
+
+function stringArg(args: Record<string, unknown>, key: string, required = false): string | undefined {
+	const value = args[key];
+	if (typeof value === "string" && value.trim()) return value.trim();
+	if (required) throw new Error(`缺少参数 ${key}`);
+	return undefined;
+}
+
+function numberArg(args: Record<string, unknown>, key: string, fallback: number): number {
+	const value = args[key];
+	return typeof value === "number" && Number.isFinite(value) ? Math.max(1, Math.min(100, Math.floor(value))) : fallback;
+}
+
+function stringArrayArg(args: Record<string, unknown>, key: string): string[] {
+	const value = args[key];
+	return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function publishOptionsFromArgs(args: Record<string, unknown>): PublishOptions {
+	const options: PublishOptions = {
+		tags: stringArrayArg(args, "tags"),
+		schedule_at: stringArg(args, "schedule_at"),
+		is_original: args.is_original === true,
+		visibility: stringArg(args, "visibility"),
+		products: stringArrayArg(args, "products"),
+	};
+	return options;
+}
+
+function searchFiltersFromArgs(args: Record<string, unknown>): SearchFilters {
+	return {
+		sort_by: stringArg(args, "sort_by"),
+		note_type: stringArg(args, "note_type"),
+		publish_time: stringArg(args, "publish_time"),
+		search_scope: stringArg(args, "search_scope"),
+		location: stringArg(args, "location"),
+	};
+}
+
+function feedDetailOptionsFromArgs(args: Record<string, unknown>): FeedDetailOptions {
+	return {
+		load_all_comments: args.load_all_comments === true,
+		limit: numberArg(args, "limit", 20),
+		click_more_replies: args.click_more_replies === true,
+		reply_limit: numberArg(args, "reply_limit", 10),
+		scroll_speed: args.scroll_speed === "slow" || args.scroll_speed === "fast" ? args.scroll_speed : "normal",
+	};
+}
+
+function mcpText(id: unknown, value: unknown): Record<string, unknown> {
+	return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: JSON.stringify(value) ?? "null" }] } };
+}
+
+async function activeAccountOrThrow(): Promise<AccountMetadata> {
+	if (!activeAccountId) throw new Error("当前没有激活的小红书账号");
+	const account = await store.get(activeAccountId);
+	if (!account) throw new Error("当前激活账号不存在");
+	return account;
+}
+
+async function callMcpTool(name: string, args: Record<string, unknown>): Promise<unknown> {
+	if (name === "xiaohongshu_list_accounts") return { accounts: await store.list(), activeAccountId };
+	if (name === "xiaohongshu_active_account") return { account: activeAccountId ? await store.get(activeAccountId) : undefined };
+	if (name === "get_login_qrcode") {
+		const login = await browser.createLoginSession();
+		const sessionId = randomUUID();
+		sessions.set(sessionId, { ...login, createdAt: Date.now() });
+		latestLoginSessionId = sessionId;
+		return { id: sessionId, status: "waiting", url: await qrPayload(login.page), expiresAt: Date.now() + 180_000 };
+	}
+	if (name === "delete_cookies") {
+		if (latestLoginSessionId) {
+			const session = sessions.get(latestLoginSessionId);
+			await session?.context.close();
+			sessions.delete(latestLoginSessionId);
+			latestLoginSessionId = undefined;
+		}
+		activeAccountId = undefined;
+		await persistActiveAccountId();
+		return { success: true };
+	}
+	const account = await activeAccountOrThrow();
+	if (name === "publish_content") {
+		const title = stringArg(args, "title", true) as string;
+		const content = stringArg(args, "content", true) as string;
+		const images = Array.isArray(args.images) ? args.images.filter((value): value is string => typeof value === "string") : [];
+		return await browser.publishContent(account.id, title, content, images, publishOptionsFromArgs(args));
+	}
+	if (name === "publish_with_video") {
+		const title = stringArg(args, "title", true) as string;
+		const content = stringArg(args, "content", true) as string;
+		const video = stringArg(args, "video", true) as string;
+		return await browser.publishVideo(account.id, title, content, video, publishOptionsFromArgs(args));
+	}
+	if (name === "check_login_status") return { account: account.id, ...(await browser.checkLogin(account.id)) };
+	if (name === "list_feeds") return { account: account.id, feeds: await browser.listFeeds(account.id) };
+	if (name === "search_feeds") {
+		const keyword = stringArg(args, "keyword", true) as string;
+		return { account: account.id, keyword, filters: searchFiltersFromArgs(args), feeds: await browser.searchFeeds(account.id, keyword, searchFiltersFromArgs(args)) };
+	}
+	if (name === "get_feed_detail") {
+		const feedId = stringArg(args, "feed_id", true) as string;
+		return { account: account.id, feed: await browser.feedDetail(account.id, feedId, stringArg(args, "xsec_token"), feedDetailOptionsFromArgs(args)) };
+	}
+	if (name === "user_profile") {
+		const userId = stringArg(args, "user_id", true) as string;
+		return { account: account.id, profile: await browser.userProfile(account.id, userId, stringArg(args, "xsec_token"), stringArg(args, "tab", false) ?? "note") };
+	}
+	if (name === "get_my_profile") return { account: account.id, profile: await browser.myProfile(account.id) };
+	if (name === "post_comment_to_feed") {
+		const feedId = stringArg(args, "feed_id", true) as string;
+		const content = stringArg(args, "content", true) as string;
+		return await browser.postComment(account.id, feedId, stringArg(args, "xsec_token"), content);
+	}
+	if (name === "reply_comment_in_feed") {
+		const feedId = stringArg(args, "feed_id", true) as string;
+		const content = stringArg(args, "content", true) as string;
+		const commentId = stringArg(args, "comment_id");
+		const userId = stringArg(args, "user_id");
+		if (!commentId && !userId) throw new Error("缺少 comment_id 或 user_id");
+		return await browser.replyComment(account.id, feedId, stringArg(args, "xsec_token"), commentId, userId, content);
+	}
+	if (name === "like_feed") {
+		const feedId = stringArg(args, "feed_id", true) as string;
+		return await browser.likeFeed(account.id, feedId, stringArg(args, "xsec_token"), args.unlike === true);
+	}
+	if (name === "favorite_feed") {
+		const feedId = stringArg(args, "feed_id", true) as string;
+		return await browser.favoriteFeed(account.id, feedId, stringArg(args, "xsec_token"), args.unfavorite === true);
+	}
+	if (name === "like_notification") {
+		const commentId = stringArg(args, "comment_id", true) as string;
+		return await browser.likeNotification(account.id, commentId, args.unlike === true);
+	}
+	if (name === "reply_notification") {
+		const commentId = stringArg(args, "comment_id", true) as string;
+		const content = stringArg(args, "content", true) as string;
+		return await browser.replyNotification(account.id, commentId, content);
+	}
+	if (name === "get_unread_count") return { account: account.id, unread: await browser.unreadCount(account.id) };
+	if (name === "list_notifications") {
+		const tab = stringArg(args, "tab", false) ?? "mentions";
+		if (!notificationTabs.has(tab)) throw new Error("tab 必须是 mentions、likes 或 connections");
+		return { account: account.id, tab, notifications: await browser.notifications(account.id, tab, numberArg(args, "limit", 20)) };
+	}
+	throw new Error("Unknown tool");
 }
 
 async function body(request: IncomingMessage): Promise<Record<string, unknown>> {
@@ -255,17 +596,18 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "POST" && url.pathname === "/mcp") {
 		const rpc = await body(request);
 		const id = rpc.id ?? null;
-		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.16" } } });
-		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: [
-			{ name: "xiaohongshu_list_accounts", description: "List locally managed Xiaohongshu accounts.", inputSchema: { type: "object", properties: {} } },
-			{ name: "xiaohongshu_active_account", description: "Get the active Xiaohongshu account.", inputSchema: { type: "object", properties: {} } },
-		] } });
+		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.18" } } });
+		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: mcpTools } });
 		if (rpc.method === "tools/call") {
 			const params = rpc.params as Record<string, unknown> | undefined;
 			const name = params?.name;
-			if (name === "xiaohongshu_list_accounts") return json(response, 200, { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: JSON.stringify({ accounts: await store.list(), activeAccountId }) }] } });
-			if (name === "xiaohongshu_active_account") return json(response, 200, { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: JSON.stringify({ account: activeAccountId ? await store.get(activeAccountId) : undefined }) }] } });
-			return json(response, 200, { jsonrpc: "2.0", id, error: { code: -32601, message: "Unknown tool" } });
+			const args = recordOf(params?.arguments) ?? {};
+			if (typeof name !== "string") return json(response, 200, { jsonrpc: "2.0", id, error: { code: -32602, message: "Missing tool name" } });
+			try {
+				return json(response, 200, mcpText(id, await callMcpTool(name, args)));
+			} catch (error: unknown) {
+				return json(response, 200, { jsonrpc: "2.0", id, result: { isError: true, content: [{ type: "text", text: error instanceof Error ? error.message : String(error) }] } });
+			}
 		}
 		return json(response, 200, { jsonrpc: "2.0", id, error: { code: -32601, message: "Unsupported MCP method" } });
 	}

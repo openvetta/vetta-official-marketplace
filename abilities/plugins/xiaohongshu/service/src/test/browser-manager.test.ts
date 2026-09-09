@@ -2,7 +2,17 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ensureChromiumExecutable, loggedInFromSignals, profileIdentityFromValue } from "../browser/browser-manager.js";
+import {
+	arrayAtPath,
+	detailAtPath,
+	ensureChromiumExecutable,
+	loggedInFromSignals,
+	normalizePublishOptions,
+	profileIdentityFromValue,
+	validatePublishText,
+	xiaohongshuTitleLength,
+	unwrapPageValue,
+} from "../browser/browser-manager.js";
 
 const temporaryDirectories: string[] = [];
 
@@ -17,6 +27,37 @@ afterEach(async () => {
 });
 
 describe("ensureChromiumExecutable", () => {
+	it("matches the upstream title length calculation", () => {
+		expect(xiaohongshuTitleLength("你好世界")).toBe(4);
+		expect(xiaohongshuTitleLength("hello")).toBe(3);
+		expect(xiaohongshuTitleLength("😀")).toBe(2);
+		expect(xiaohongshuTitleLength("一二三四五六七八九十一二三四五六七八九十")).toBe(20);
+	});
+
+	it("validates publish text and normalizes publish options", () => {
+		expect(() => validatePublishText("", "正文")).toThrow("标题不能为空");
+		expect(() => validatePublishText("一".repeat(21), "正文")).toThrow("20 字限制");
+		expect(() => validatePublishText("标题", "x".repeat(1001))).toThrow("1000 字限制");
+		const now = Date.parse("2026-09-09T00:00:00+08:00");
+		expect(normalizePublishOptions({
+			tags: ["#旅行", "", "#美食"],
+			visibility: "公开可见",
+			schedule_at: "2026-09-09T02:00:00+08:00",
+		}, now)).toMatchObject({ tags: ["旅行", "美食"], visibility: "公开可见" });
+		expect(() => normalizePublishOptions({ schedule_at: "2026-09-09T00:30:00+08:00" }, now)).toThrow("至少在 1 小时后");
+		expect(() => normalizePublishOptions({ schedule_at: "2026-09-24T00:00:00+08:00" }, now)).toThrow("不能超过 14 天");
+	});
+
+	it("extracts the state shapes used by feed and detail pages", () => {
+		const state = {
+			feed: { feeds: { value: [{ id: "feed-1" }, { id: "feed-2" }] } },
+			note: { noteDetailMap: { "feed-1": { note: { title: "测试" } } } },
+		};
+		expect(arrayAtPath(state, ["feed", "feeds"])).toEqual([{ id: "feed-1" }, { id: "feed-2" }]);
+		expect(detailAtPath(state, "feed-1")).toEqual({ note: { title: "测试" } });
+		expect(unwrapPageValue({ _value: [{ id: "feed-3" }] })).toEqual([{ id: "feed-3" }]);
+	});
+
 	it("does not treat a placeholder profile nickname as a login", () => {
 		expect(loggedInFromSignals({
 			profile: { nickname: "小红书账号" },

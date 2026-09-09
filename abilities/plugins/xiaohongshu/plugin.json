@@ -2,10 +2,12 @@
   "id": "xiaohongshu",
   "name": "%name%",
   "icon": "assets/icon.png",
-  "version": "1.1.16",
+  "version": "1.1.18",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
-  "styles": ["dist/style.css"],
+  "styles": [
+    "dist/style.css"
+  ],
   "moduleFederation": {
     "remoteName": "xiaohongshu",
     "expose": "./plugin"
@@ -21,7 +23,10 @@
     "network.fetch"
   ],
   "network": {
-    "allowedHosts": ["github.com", "release-assets.githubusercontent.com"]
+    "allowedHosts": [
+      "github.com",
+      "release-assets.githubusercontent.com"
+    ]
   },
   "providers": {
     "services": [
@@ -29,14 +34,14 @@
         "id": "xhs",
         "runtime": {
           "kind": "host-node",
-          "version": "1.1.16",
+          "version": "1.1.18",
           "entry": "service/dist/main.js",
           "platforms": {
             "win32-x64": {
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "c9ccba1c3c840abc186bf81d8f94a7e9c67fc4d5c7b7e06fc98d167cdfbe2e1c",
+                  "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -46,7 +51,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "c9ccba1c3c840abc186bf81d8f94a7e9c67fc4d5c7b7e06fc98d167cdfbe2e1c",
+                  "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
                   "archive": "zip",
                   "destination": "service"
                 }
@@ -56,7 +61,7 @@
               "executable": "service/dist/main.js",
               "artifacts": [
                 {
-                  "sha256": "c9ccba1c3c840abc186bf81d8f94a7e9c67fc4d5c7b7e06fc98d167cdfbe2e1c",
+                  "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
                   "archive": "zip",
                   "destination": "service"
                 }
