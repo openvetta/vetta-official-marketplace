@@ -1,7 +1,16 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { LoaderCircle, Sparkles } from "lucide-react";
+import {
+  Highlighter,
+  Languages,
+  Lightbulb,
+  LoaderCircle,
+  MessageCircleQuestion,
+  NotebookPen,
+  Sparkles,
+  type LucideIcon
+} from "lucide-react";
 import type { ReactElement } from "react";
-import type { ReadingRecord } from "../../domain";
+import type { ReadingRecord, RecordKind } from "../../domain";
 import { locationLabel } from "../prompts";
 import type { Locale } from "../types";
 import { AnswerMarkdown } from "./AnswerMarkdown";
@@ -14,14 +23,24 @@ interface RecordCardProps {
   streaming?: boolean;
 }
 
+const KIND_ICON: Record<RecordKind, LucideIcon> = {
+  answer: Sparkles,
+  highlight: Highlighter,
+  note: NotebookPen,
+  reflection: Lightbulb,
+  question: MessageCircleQuestion,
+  pinyin: Languages
+};
+
 export function RecordCard({ record, question, locale, t, streaming = false }: RecordCardProps): ReactElement {
   const isAnswer = record.kind === "answer";
+  const Icon = KIND_ICON[record.kind] ?? NotebookPen;
 
   return (
-    <article className={`min-w-0 rounded-xl border p-4 text-sm ${isAnswer ? "border-primary/20 bg-background" : "border-border/50 bg-background/60"}`}>
+    <article className={`min-w-0 rounded-xl border p-4 text-sm ${isAnswer ? "border-primary/20 bg-background shadow-sm" : "border-border/50 bg-background/60"}`}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-        <span className={`inline-flex items-center gap-1.5 font-medium ${isAnswer ? "text-primary" : ""}`}>
-          {isAnswer ? <Sparkles aria-hidden="true" className="size-3" /> : null}
+        <span className={`inline-flex items-center gap-1.5 font-medium ${isAnswer ? "text-primary" : "text-foreground/80"}`}>
+          <Icon aria-hidden="true" className="size-3" />
           {t(`records.kind.${record.kind}`)}
         </span>
         <span>{locationLabel(record.anchor, locale)}</span>
@@ -32,7 +51,7 @@ export function RecordCard({ record, question, locale, t, streaming = false }: R
           </span>
         ) : null}
       </div>
-      <blockquote className="shimo-serif my-3 border-l-2 border-primary/30 pl-3 text-[13px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+      <blockquote className="my-3 border-l-2 border-primary/30 pl-3 font-serif text-[13px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
         {record.quote}
       </blockquote>
       {isAnswer && question?.body ? (

@@ -12,7 +12,7 @@ interface PdfPaginationProps {
 
 export function PdfPagination({ page, pageCount, t, onPage }: PdfPaginationProps): ReactElement {
   return (
-    <nav aria-label={t("pagination.label")} className="flex h-11 shrink-0 items-center justify-center gap-2 border-t border-border/45 bg-background/85 px-3 backdrop-blur">
+    <nav aria-label={t("pagination.label")} className="flex h-11 shrink-0 items-center justify-center gap-2 border-t border-border/50 bg-background/80 px-3 backdrop-blur-md">
       <Button type="button" size="icon-sm" variant="ghost" disabled={page <= 1} aria-label={t("pagination.previous")} onClick={() => onPage(page - 1)}>
         <ChevronLeft />
       </Button>

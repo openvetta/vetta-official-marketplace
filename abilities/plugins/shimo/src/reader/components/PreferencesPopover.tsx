@@ -66,7 +66,7 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
     >
       <PopoverHeader className="mb-4 flex-row items-start justify-between gap-3">
         <div>
-          <PopoverTitle>{t("preferences.title")}</PopoverTitle>
+          <PopoverTitle className="font-serif">{t("preferences.title")}</PopoverTitle>
           <PopoverDescription className="mt-0.5 text-[11px]">{t("preferences.description")}</PopoverDescription>
         </div>
         <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")} onClick={onClose}>

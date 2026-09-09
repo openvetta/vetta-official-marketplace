@@ -41,7 +41,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         onFiles={reader.importFiles}
       />
 
-      <section ref={headerControls} className="shimo-reader-section relative flex min-w-0 flex-1 flex-col overflow-hidden">
+      <section ref={headerControls} className="@container/shimo-reader relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <ReaderHeader
           title={reader.manifest?.title ?? reader.t("name")}
           subtitle={subtitle}
@@ -81,10 +81,13 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
           onPreferencesOpenChange={reader.setPreferencesOpen}
         />
 
-        <div className="shimo-reading-layout" data-records-open={reader.recordsOpen && Boolean(reader.manifest)}>
+        <div
+          className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] data-[records-open=true]:grid-cols-[minmax(0,1fr)_minmax(19rem,34%)] @max-[58rem]/shimo-reader:data-[records-open=true]:grid-cols-1 @max-[58rem]/shimo-reader:data-[records-open=true]:grid-rows-[minmax(0,1fr)_minmax(13rem,0.78fr)]"
+          data-records-open={reader.recordsOpen && Boolean(reader.manifest)}
+        >
           <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
             <div
-              className="shimo-paper shimo-scroll min-h-0 flex-1 overflow-auto p-4"
+              className="shimo-scroll min-h-0 flex-1 overflow-auto bg-[radial-gradient(920px_420px_at_50%_-12%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_64%)] bg-background p-4 [scrollbar-gutter:stable]"
               onMouseUp={reader.captureSelection}
               onKeyUp={reader.captureSelection}
               onScroll={reader.handleReaderScroll}

@@ -5,46 +5,43 @@ import { ImportButton } from "./ImportButton";
 
 export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files: FileList): Promise<void> }): ReactElement {
   return (
-    <div className="mx-auto flex min-h-[32rem] max-w-lg flex-col items-center justify-center px-6 py-10 text-center select-none">
-      {/* Brand Icon Mark */}
+    <div className="mx-auto flex min-h-[32rem] max-w-xl flex-col items-center justify-center px-6 py-12 text-center select-none">
       <div
-        className="shimo-empty-mark shimo-serif mb-6 grid size-16 place-items-center rounded-2xl text-2xl border border-primary/20 shadow-md backdrop-blur-xs text-primary"
+        className="mb-7 grid size-[4.25rem] place-items-center rounded-2xl bg-primary/10 font-serif text-[1.65rem] text-primary shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_22%,transparent),0_18px_36px_-24px_color-mix(in_oklab,var(--primary)_50%,transparent)]"
         aria-hidden="true"
       >
         {t("brand.mark")}
       </div>
 
-      <h2 className="shimo-serif text-2xl font-semibold tracking-tight text-foreground">{t("empty.title")}</h2>
-      <p className="mt-2.5 max-w-sm text-xs leading-relaxed text-muted-foreground">{t("empty.description")}</p>
+      <h2 className="font-serif text-[1.7rem] font-semibold tracking-tight text-foreground">{t("empty.title")}</h2>
+      <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">{t("empty.description")}</p>
 
-      {/* Primary Import Action */}
-      <div className="mt-6">
+      <div className="mt-7">
         <ImportButton t={t} onFiles={onFiles} prominent />
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground/70">{t("library.importHint")}</p>
+      <p className="mt-2.5 text-[11px] text-muted-foreground/80">{t("library.importHint")}</p>
 
-      {/* Dual-Mode Learning Capabilities Preview (诗词与文章双模态导引) */}
-      <div className="mt-10 grid w-full grid-cols-2 gap-3 text-left">
-        <div className="rounded-2xl border border-border/60 bg-card/40 p-4 transition hover:border-border hover:bg-card/60">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-500">
+      <div className="mt-10 grid w-full grid-cols-1 gap-3 text-left sm:grid-cols-2">
+        <div className="rounded-2xl border border-border/60 bg-card/45 p-4 transition-colors hover:border-border hover:bg-card/70">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
               <Feather className="size-3.5" />
             </span>
-            <span className="text-xs font-semibold text-foreground">{t("empty.poetryTitle")}</span>
+            <span className="text-sm font-semibold text-foreground">{t("empty.poetryTitle")}</span>
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
             {t("empty.poetryDescription")}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border/60 bg-card/40 p-4 transition hover:border-border hover:bg-card/60">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-500">
+        <div className="rounded-2xl border border-border/60 bg-card/45 p-4 transition-colors hover:border-border hover:bg-card/70">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-8 items-center justify-center rounded-xl border border-border/70 bg-muted/55 text-muted-foreground">
               <FileText className="size-3.5" />
             </span>
-            <span className="text-xs font-semibold text-foreground">{t("empty.articleTitle")}</span>
+            <span className="text-sm font-semibold text-foreground">{t("empty.articleTitle")}</span>
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
             {t("empty.articleDescription")}
           </p>
         </div>

@@ -101,7 +101,7 @@ export function PdfReader(props: PdfReaderProps): ReactElement {
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto overflow-hidden bg-white shadow-[0_16px_52px_rgba(35,24,12,0.16)] ring-1 ring-black/5"
+      className="relative mx-auto overflow-hidden bg-white shadow-[0_24px_48px_-28px_color-mix(in_oklab,var(--foreground)_28%,transparent)] ring-1 ring-border/80"
       style={{ width: pdfPage.size.width, height: pdfPage.size.height }}
     >
       <canvas ref={pdfPage.canvasRef} className="block" />
@@ -109,7 +109,7 @@ export function PdfReader(props: PdfReaderProps): ReactElement {
       <PdfPinyin records={pagePinyin} />
 
       {pdfPage.loading ? (
-        <div className="absolute inset-0 grid place-items-center bg-white/75 text-xs text-stone-500 backdrop-blur-sm">
+        <div className="absolute inset-0 grid place-items-center bg-background/80 text-xs text-muted-foreground backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <Spin size="sm" />
             <span>{t("status.opening")}</span>
@@ -117,7 +117,7 @@ export function PdfReader(props: PdfReaderProps): ReactElement {
         </div>
       ) : null}
       {pdfPage.error ? (
-        <div role="alert" className="absolute inset-x-5 top-5 rounded-xl bg-red-950/90 px-4 py-3 text-xs text-red-50 shadow-lg">
+        <div role="alert" className="absolute inset-x-5 top-5 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive shadow-lg">
           {t("pdf.loadFailed")}: {pdfPage.error}
         </div>
       ) : null}
@@ -158,7 +158,7 @@ function PdfPinyin({ records }: { records: ReadingRecord[] }): ReactElement {
         <div
           key={record.id}
           title={record.quote}
-          className="absolute rounded-md bg-amber-50/95 px-1.5 py-0.5 text-[11px] text-amber-950 shadow-sm"
+          className="absolute rounded-md border border-border/70 bg-popover/95 px-1.5 py-0.5 text-[11px] text-popover-foreground shadow-sm"
           style={{
             left: `${record.anchor.rects[0].x * 100}%`,
             top: `${Math.max(0, record.anchor.rects[0].y * 100 - 2.8)}%`
@@ -173,7 +173,7 @@ function PdfPinyin({ records }: { records: ReadingRecord[] }): ReactElement {
 
 function OcrTextPanel({ cache, t }: { cache: OcrPageCache; t: PluginTranslate }): ReactElement {
   return (
-    <aside aria-label={t("pdf.ocrText")} className="absolute inset-x-4 bottom-4 max-h-[38%] overflow-auto rounded-2xl bg-amber-50/95 p-4 text-[13px] leading-relaxed text-stone-800 shadow-xl backdrop-blur">
+    <aside aria-label={t("pdf.ocrText")} className="absolute inset-x-4 bottom-4 max-h-[38%] overflow-auto rounded-2xl border border-border/70 bg-popover/95 p-4 text-[13px] leading-relaxed text-foreground shadow-xl backdrop-blur">
       <strong className="text-xs font-semibold">{t("pdf.ocrText")}</strong>
       <p className="mt-1.5 whitespace-pre-wrap">{cache.text}</p>
     </aside>
@@ -182,7 +182,7 @@ function OcrTextPanel({ cache, t }: { cache: OcrPageCache; t: PluginTranslate })
 
 function OcrPrompt({ enabled, running, error, t, onRecognize }: { enabled: boolean; running: boolean; error: string | null; t: PluginTranslate; onRecognize(): Promise<void> }): ReactElement {
   return (
-    <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3 rounded-2xl bg-stone-950/85 px-3.5 py-3 text-xs text-white shadow-lg backdrop-blur">
+    <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-popover/95 px-3.5 py-3 text-xs text-foreground shadow-lg backdrop-blur">
       <span>{error ? `${t("pdf.ocrFailed")}: ${error}` : enabled ? t("pdf.noTextLayer") : t("pdf.ocrUnavailable")}</span>
       {enabled ? (
         <Button type="button" size="xs" variant="secondary" disabled={running} onClick={() => void onRecognize()}>

@@ -1,8 +1,9 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { BookOpen, Feather, FileText, PanelLeftClose } from "lucide-react";
+import { BookOpen, PanelLeftClose } from "lucide-react";
 import { useState, type ReactElement } from "react";
 import type { LibraryEntry, ReadingCategory } from "../../domain";
+import { CategoryBadge } from "./CategoryBadge";
 import { ImportButton } from "./ImportButton";
 
 interface LibrarySidebarProps {
@@ -16,23 +17,18 @@ interface LibrarySidebarProps {
   onFiles(files: FileList): Promise<void>;
 }
 
+const FILTERS: Array<"all" | ReadingCategory> = ["all", "poetry", "article"];
+
 export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSelect, onFiles }: LibrarySidebarProps): ReactElement {
   const [filter, setFilter] = useState<"all" | ReadingCategory>("all");
 
-  const poetryCount = entries.filter((e) => e.category === "poetry").length;
-  const articleCount = entries.filter((e) => e.category === "article").length;
-
-  const filteredEntries = filter === "all" ? entries : entries.filter((e) => e.category === filter);
-
-  const getCategoryIcon = (category: ReadingCategory) => {
-    switch (category) {
-      case "poetry":
-        return <Feather className="size-3 text-amber-500/90 shrink-0" />;
-      case "article":
-        return <FileText className="size-3 text-sky-500/90 shrink-0" />;
-      default:
-        return <BookOpen className="size-3 text-muted-foreground shrink-0" />;
-    }
+  const poetryCount = entries.filter((entry) => entry.category === "poetry").length;
+  const articleCount = entries.filter((entry) => entry.category === "article").length;
+  const filteredEntries = filter === "all" ? entries : entries.filter((entry) => entry.category === filter);
+  const filterCount = (value: "all" | ReadingCategory): number => {
+    if (value === "all") return entries.length;
+    if (value === "poetry") return poetryCount;
+    return articleCount;
   };
 
   return (
@@ -41,16 +37,17 @@ export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSe
       aria-label={t("library.title")}
       aria-hidden={!open}
       inert={!open}
-      className={`shimo-library-panel min-h-0 shrink-0 overflow-hidden border-r border-border/50 bg-card/35 ${open ? "w-60" : "hidden"}`}
+      className={`min-h-0 shrink-0 overflow-hidden border-r border-border/60 bg-card/40 @max-[44rem]/shimo-workspace:max-w-[45cqw] ${open ? "w-64" : "hidden"}`}
     >
       <div className="flex h-full w-full flex-col px-3 pb-3 pt-4">
-        {/* Header */}
-        <div className="mb-3 flex items-center justify-between gap-2 px-1">
-          <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-            <BookOpen className="size-[18px] text-primary" />
-            <span className="truncate">{t("library.title")}</span>
+        <div className="mb-4 flex items-center justify-between gap-2 px-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
+              <BookOpen className="size-3.5" />
+            </span>
+            <span className="truncate font-serif text-[15px] font-semibold tracking-tight">{t("library.title")}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <ImportButton t={t} onFiles={onFiles} />
             {onClose ? (
               <Button type="button" size="icon-sm" variant="ghost" aria-label={t("library.collapse")} title={t("library.collapse")} onClick={onClose}>
@@ -60,45 +57,28 @@ export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSe
           </div>
         </div>
 
-        {/* Category Filter Pills (诗词与文章分类筛选) */}
-        <div className="mb-3 flex flex-wrap items-center gap-1 rounded-xl bg-muted/20 p-1 text-[11px]">
-          <Button
-            type="button"
-            size="xs"
-            variant={filter === "all" ? "secondary" : "ghost"}
-            aria-pressed={filter === "all"}
-            onClick={() => setFilter("all")}
-            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
-          >
-            {t("library.filterAll")} ({entries.length})
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant={filter === "poetry" ? "secondary" : "ghost"}
-            aria-pressed={filter === "poetry"}
-            onClick={() => setFilter("poetry")}
-            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
-          >
-            {t("category.poetry")} ({poetryCount})
-          </Button>
-          <Button
-            type="button"
-            size="xs"
-            variant={filter === "article" ? "secondary" : "ghost"}
-            aria-pressed={filter === "article"}
-            onClick={() => setFilter("article")}
-            className="h-auto flex-1 rounded-lg py-1 text-center font-medium"
-          >
-            {t("category.article")} ({articleCount})
-          </Button>
+        <div className="mb-3 grid grid-cols-3 gap-0.5 rounded-xl bg-muted/35 p-1">
+          {FILTERS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              size="xs"
+              variant={filter === value ? "secondary" : "ghost"}
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+              className={`h-auto rounded-lg px-1.5 py-1.5 text-center text-[11px] font-medium ${filter === value ? "shadow-sm" : "text-muted-foreground"}`}
+            >
+              {value === "all" ? t("library.filterAll") : t(`category.${value}`)} ({filterCount(value)})
+            </Button>
+          ))}
         </div>
 
-        {/* Materials List */}
-        <nav className="shimo-scroll min-h-0 flex-1 space-y-1 overflow-y-auto" aria-label={t("library.materials")}>
+        <nav className="shimo-scroll min-h-0 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={t("library.materials")}>
           {filteredEntries.length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
-              {filter === "all" ? t("library.empty") : t("library.filteredEmpty")}
+            <div className="grid min-h-40 place-items-center px-3 text-center">
+              <p className="max-w-40 text-xs leading-relaxed text-muted-foreground">
+                {filter === "all" ? t("library.empty") : t("library.filteredEmpty")}
+              </p>
             </div>
           ) : (
             filteredEntries.map((entry) => {
@@ -111,19 +91,17 @@ export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSe
                   variant={active ? "secondary" : "ghost"}
                   aria-current={active ? "page" : undefined}
                   onClick={() => void onSelect(entry.id)}
-                  className="relative grid h-auto w-full justify-start gap-1 rounded-xl px-3 py-2.5 text-left whitespace-normal"
+                  className={`relative grid h-auto w-full justify-start gap-1.5 rounded-xl px-3 py-2.5 text-left whitespace-normal ${active ? "bg-primary/10 shadow-sm" : ""}`}
                 >
                   {active ? <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary" aria-hidden="true" /> : null}
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    {getCategoryIcon(entry.category)}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <CategoryBadge category={entry.category} t={t} glyphOnly />
                     <span className="truncate text-[13px] font-medium text-foreground">{entry.title}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <span className="rounded bg-muted/40 px-1 py-0.2 font-medium">
-                      {t(`category.${entry.category}`)}
-                    </span>
-                    <span>·</span>
-                    <span className="uppercase tracking-[0.1em]">{entry.kind}</span>
+                  <div className="flex items-center gap-1.5 pl-5 text-[10px] text-muted-foreground">
+                    <CategoryBadge category={entry.category} t={t} />
+                    <span aria-hidden="true">·</span>
+                    <span className="uppercase tracking-[0.12em]">{entry.kind}</span>
                   </div>
                 </Button>
               );

@@ -58,12 +58,12 @@ export function QuestionComposer({
     <Dialog open onOpenChange={(open) => { if (!open && !submitting) onCancel(); }}>
       <DialogContent className="overflow-hidden p-0 sm:max-w-lg" showCloseButton={false}>
         <DialogHeader className="px-5 pb-0 pt-5">
-          <DialogTitle className="shimo-serif text-lg">{t("question.title")}</DialogTitle>
+          <DialogTitle className="font-serif text-lg">{t("question.title")}</DialogTitle>
           <DialogDescription>{t("question.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 px-5">
-          <blockquote className="shimo-serif max-h-28 overflow-y-auto rounded-xl border-l-2 border-primary/35 bg-muted/40 px-3 py-2.5 text-sm leading-relaxed">
+          <blockquote className="max-h-28 overflow-y-auto rounded-xl border-l-2 border-primary/35 bg-muted/40 px-3 py-2.5 font-serif text-sm leading-relaxed">
             {pending.selection.quote}
           </blockquote>
           <p className="text-[10px] text-muted-foreground">{locationLabel(pending.selection.anchor, locale)}</p>

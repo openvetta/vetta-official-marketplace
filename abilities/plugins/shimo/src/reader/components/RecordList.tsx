@@ -1,5 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
+import { NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
 import type { Locale } from "../types";
@@ -12,8 +13,10 @@ export interface RecordListProps {
   streamingRecordId?: string | null;
 }
 
+const FILTERS = ["all", "answer", "highlight", "notes"] as const;
+
 export function RecordList({ records, locale, t, streamingRecordId }: RecordListProps): ReactElement {
-  const [kindFilter, setKindFilter] = useState<"all" | "answer" | "highlight" | "notes">("all");
+  const [kindFilter, setKindFilter] = useState<(typeof FILTERS)[number]>("all");
 
   const scrollRoot = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -28,7 +31,12 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
   if (records.length === 0) {
     return (
       <div className="grid min-h-48 place-items-center px-6 text-center">
-        <p className="max-w-48 text-xs leading-relaxed text-muted-foreground">{t("records.empty")}</p>
+        <div className="flex max-w-52 flex-col items-center">
+          <span className="mb-3 grid size-10 place-items-center rounded-2xl bg-muted/50 text-muted-foreground">
+            <NotebookPen aria-hidden="true" className="size-4" />
+          </span>
+          <p className="text-xs leading-relaxed text-muted-foreground">{t("records.empty")}</p>
+        </div>
       </div>
     );
   }
@@ -41,49 +49,29 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
     return true;
   });
 
+  const filterLabel = (value: (typeof FILTERS)[number]): string => {
+    if (value === "all") return `${t("records.filterAll")} (${records.length})`;
+    if (value === "answer") return t("records.filterAnswers");
+    if (value === "highlight") return t("records.filterHighlights");
+    return t("records.filterNotes");
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border/40 px-3 py-2 text-[11px]">
-        <Button
-          type="button"
-          size="xs"
-          variant={kindFilter === "all" ? "secondary" : "ghost"}
-          aria-pressed={kindFilter === "all"}
-          onClick={() => setKindFilter("all")}
-          className="h-auto rounded-md px-2 py-0.5 font-medium"
-        >
-          {t("records.filterAll")} ({records.length})
-        </Button>
-        <Button
-          type="button"
-          size="xs"
-          variant={kindFilter === "answer" ? "secondary" : "ghost"}
-          aria-pressed={kindFilter === "answer"}
-          onClick={() => setKindFilter("answer")}
-          className="h-auto rounded-md px-2 py-0.5 font-medium"
-        >
-          {t("records.filterAnswers")}
-        </Button>
-        <Button
-          type="button"
-          size="xs"
-          variant={kindFilter === "highlight" ? "secondary" : "ghost"}
-          aria-pressed={kindFilter === "highlight"}
-          onClick={() => setKindFilter("highlight")}
-          className="h-auto rounded-md px-2 py-0.5 font-medium"
-        >
-          {t("records.filterHighlights")}
-        </Button>
-        <Button
-          type="button"
-          size="xs"
-          variant={kindFilter === "notes" ? "secondary" : "ghost"}
-          aria-pressed={kindFilter === "notes"}
-          onClick={() => setKindFilter("notes")}
-          className="h-auto rounded-md px-2 py-0.5 font-medium"
-        >
-          {t("records.filterNotes")}
-        </Button>
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border/40 px-3 py-2">
+        {FILTERS.map((value) => (
+          <Button
+            key={value}
+            type="button"
+            size="xs"
+            variant={kindFilter === value ? "secondary" : "ghost"}
+            aria-pressed={kindFilter === value}
+            onClick={() => setKindFilter(value)}
+            className={`h-auto rounded-lg px-2 py-1 text-[11px] font-medium ${kindFilter === value ? "shadow-sm" : "text-muted-foreground"}`}
+          >
+            {filterLabel(value)}
+          </Button>
+        ))}
       </div>
 
       <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-3">

@@ -5,9 +5,9 @@
 @import "katex/dist/katex.min.css";
 @source "./**/*.{ts,tsx}";
 
-/* The plugin build scopes this sheet to the Shimo root. Dark mode is inherited through
-   host tokens, so utilities use semantic colors instead of ancestor dark selectors. */
+/* Host tokens only. Dark mode is inherited; do not use ancestor dark selectors. */
 @theme inline {
+  --font-serif: Georgia, "Noto Serif SC", "Songti SC", "Source Han Serif SC", serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -22,79 +22,25 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --animate-shimo-in: shimo-menu-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-shimo-caret: shimo-caret-pulse 900ms steps(1, end) infinite;
 }
 
-.shimo-serif {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "Source Han Serif SC", serif;
+@utility shimo-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 16%, transparent) transparent;
 }
 
-.shimo-workspace {
-  container: shimo-workspace / inline-size;
-}
-
-.shimo-reader-section {
-  container: shimo-reader / inline-size;
-}
-
-.shimo-reading-layout {
-  display: grid;
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-}
-
-.shimo-reading-layout[data-records-open="true"] {
-  grid-template-columns: minmax(0, 1fr) minmax(20rem, 38%);
-}
-
-.shimo-records-panel {
-  margin: 1rem 1rem 1rem 0;
-}
-
-/* Use the available reader width, including when the library or host panels are open. */
-@container shimo-reader (max-width: 58rem) {
-  .shimo-reading-layout[data-records-open="true"] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(12rem, 0.85fr);
-  }
-
-  .shimo-records-panel {
-    margin: 0 1rem 1rem;
-  }
-}
-
-@container shimo-reader (max-width: 32rem) {
-  .shimo-toolbar-label {
-    display: none;
-  }
-}
-
-@container shimo-workspace (max-width: 44rem) {
-  .shimo-library-panel {
-    max-width: 45cqw;
-  }
-}
-
-.shimo-paper {
-  background-color: var(--background);
-  scrollbar-gutter: stable;
-}
-
-.shimo-parchment {
-  background-color: color-mix(in oklab, var(--card) 65%, var(--background));
-  border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
-  border-radius: 0.75rem;
-}
-
+/* Generated reading/markdown HTML cannot take utility classes. */
 .shimo-reading-text {
-  font-family: Georgia, "Noto Serif SC", "Songti SC", "Source Han Serif SC", serif;
-  font-size: clamp(1rem, 0.94rem + 0.22vw, 1.15rem);
+  font-family: var(--font-serif);
+  font-size: clamp(1.02rem, 0.96rem + 0.24vw, 1.18rem);
   line-height: 1.95;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.012em;
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }
@@ -109,13 +55,12 @@
 }
 
 .shimo-reading-text rt {
-  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  color: color-mix(in oklab, var(--muted-foreground) 82%, transparent);
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.58em;
   letter-spacing: 0;
 }
 
-/* Modern & Classical Markdown Formatting */
 .shimo-markdown > :first-child {
   margin-block-start: 0;
 }
@@ -190,10 +135,6 @@
   padding: 0;
 }
 
-.shimo-answer-markdown {
-  overflow-wrap: anywhere;
-}
-
 .shimo-answer-markdown h1,
 .shimo-answer-markdown h2,
 .shimo-answer-markdown h3 {
@@ -218,20 +159,6 @@
   max-width: 100%;
   height: auto;
   border-radius: 0.65rem;
-}
-
-.shimo-markdown-table-wrap {
-  width: 100%;
-  margin-block: 0.9em;
-  overflow-x: auto;
-  border: 1px solid color-mix(in oklab, var(--border) 90%, var(--foreground) 10%);
-  border-radius: 0.7rem;
-  background: color-mix(in oklab, var(--background) 88%, var(--muted) 12%);
-}
-
-.shimo-markdown-table-wrap:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--primary) 70%, transparent);
-  outline-offset: 2px;
 }
 
 .shimo-answer-markdown table {
@@ -281,34 +208,8 @@
   padding-block: 0.25em;
 }
 
-.shimo-stream-caret {
-  display: inline-block;
-  width: 0.45em;
-  height: 1.05em;
-  margin-inline-start: 0.12em;
-  border-radius: 0.12em;
-  background: var(--primary);
-  vertical-align: -0.16em;
-  animation: shimo-caret-pulse 900ms steps(1, end) infinite;
-}
-
-.shimo-empty-mark {
-  background: color-mix(in oklab, var(--primary) 10%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent);
-}
-
-.shimo-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--foreground) 15%, transparent) transparent;
-}
-
-.shimo-selection-menu {
-  animation: shimo-menu-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top left;
-}
-
 @keyframes shimo-menu-in {
-  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -318,13 +219,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shimo-stream-caret {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shimo-selection-menu {
+  .animate-shimo-in,
+  .animate-shimo-caret {
     animation: none;
   }
 }

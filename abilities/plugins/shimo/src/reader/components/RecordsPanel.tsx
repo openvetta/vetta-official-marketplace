@@ -17,13 +17,19 @@ interface RecordsPanelProps {
 
 export function RecordsPanel({ id, records, locale, t, streamingRecordId, onClose }: RecordsPanelProps): ReactElement {
   return (
-    <aside id={id} aria-label={t("records.title")} className="shimo-records-panel flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card">
+    <aside
+      id={id}
+      aria-label={t("records.title")}
+      className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/70 bg-card/70 @max-[58rem]/shimo-reader:border-t @max-[58rem]/shimo-reader:border-l-0"
+    >
       <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/50 px-4 py-4">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <NotebookPen aria-hidden="true" className="size-4 text-primary" />
+          <h2 className="flex items-center gap-2 font-serif text-sm font-semibold">
+            <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
+              <NotebookPen aria-hidden="true" className="size-3.5" />
+            </span>
             {t("records.title")}
-            <span className="text-xs font-normal tabular-nums text-muted-foreground">{records.length}</span>
+            <span className="rounded-md bg-muted/60 px-1.5 text-xs font-normal tabular-nums text-muted-foreground">{records.length}</span>
           </h2>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{t("records.description")}</p>
         </div>
