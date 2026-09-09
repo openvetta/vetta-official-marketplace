@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 				id: "account-a",
 				name: "小红书账号 1",
 				nickname: "花酒",
+				avatarUrl: "https://sns-avatar.example/flower.webp",
 				createdAt: "2026-01-01T00:00:00.000Z",
 				lastCheckedAt: "2026-01-02T00:00:00.000Z",
 				status: "connected" as const,
@@ -126,6 +127,11 @@ describe("xiaohongshu plugin account UI", () => {
 		);
 		expect(screen.getByText(/当前账号/)).toBeTruthy();
 		expect(screen.getByRole("button", { name: "删除" })).toBeTruthy();
+		expect(
+			Array.from(document.querySelectorAll("img")).some(
+				(image) => image.getAttribute("src") === "https://sns-avatar.example/flower.webp",
+			),
+		).toBe(true);
 	});
 
 	it("renders empty state when no accounts are saved", async () => {
