@@ -12,7 +12,7 @@
     "name": "vite-preload-helper"
   },
   "src/index.tsx": {
-    "file": "assets/index-CdKNuiaZ.js",
+    "file": "assets/index-D5BaGxem.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -42,7 +42,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__xiaohongshu__remoteEntry_js": {
-    "file": "assets/virtualExposes-CdKg67Ve.js",
+    "file": "assets/virtualExposes-CDU_oVkd.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__xiaohongshu__remoteEntry_js",
     "isDynamicEntry": true,

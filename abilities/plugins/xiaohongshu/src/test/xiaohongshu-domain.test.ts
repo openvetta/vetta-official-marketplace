@@ -115,7 +115,7 @@ describe("xiaohongshu plugin account handling", () => {
 				ok: true,
 				status: 200,
 				statusText: "OK",
-				body: { data: { img: "data:image/png;base64,ZmFrZQ==" } },
+				body: { qrCode: "data:image/png;base64,ZmFrZQ==" },
 			} as never);
 		await expect(loginStatus(ctx)).resolves.toMatchObject({ loggedIn: false });
 		await expect(requestQrPayload(ctx)).resolves.toBe(

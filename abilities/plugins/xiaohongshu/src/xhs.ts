@@ -322,10 +322,12 @@ export async function requestQrPayload(ctx: PluginContext): Promise<string> {
 		data?.url,
 		data?.qrcode,
 		data?.qr_code,
+		data?.qrCode,
 		data?.img,
 		body?.url,
 		body?.qrcode,
 		body?.qr_code,
+		body?.qrCode,
 		body?.img,
 	];
 	const payload = candidates.find(
