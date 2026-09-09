@@ -516,7 +516,7 @@ test("Xiaohongshu plugin owns its managed service, account UI and service-backed
     serviceId: "xhs",
     path: "/mcp",
     displayName: "Xiaohongshu tools",
-    description: "Use the active Xiaohongshu account for search, note and interaction operations.",
+    description: "Use a selected Xiaohongshu account for search, note and interaction operations; omit account_id to use the active account.",
   });
   const qrSource = readFileSync(packageFile(root, `${ability.source.path}/src/features/account-connection/services/qr-code.ts`), "utf8");
   assert.match(qrSource, /from "qrcode"/);

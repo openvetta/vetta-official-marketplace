@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "blocks": [
-    { "type": "hero", "eyebrow": "小红书账号插件", "title": "在 Vetta 中管理小红书账号并使用 MCP", "description": "插件负责扫码登录、账号保存和切换，Agent 通过当前活跃账号使用小红书工具。", "badges": ["多账号", "会话隔离", "插件自主管理"] },
+    { "type": "hero", "eyebrow": "Xiaohongshu accounts", "title": "Run Xiaohongshu tasks across multiple accounts", "description": "Keep several accounts signed in and let the Agent route each MCP task to the selected account, concurrently and without manual switching.", "badges": ["Multi-account", "Concurrent", "Isolated sessions"] },
     { "type": "steps", "items": [
-      { "title": "安装并启用插件", "description": "插件会准备固定版本的小红书本地服务。" },
-      { "title": "扫码登录", "description": "在能力详情页点击登录，插件会显示二维码获取和扫码状态。" },
-      { "title": "添加或切换账号", "description": "从小红书账号工作区添加多个账号，并在使用前选择当前账号。" }
+      { "title": "Install and enable the plugin", "description": "The plugin prepares its pinned local Xiaohongshu service." },
+      { "title": "Sign in with QR code", "description": "Start sign-in from the ability detail page and scan the displayed QR code." },
+      { "title": "Add multiple accounts", "description": "Add accounts from the Xiaohongshu account workspace. Each MCP tool can specify account_id; omitted account_id keeps using the active account." }
     ] },
     { "type": "callout", "tone": "warning", "content": "小红书账号会话保存在插件专属数据中。请遵守小红书的账号和自动化使用规则，不要在多个网页端同时登录同一账号。" }
   ]

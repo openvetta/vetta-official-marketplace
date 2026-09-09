@@ -373,6 +373,7 @@ export class BrowserManager {
 	private browser?: Browser;
 	private browserStartup?: Promise<Browser>;
 	private readonly contexts = new Map<string, BrowserContext>();
+	private readonly contextStarts = new Map<string, Promise<BrowserContext>>();
 
 	constructor(private readonly store: AccountStore, private readonly dataRoot: string) {}
 
@@ -404,6 +405,16 @@ export class BrowserManager {
 	async contextFor(accountId: string): Promise<BrowserContext> {
 		const existing = this.contexts.get(accountId);
 		if (existing) return existing;
+		const pending = this.contextStarts.get(accountId);
+		if (pending) return pending;
+		const startup = this.createContext(accountId).finally(() => {
+			this.contextStarts.delete(accountId);
+		});
+		this.contextStarts.set(accountId, startup);
+		return startup;
+	}
+
+	private async createContext(accountId: string): Promise<BrowserContext> {
 		const browser = await this.ensureBrowser();
 		const storagePath = this.store.storagePath(accountId);
 		const context = await browser.newContext({
@@ -1093,8 +1104,10 @@ export class BrowserManager {
 	}
 
 	async close(): Promise<void> {
+		await Promise.allSettled([...this.contextStarts.values()]);
 		await Promise.all([...this.contexts.values()].map((context) => context.close()));
 		this.contexts.clear();
+		this.contextStarts.clear();
 		await this.browser?.close();
 		this.browser = undefined;
 	}

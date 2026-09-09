@@ -253,14 +253,12 @@ describe("xiaohongshu plugin account handling", () => {
 		).toBe("expired");
 	});
 
-	it("writes the complete opaque session before restarting and activating it", async () => {
+	it("activates a saved account without restarting the shared service", async () => {
 		const { ctx, service } = context();
 		await switchAccount(ctx, "account-a");
-		expect(service.stop).toHaveBeenCalledBefore(service.writeDataFile);
-		expect(service.writeDataFile.mock.calls[0]?.[2]).toContain(
-			'"seed":"seed-a"',
-		);
-		expect(service.start).toHaveBeenCalledAfter(service.writeDataFile);
+		expect(service.stop).not.toHaveBeenCalled();
+		expect(service.start).not.toHaveBeenCalled();
+		expect(service.writeDataFile).not.toHaveBeenCalled();
 		expect(service.request).toHaveBeenCalledWith(
 			"xhs",
 			expect.objectContaining({

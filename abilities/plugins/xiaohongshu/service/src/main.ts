@@ -11,6 +11,11 @@ import {
 	type SearchFilters,
 } from "./browser/browser-manager.js";
 import { loginSessionStatus } from "./login/session-status.js";
+import {
+	resolveAccount,
+	withAccountSelector,
+	type McpToolSchema,
+} from "./mcp/account-routing.js";
 
 const port = Number(process.env.VETTA_SERVICE_PORT ?? 0);
 const dataRoot = process.env.VETTA_SERVICE_DATA_DIR ?? "./service-data";
@@ -120,13 +125,7 @@ function json(response: ServerResponse, status: number, body: unknown): void {
 	response.end(JSON.stringify(body));
 }
 
-type McpTool = {
-	name: string;
-	description: string;
-	inputSchema: { type: "object"; properties: Record<string, unknown>; required?: string[] };
-};
-
-const mcpTools: McpTool[] = [
+const mcpTools: McpToolSchema[] = [
 	{
 		name: "get_login_qrcode",
 		description: "获取小红书登录二维码。",
@@ -300,6 +299,7 @@ const mcpTools: McpTool[] = [
 		},
 	},
 ];
+const routedMcpTools = mcpTools.map(withAccountSelector);
 const notificationTabs = new Set(["mentions", "likes", "connections"]);
 
 function recordOf(value: unknown): Record<string, unknown> | undefined {
@@ -360,11 +360,8 @@ function mcpText(id: unknown, value: unknown): Record<string, unknown> {
 	return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: JSON.stringify(value) ?? "null" }] } };
 }
 
-async function activeAccountOrThrow(): Promise<AccountMetadata> {
-	if (!activeAccountId) throw new Error("当前没有激活的小红书账号");
-	const account = await store.get(activeAccountId);
-	if (!account) throw new Error("当前激活账号不存在");
-	return account;
+async function accountOrThrow(args: Record<string, unknown>): Promise<AccountMetadata> {
+	return resolveAccount(args, activeAccountId, (accountId) => store.get(accountId));
 }
 
 async function callMcpTool(name: string, args: Record<string, unknown>): Promise<unknown> {
@@ -388,7 +385,7 @@ async function callMcpTool(name: string, args: Record<string, unknown>): Promise
 		await persistActiveAccountId();
 		return { success: true };
 	}
-	const account = await activeAccountOrThrow();
+	const account = await accountOrThrow(args);
 	if (name === "publish_content") {
 		const title = stringArg(args, "title", true) as string;
 		const content = stringArg(args, "content", true) as string;
@@ -596,8 +593,8 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 	if (request.method === "POST" && url.pathname === "/mcp") {
 		const rpc = await body(request);
 		const id = rpc.id ?? null;
-		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.18" } } });
-		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: mcpTools } });
+		if (rpc.method === "initialize") return json(response, 200, { jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "xiaohongshu", version: "1.1.19" } } });
+		if (rpc.method === "tools/list") return json(response, 200, { jsonrpc: "2.0", id, result: { tools: routedMcpTools } });
 		if (rpc.method === "tools/call") {
 			const params = rpc.params as Record<string, unknown> | undefined;
 			const name = params?.name;

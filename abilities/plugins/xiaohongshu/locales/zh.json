@@ -1,8 +1,8 @@
 {
   "name": "小红书账号",
-  "description": "在 Vetta 中登录、切换和管理多个小红书账号，并通过当前账号使用小红书 MCP。",
+  "description": "在 Vetta 中管理多个小红书账号，Agent 可自动选择账号并同时执行 MCP 任务。",
   "mcp.name": "小红书工具",
-  "mcp.description": "使用当前活跃的小红书账号执行搜索、笔记和互动操作。",
+  "mcp.description": "按指定账号执行小红书搜索、笔记和互动操作；未指定时使用当前账号。",
   "setup.title": "小红书登录",
   "setup.connectionTitle": "账号连接",
   "setup.subtitle": "登录和账号会话由插件管理，不会写入用户全局 MCP 配置。",

@@ -2,8 +2,9 @@
 
 This plugin owns Xiaohongshu login, account sessions and the MCP connection. It runs the pinned
 `xpzouying/xiaohongshu-mcp` binary as a plugin-managed loopback service and keeps the complete upstream
-session document per account. Switching accounts stops the service, replaces `cookies.json`, then starts it
-again before exposing the selected account to the Agent.
+session document per account. MCP tools accept an optional `account_id`; when it is omitted, the active
+account remains the backwards-compatible default. Requests for different accounts use isolated browser
+contexts and can run concurrently without stopping or switching the service.
 
 QR rendering is implemented inside the plugin with the `qrcode` package; the host does not need a Xiaohongshu-
 specific QR API. The ability detail slot reports preparation, QR retrieval, scan waiting, verification and

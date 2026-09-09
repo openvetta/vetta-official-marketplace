@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "blocks": [
-    { "type": "hero", "eyebrow": "小红书账号插件", "title": "在 Vetta 中管理小红书账号并使用 MCP", "description": "插件负责扫码登录、账号保存和切换，Agent 通过当前活跃账号使用小红书工具。", "badges": ["多账号", "会话隔离", "插件自主管理"] },
+    { "type": "hero", "eyebrow": "小红书账号插件", "title": "让多个小红书账号同时执行任务", "description": "保持多个账号登录，让 Agent 为每个 MCP 任务选择目标账号并行执行，不再需要手动切换。", "badges": ["多账号", "并行执行", "会话隔离"] },
     { "type": "steps", "items": [
       { "title": "安装并启用插件", "description": "插件会准备固定版本的小红书本地服务。" },
       { "title": "扫码登录", "description": "在能力详情页点击登录，插件会显示二维码获取和扫码状态。" },
-      { "title": "添加或切换账号", "description": "从小红书账号工作区添加多个账号，并在使用前选择当前账号。" }
+      { "title": "添加多个账号", "description": "从小红书账号工作区扫码添加账号。工具可以指定 account_id；不指定时继续使用当前账号。" }
     ] },
     { "type": "callout", "tone": "warning", "content": "小红书账号会话保存在插件专属数据中。请遵守小红书的账号和自动化使用规则，不要在多个网页端同时登录同一账号。" }
   ]

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.09-20",
+  "marketplaceVersion": "2026.09.09-21",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -393,8 +393,8 @@
       "type": "plugin",
       "slug": "xiaohongshu",
       "name": "Xiaohongshu Accounts",
-      "description": "Sign in, switch and manage Xiaohongshu accounts, then use the built-in MCP through the active account.",
-      "version": "1.1.18",
+      "description": "Manage multiple Xiaohongshu accounts and run built-in MCP tasks concurrently through the account selected for each task.",
+      "version": "1.1.19",
       "configVersion": 1,
       "license": "Apache-2.0",
       "author": "Vetta / xpzouying",
@@ -414,7 +414,7 @@
         "i18n": {
           "zh": {
             "name": "小红书账号",
-            "description": "在 Vetta 中扫码登录、保存和切换多个小红书账号，并通过当前账号使用内置 MCP。"
+            "description": "在 Vetta 中管理多个小红书账号，Agent 可自动选择账号并同时执行内置 MCP 任务。"
           }
         }
       },

@@ -396,12 +396,7 @@ export async function switchAccount(
 	const state = await readAccountState(ctx);
 	const account = state.accounts.find((item) => item.id === accountId);
 	if (!account) throw new Error("Account not found");
-	const session = await readSession(ctx, accountId);
 	const api = services(ctx);
-	await api.stop(SERVICE_ID);
-	if (session)
-		await api.writeDataFile(SERVICE_ID, SESSION_FILE, session, "utf8");
-	await api.start(SERVICE_ID);
 	const activation = await api.request<unknown>(SERVICE_ID, {
 		path: `/api/v1/accounts/${encodeURIComponent(accountId)}/activate`,
 		method: "POST",

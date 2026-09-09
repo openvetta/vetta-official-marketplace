@@ -1,8 +1,8 @@
 {
   "name": "Xiaohongshu Accounts",
-  "description": "Sign in, switch and manage multiple Xiaohongshu accounts in Vetta, then use the MCP through the active account.",
+  "description": "Manage multiple Xiaohongshu accounts in Vetta and run MCP tasks concurrently through the account selected for each task.",
   "mcp.name": "Xiaohongshu tools",
-  "mcp.description": "Use the active Xiaohongshu account for search, note and interaction operations.",
+  "mcp.description": "Run Xiaohongshu search, note and interaction operations for a selected account; omit account_id to use the active account.",
   "setup.title": "Xiaohongshu sign-in",
   "setup.connectionTitle": "Account connection",
   "setup.subtitle": "The plugin owns login sessions and does not write to the user's global MCP configuration.",
