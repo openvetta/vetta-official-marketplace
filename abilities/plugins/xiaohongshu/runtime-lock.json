@@ -5,7 +5,7 @@
       {
         "destination": "service",
         "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.18/xiaohongshu-service.zip",
-        "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
+        "sha256": "24ee8e49304102bc720c33f11a69f0671a3e2727e90e7309c3e09e77e86cc7ce",
         "archive": "zip"
       }
     ],
@@ -13,7 +13,7 @@
       {
         "destination": "service",
         "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.18/xiaohongshu-service.zip",
-        "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
+        "sha256": "24ee8e49304102bc720c33f11a69f0671a3e2727e90e7309c3e09e77e86cc7ce",
         "archive": "zip"
       }
     ],
@@ -21,7 +21,7 @@
       {
         "destination": "service",
         "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/xiaohongshu-1.1.18/xiaohongshu-service.zip",
-        "sha256": "81d79b8355e8dc930b51f6bd78f9df18be1cfb71463fa314ae93e6e83a64ea5b",
+        "sha256": "24ee8e49304102bc720c33f11a69f0671a3e2727e90e7309c3e09e77e86cc7ce",
         "archive": "zip"
       }
     ]
