@@ -13,14 +13,17 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACTIONS } from "../../classification";
 import type { LibraryEntry, ReadingRecord } from "../../domain";
-import { ReaderDropTarget } from "../../reader";
+import { ReaderDropTarget } from "./ReaderDropTarget";
+import { ReaderView } from "./ReaderView";
+import { createRecord } from "../../repository";
+import { createReaderTestRuntime } from "../test/readerTestRuntime";
 import { LibrarySidebar } from "./LibrarySidebar";
 import { NoteComposer } from "./NoteComposer";
 import { PreferencesPopover } from "./PreferencesPopover";
 import { QuestionComposer } from "./QuestionComposer";
 import { ReaderHeader } from "./ReaderHeader";
 import { RecordList } from "./RecordList";
-import { RecordsDrawer } from "./RecordsDrawer";
+import { RecordsPanel } from "./RecordsPanel";
 import { SelectionToolbar } from "./SelectionToolbar";
 
 vi.mock("@vetta/ui", () => ({
@@ -31,17 +34,6 @@ vi.mock("@vetta/ui", () => ({
   DialogFooter: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
   DialogHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
   DialogTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
-  Drawer: ({ children, onOpenChange }: { children: ReactNode; onOpenChange?(open: boolean): void }) => (
-    <div>
-      {children}
-      <button type="button" data-testid="drawer-dismiss" onClick={() => onOpenChange?.(false)} />
-    </div>
-  ),
-  DrawerClose: ({ children }: { children: ReactNode }) => <>{children}</>,
-  DrawerContent: ({ children, overlayClassName: _overlayClassName, portalContainer, ...props }: HTMLAttributes<HTMLDivElement> & { overlayClassName?: string; portalContainer?: HTMLElement }) => <div data-portal-container={portalContainer?.tagName} {...props}>{children}</div>,
-  DrawerDescription: ({ children, ...props }: HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
-  DrawerHeader: ({ children, ...props }: HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
-  DrawerTitle: ({ children, ...props }: HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
   DropdownMenu: ({ children }: { children: ReactNode }) => <>{children}</>,
   DropdownMenuContent: ({ children }: { children: ReactNode }) => <>{children}</>,
   DropdownMenuItem: ({ children }: { children: ReactNode }) => <div>{children}</div>,
@@ -97,6 +89,7 @@ const messages: Record<string, string> = {
   "category.article": "Article",
   "records.title": "Reading records",
   "records.count": "Records",
+  "records.collapse": "Hide reading records",
   "records.empty": "No records",
   "records.filterAll": "All",
   "records.filterAnswers": "AI answers",
@@ -153,6 +146,7 @@ const messages: Record<string, string> = {
   "common.saving": "Saving"
 };
 const t: PluginTranslate = (key) => messages[key] ?? key;
+vi.mock("@vetta-org/plugin-sdk", () => ({ useTranslation: () => ({ locale: "en", t }) }));
 
 let mountedRoot: Root | null = null;
 let mountedContainer: HTMLDivElement | null = null;
@@ -425,14 +419,13 @@ describe("Shimo questions", () => {
 });
 
 describe("Shimo reading records", () => {
-  it("closes through the shared Drawer state contract", async () => {
+  it("shows records in a non-modal panel with an explicit hide button", async () => {
     const onClose = vi.fn();
-    const container = await render(<RecordsDrawer records={[]} locale="en" t={t} portalContainer={document.body} onClose={onClose} />);
+    const container = await render(<RecordsPanel records={[]} locale="en" t={t} onClose={onClose} />);
 
-    expect(container.querySelector('[aria-label="Reading records"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="Reading records"]')?.getAttribute("data-portal-container")).toBe("BODY");
-    await act(async () => container.querySelector<HTMLButtonElement>('[data-testid="drawer-dismiss"]')?.click());
-
+    expect(container.querySelector('aside[aria-label="Reading records"]')).not.toBeNull();
+    expect(container.querySelector('[role="dialog"], [aria-modal="true"]')).toBeNull();
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Hide reading records"]')?.click());
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -462,5 +455,114 @@ describe("Shimo reading records", () => {
     expect(container.querySelector(".shimo-stream-caret")).not.toBeNull();
     expect(container.querySelector("script")).toBeNull();
     expect(container.textContent).not.toContain("alert('no')");
+  });
+});
+
+async function clickButton(container: ParentNode, label: string): Promise<void> {
+  const button = Array.from(container.querySelectorAll("button")).find((candidate) =>
+    candidate.getAttribute("aria-label") === label || candidate.textContent === label
+  );
+  expect(button, label).toBeDefined();
+  await act(async () => button?.click());
+}
+
+async function selectPassage(container: HTMLElement): Promise<void> {
+  const text = container.querySelector(".shimo-reading-text")?.firstChild;
+  expect(text).toBeDefined();
+  const range = document.createRange();
+  range.setStart(text!, 0);
+  range.setEnd(text!, 17);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+  await act(async () => container.querySelector(".shimo-reading-text")?.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })));
+}
+
+describe("Shimo reader workspace flows", () => {
+  it("starts with the library hidden and lets users select materials, hide and reopen each panel", async () => {
+    const { runtime, first } = await createReaderTestRuntime();
+    const quote = "Read this passage";
+    const anchor = { type: "text", start: 0, end: quote.length, quote, prefix: "", suffix: "" } as const;
+    await runtime.repository.saveRecord(createRecord(first.id, "highlight", quote, anchor));
+    const container = await render(<ReaderView runtime={runtime} />);
+    const library = container.querySelector('aside[aria-label="Library"]');
+    expect(library?.getAttribute("aria-hidden")).toBe("true");
+    expect(library?.hasAttribute("inert")).toBe(true);
+    const libraryToggle = container.querySelector<HTMLButtonElement>('button[aria-label="Expand library"]');
+    expect(libraryToggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector(".shimo-reading-text")?.textContent).toContain("Continue reading here.");
+
+    await clickButton(container, "Expand library");
+    expect(library?.getAttribute("aria-hidden")).toBe("false");
+    const secondButton = Array.from(library!.querySelectorAll("button")).find((button) => button.textContent?.includes("Second essay"));
+    await act(async () => secondButton?.click());
+    expect(container.querySelector(".shimo-reading-text")?.textContent).toBe("Another material.");
+    await clickButton(library!, "Collapse library");
+    expect(library?.hasAttribute("inert")).toBe(true);
+    expect(document.activeElement).toBe(libraryToggle);
+
+    await clickButton(container, "Reading records");
+    expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain("No records");
+    expect(container.querySelector('[role="dialog"], [aria-modal="true"]')).toBeNull();
+    await clickButton(container, "Expand library");
+    const firstButton = Array.from(library!.querySelectorAll("button")).find((button) => button.textContent?.includes("First essay"));
+    await act(async () => firstButton?.click());
+    expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain(quote);
+    await clickButton(container, "Hide reading records");
+    expect(container.querySelector('aside[aria-label="Reading records"]')).toBeNull();
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Reading records");
+    await clickButton(container, "Reading records");
+    expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain(quote);
+  });
+
+  it("opens the inline panel for a selected-passage answer, shows streaming content despite a previous filter, and retains the answer after reopening", async () => {
+    const fixture = await createReaderTestRuntime();
+    const { runtime, first } = fixture;
+    const quote = "Read this passage";
+    const anchor = { type: "text", start: 0, end: quote.length, quote, prefix: "", suffix: "" } as const;
+    await runtime.repository.saveRecord(createRecord(first.id, "highlight", quote, anchor));
+    const container = await render(<ReaderView runtime={runtime} />);
+    await clickButton(container, "Reading records");
+    await clickButton(container, "Highlights");
+    await selectPassage(container);
+    const action = ACTIONS.article[0]!;
+    await clickButton(container.querySelector('[role="toolbar"]')!, action.en);
+    await fixture.answerStarted;
+    await act(async () => fixture.emitAnswer("**A clear explanation**"));
+    const panel = container.querySelector('aside[aria-label="Reading records"]');
+    expect(panel?.querySelector("strong")?.textContent).toBe("A clear explanation");
+    expect(panel?.querySelector('[role="status"]')?.textContent).toBe("Generating");
+    expect(panel?.textContent).toContain(action.promptEn ?? action.en);
+    expect(panel?.parentElement?.contains(container.querySelector(".shimo-reading-text"))).toBe(true);
+    expect(container.querySelector('[role="dialog"], [aria-modal="true"]')).toBeNull();
+
+    const answerRange = document.createRange();
+    answerRange.selectNodeContents(panel!.querySelector("strong")!);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(answerRange);
+    await act(async () => panel?.querySelector("strong")?.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })));
+    expect(container.querySelector('[role="toolbar"]')).toBeNull();
+
+    await clickButton(container, "Hide reading records");
+    await act(async () => fixture.finishAnswer("**A complete explanation**"));
+    expect(container.querySelector('aside[aria-label="Reading records"]')).toBeNull();
+    expect((await runtime.repository.listRecords(first.id)).find((record) => record.kind === "answer")?.body).toBe("**A complete explanation**");
+    await clickButton(container, "Reading records");
+    expect(container.querySelector('aside[aria-label="Reading records"] strong')?.textContent).toBe("A complete explanation");
+    expect(container.querySelector('aside[aria-label="Reading records"] [role="status"]')).toBeNull();
+    expect(container.querySelectorAll('aside[aria-label="Reading records"] article')).toHaveLength(2);
+  });
+
+  it("leaves the saved question visible if an AI answer fails", async () => {
+    const fixture = await createReaderTestRuntime();
+    const container = await render(<ReaderView runtime={fixture.runtime} />);
+    await selectPassage(container);
+    await clickButton(container.querySelector('[role="toolbar"]')!, ACTIONS.article[0]!.en);
+    await fixture.answerStarted;
+    await act(async () => fixture.failAnswer());
+    const records = await fixture.runtime.repository.listRecords(fixture.first.id);
+    expect(records.map((record) => record.kind)).toEqual(["question"]);
+    expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain(records[0]!.body);
+    expect(container.querySelector('aside[aria-label="Reading records"] [role="status"]')).toBeNull();
   });
 });

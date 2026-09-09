@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button, Popover, PopoverTrigger } from "@vetta/ui";
-import { BookOpen, Feather, FileText, NotebookPen, Settings } from "lucide-react";
+import { BookOpen, Feather, FileText, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingCategory } from "../../domain";
 
@@ -12,7 +12,9 @@ interface ReaderHeaderProps {
   active: boolean;
   quiet: boolean;
   libraryOpen: boolean;
+  libraryId?: string;
   recordsOpen: boolean;
+  recordsId?: string;
   preferencesOpen: boolean;
   preferencesPanel?: ReactElement;
   t: PluginTranslate;
@@ -30,7 +32,9 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
     active,
     quiet,
     libraryOpen,
+    libraryId,
     recordsOpen,
+    recordsId,
     preferencesOpen,
     preferencesPanel,
     t,
@@ -69,18 +73,21 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
     <header className="group flex min-h-16 shrink-0 items-center gap-3 border-b border-border/45 bg-background/85 px-4 py-3 backdrop-blur-md">
       <Button
         type="button"
-        size="icon-sm"
+        size="sm"
         variant={libraryOpen ? "secondary" : "ghost"}
         aria-label={libraryOpen ? t("library.collapse") : t("library.expand")}
-        aria-pressed={libraryOpen}
+        title={libraryOpen ? t("library.collapse") : t("library.expand")}
+        aria-expanded={libraryOpen}
+        aria-controls={libraryId}
         onClick={onToggleLibrary}
       >
-        <BookOpen />
+        {libraryOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+        <span className="shimo-toolbar-label">{t("library.title")}</span>
       </Button>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="shimo-serif truncate text-lg font-medium tracking-tight">{title}</h1>
+          <h1 className="truncate text-sm font-medium tracking-tight" title={title}>{title}</h1>
           {renderCategoryBadge()}
         </div>
         {subtitle ? <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{subtitle}</p> : null}
@@ -92,12 +99,15 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
             type="button"
             size="sm"
             variant={recordsOpen ? "secondary" : "ghost"}
-            aria-pressed={recordsOpen}
+            aria-label={t("records.title")}
+            title={recordsOpen ? t("records.collapse") : t("records.expand")}
+            aria-expanded={recordsOpen}
+            aria-controls={recordsId}
             onClick={onToggleRecords}
           >
             <NotebookPen />
-            {t("records.title")}
-            <span className="tabular-nums text-muted-foreground">{recordCount}</span>
+            <span className="shimo-toolbar-label">{t("records.title")}</span>
+            <span className="rounded-md bg-muted/70 px-1.5 text-[11px] tabular-nums text-muted-foreground">{recordCount}</span>
           </Button>
           <Popover open={preferencesOpen} onOpenChange={onPreferencesOpenChange}>
             <PopoverTrigger asChild>

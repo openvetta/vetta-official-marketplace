@@ -11,8 +11,8 @@
   "library.materials": "阅读资料",
   "library.import": "导入资料",
   "library.importHint": "点击或拖入 PDF、Markdown、TXT；导入后使用私有副本。",
-  "library.collapse": "收起资料库",
-  "library.expand": "展开资料库",
+  "library.collapse": "隐藏资料库",
+  "library.expand": "显示资料库",
   "library.filterAll": "全部",
   "library.empty": "资料库中还没有内容。",
   "library.filteredEmpty": "该分类下暂无资料。",
@@ -101,5 +101,8 @@
   "pdf.ocrText": "本页 OCR 文本",
   "pdf.noTextLayer": "这一页没有可选择的文本层。",
   "pdf.ocrUnavailable": "这一页没有文本层，当前也没有可用的 OCR。",
-  "pdf.ocrFailed": "本页识别失败"
+  "pdf.ocrFailed": "本页识别失败",
+  "records.description": "对照原文，回看解答与思考。",
+  "records.expand": "显示阅读记录",
+  "records.collapse": "隐藏阅读记录"
 }

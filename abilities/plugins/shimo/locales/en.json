@@ -11,8 +11,8 @@
   "library.materials": "Reading materials",
   "library.import": "Import material",
   "library.importHint": "Click or drop a PDF, Markdown, or TXT file. Shimo reads from a private copy.",
-  "library.collapse": "Collapse library",
-  "library.expand": "Expand library",
+  "library.collapse": "Hide library",
+  "library.expand": "Show library",
   "library.filterAll": "All",
   "library.empty": "No materials in the library yet.",
   "library.filteredEmpty": "No materials in this category.",
@@ -101,5 +101,8 @@
   "pdf.ocrText": "OCR text for this page",
   "pdf.noTextLayer": "This page has no selectable text layer.",
   "pdf.ocrUnavailable": "This page has no text layer and no OCR provider is currently available.",
-  "pdf.ocrFailed": "Page recognition failed"
+  "pdf.ocrFailed": "Page recognition failed",
+  "records.description": "Answers and notes, alongside your reading.",
+  "records.expand": "Show reading records",
+  "records.collapse": "Hide reading records"
 }

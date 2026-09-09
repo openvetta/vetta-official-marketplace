@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { BookOpen, Feather, FileText } from "lucide-react";
+import { BookOpen, Feather, FileText, PanelLeftClose } from "lucide-react";
 import { useState, type ReactElement } from "react";
 import type { LibraryEntry, ReadingCategory } from "../../domain";
 import { ImportButton } from "./ImportButton";
@@ -9,12 +9,14 @@ interface LibrarySidebarProps {
   entries: LibraryEntry[];
   selectedId?: string;
   open: boolean;
+  id?: string;
   t: PluginTranslate;
+  onClose?(): void;
   onSelect(id: string): Promise<void>;
   onFiles(files: FileList): Promise<void>;
 }
 
-export function LibrarySidebar({ entries, selectedId, open, t, onSelect, onFiles }: LibrarySidebarProps): ReactElement {
+export function LibrarySidebar({ entries, selectedId, open, id, t, onClose, onSelect, onFiles }: LibrarySidebarProps): ReactElement {
   const [filter, setFilter] = useState<"all" | ReadingCategory>("all");
 
   const poetryCount = entries.filter((e) => e.category === "poetry").length;
@@ -35,23 +37,31 @@ export function LibrarySidebar({ entries, selectedId, open, t, onSelect, onFiles
 
   return (
     <aside
+      id={id}
       aria-label={t("library.title")}
       aria-hidden={!open}
       inert={!open}
-      className={`shimo-library-panel min-h-0 overflow-hidden border-r border-border/50 bg-card/35 transition-[width,opacity] duration-200 ${open ? "w-60 opacity-100" : "w-0 border-r-0 opacity-0"}`}
+      className={`shimo-library-panel min-h-0 shrink-0 overflow-hidden border-r border-border/50 bg-card/35 ${open ? "w-60" : "hidden"}`}
     >
-      <div className="flex h-full w-60 flex-col px-3 pb-3 pt-4">
+      <div className="flex h-full w-full flex-col px-3 pb-3 pt-4">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between gap-2 px-1">
           <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
             <BookOpen className="size-[18px] text-primary" />
             <span className="truncate">{t("library.title")}</span>
           </div>
-          <ImportButton t={t} onFiles={onFiles} />
+          <div className="flex items-center gap-1">
+            <ImportButton t={t} onFiles={onFiles} />
+            {onClose ? (
+              <Button type="button" size="icon-sm" variant="ghost" aria-label={t("library.collapse")} title={t("library.collapse")} onClick={onClose}>
+                <PanelLeftClose />
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {/* Category Filter Pills (诗词与文章分类筛选) */}
-        <div className="mb-3 flex items-center gap-1 rounded-xl bg-muted/20 p-1 text-[11px]">
+        <div className="mb-3 flex flex-wrap items-center gap-1 rounded-xl bg-muted/20 p-1 text-[11px]">
           <Button
             type="button"
             size="xs"

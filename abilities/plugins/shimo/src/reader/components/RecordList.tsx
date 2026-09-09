@@ -1,11 +1,9 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button } from "@vetta/ui";
-import { LoaderCircle } from "lucide-react";
-import { useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
-import { locationLabel } from "../prompts";
 import type { Locale } from "../types";
-import { AnswerMarkdown } from "./AnswerMarkdown";
+import { RecordCard } from "./RecordCard";
 
 export interface RecordListProps {
   records: ReadingRecord[];
@@ -17,6 +15,16 @@ export interface RecordListProps {
 export function RecordList({ records, locale, t, streamingRecordId }: RecordListProps): ReactElement {
   const [kindFilter, setKindFilter] = useState<"all" | "answer" | "highlight" | "notes">("all");
 
+  const scrollRoot = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!streamingRecordId) return;
+    setKindFilter("all");
+    if (scrollRoot.current) scrollRoot.current.scrollTop = 0;
+  }, [streamingRecordId]);
+
+  const questions = new Map(records.filter((record) => record.kind === "question").map((record) => [record.id, record]));
+  const answeredQuestions = new Set(records.filter((record) => record.kind === "answer").map((record) => record.relatedRecordId));
+
   if (records.length === 0) {
     return (
       <div className="grid min-h-48 place-items-center px-6 text-center">
@@ -26,7 +34,7 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
   }
 
   const filteredRecords = records.filter((r) => {
-    if (kindFilter === "all") return true;
+    if (kindFilter === "all") return r.kind !== "question" || !answeredQuestions.has(r.id);
     if (kindFilter === "answer") return r.kind === "answer";
     if (kindFilter === "highlight") return r.kind === "highlight";
     if (kindFilter === "notes") return r.kind === "note" || r.kind === "reflection";
@@ -34,9 +42,8 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
   });
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      {/* Quick Kind Filter (按记录类型渐进式过滤) */}
-      <div className="flex items-center gap-1 border-b border-border/40 px-3 py-2 text-[11px]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border/40 px-3 py-2 text-[11px]">
         <Button
           type="button"
           size="xs"
@@ -79,8 +86,7 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
         </Button>
       </div>
 
-      {/* Records Scroll List */}
-      <div className="shimo-scroll min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+      <div ref={scrollRoot} className="shimo-scroll min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {filteredRecords.length === 0 ? (
           <div className="py-8 text-center text-xs text-muted-foreground">{t("records.filteredEmpty")}</div>
         ) : (
@@ -91,6 +97,7 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
               <RecordCard
                 key={record.id}
                 record={record}
+                question={record.relatedRecordId ? questions.get(record.relatedRecordId) : undefined}
                 locale={locale}
                 t={t}
                 streaming={record.id === streamingRecordId}
@@ -99,62 +106,5 @@ export function RecordList({ records, locale, t, streamingRecordId }: RecordList
         )}
       </div>
     </div>
-  );
-}
-
-function RecordCard({
-  record,
-  locale,
-  t,
-  streaming = false
-}: {
-  record: ReadingRecord;
-  locale: Locale;
-  t: PluginTranslate;
-  streaming?: boolean;
-}): ReactElement {
-  const isAnswer = record.kind === "answer";
-  const isReflection = record.kind === "reflection" || record.kind === "note";
-
-  return (
-    <article
-      className={`rounded-2xl border p-3.5 text-[13px] transition ${
-        isAnswer
-          ? "border-primary/25 bg-primary/5 hover:border-primary/45"
-          : isReflection
-          ? "border-amber-500/20 bg-amber-500/5 hover:border-amber-500/35"
-          : "border-border/55 bg-card/55 hover:border-border"
-      }`}
-    >
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-        <span className={isAnswer ? "font-semibold text-primary" : undefined}>{t(`records.kind.${record.kind}`)}</span>
-        <span aria-hidden="true">·</span>
-        <span className="normal-case tracking-normal">{locationLabel(record.anchor, locale)}</span>
-        {record.kind === "answer" && record.modelKey ? (
-          <>
-            <span aria-hidden="true">·</span>
-            <span className="normal-case tracking-normal font-mono text-[9px]">{record.modelKey}</span>
-          </>
-        ) : null}
-        {streaming ? (
-          <span role="status" className="ml-auto inline-flex items-center gap-1 normal-case tracking-normal text-primary">
-            <LoaderCircle aria-hidden="true" className="size-3 animate-spin" />
-            {t("records.generating")}
-          </span>
-        ) : null}
-      </div>
-      <blockquote className="shimo-serif my-2.5 line-clamp-5 border-l-2 border-primary/40 pl-3 leading-relaxed text-foreground">
-        {record.quote}
-      </blockquote>
-      {isAnswer && (record.body || streaming) ? (
-        <div className="mt-1 rounded-lg bg-background/50 p-2">
-          <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
-        </div>
-      ) : record.body ? (
-        <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground/85 bg-background/50 rounded-lg p-2 mt-1">
-          {record.body}
-        </p>
-      ) : null}
-    </article>
   );
 }

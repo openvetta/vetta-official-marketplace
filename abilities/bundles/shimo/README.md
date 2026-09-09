@@ -9,6 +9,11 @@ existing PDF Toolkit.
 - PDF, Markdown and TXT materials in Chinese, English or mixed language.
 - A private copy of every imported material; offline reading of the copy, records and cached pinyin.
 - Progressive disclosure: category-aware actions appear after a selection, while the page remains quiet.
+- The library starts hidden. Use the Library button in the reading header to show or hide it.
+- Reading records open beside the material without an overlay; narrower reading areas stack them below
+  the material. Both areas scroll independently. Hide the panel to return the full width to reading.
+- Questions and their linked AI answers share a card. New answers open the panel and become visible even
+  if a record filter was selected; closing the panel does not interrupt generation or saving.
 - Shimo lists the text models already configured in Vetta and stores one explicit reading-model choice.
   Selection actions call that model directly; questions and complete answers are saved as reading records.
 - Shimo does not implement a second chat history, queue or streaming protocol.

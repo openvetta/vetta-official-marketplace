@@ -89,7 +89,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(0);
-  const [libraryOpen, setLibraryOpen] = useState(true);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [recordsOpen, setRecordsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [chromeQuiet, setChromeQuiet] = useState(false);
@@ -256,6 +256,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     answerAbortController.current = controller;
     let answerDraftId: string | null = null;
     setRecordsOpen(true);
+    setPreferencesOpen(false);
     showNotice("info", t("status.answering"));
     try {
       const { answer } = await answerReadingSelection({

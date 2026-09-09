@@ -35,7 +35,7 @@ function lazySurface<P extends object>(load: () => Promise<{ default: ComponentT
   };
 }
 
-const ReaderView = lazySurface(async () => ({ default: (await import("./reader")).ReaderView }));
+const ReaderView = lazySurface(async () => ({ default: (await import("./reader/components/ReaderView")).ReaderView }));
 const ActivityPanel = lazySurface(async () => ({ default: (await import("./activity-panel")).ActivityPanel }));
 
 function workspaceComponent(runtime: ShimoRuntime): () => ReactElement {
