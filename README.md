@@ -91,6 +91,32 @@ fails the whole source; the client reports `sync-failed` and retains a usable pr
 
 ## Local validation
 
+After cloning, enable the repository's Git hooks (Node.js 20+ and Git are required):
+
+```bash
+node scripts/install-git-hooks.mjs
+```
+
+The pre-commit and pre-merge-commit hooks require a new `marketplaceVersion` in the **staged**
+manifest, greater than HEAD, the fetched `origin/main`, the tracking branch and pending merge parents.
+Documentation, generated files, empty commits and merges all require a new version. The check never
+edits or stages files for you. Updating the working copy without staging the manifest still fails.
+The installer is local to this clone and refuses to replace existing custom hooks; new clones need installation.
+
+```bash
+git add .vetta/marketplace.json
+node scripts/check-marketplace-version.mjs --staged
+node --test tests/marketplace-version.test.mjs
+```
+
+The pre-push hook checks committed snapshots against the remote SHA, so fetch first if that object
+is missing locally. CI runs the same guard across every introduced commit, and both automated update
+workflows run it immediately before committing (including commits marked `[skip ci]`). Configure
+`marketplace-version` as a required GitHub branch-protection check and require PRs to enforce it for
+other clones and web edits; local hooks alone cannot prevent deliberate bypasses or direct remote writes.
+CI compares real PR head/base commits, not GitHub's temporary merge commit. If the base advances,
+refresh the branch, choose a newer version and rerun the check.
+
 Run the dependency-free catalog regression tests with Node.js 20 or later:
 
 ```bash

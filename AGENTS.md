@@ -4,6 +4,25 @@
 
 这份手册面向在本仓库中添加/修改能力的人与 AI。**所有规则都对应桌面端的硬校验**：任何一条不满足，整个市场源都会同步失败——界面通常只显示 `sync-failed`，具体原因需查看主进程日志中的 `open-marketplace` 记录。所以宁可对着本手册逐条核对，也不要靠试。
 
+## 每次修改任务的版本检查（强制，必须早于提交）
+
+版本检查是开发任务的完成条件，即使用户没有要求 commit 或 push，也必须执行；不能等 Git hook 报错才处理。
+
+1. **开始修改前**：运行 `git status --short`，保留已有改动；运行 `git fetch origin` 更新远端基线，
+   读取 `git show HEAD:.vetta/marketplace.json`、`git show origin/main:.vetta/marketplace.json` 和工作区
+   `.vetta/marketplace.json`，记录版本及对应提交。远端获取失败时必须明确说明，不能把旧的远端跟踪引用当作最新状态。
+2. **修改过程中**：只要本次任务改变归档内容（包括文档、测试、脚本、配置和构建产物），就把市场版本递增纳入本次修改，
+   不得留作“提交时再改”。已有未发布版本若高于所有基线，同一批未提交改动可以继续沿用；已发布或已被其他提交使用的版本不能复用。
+3. **完成修改和构建后、向用户报告完成前**：再次 `git fetch origin`，重新检查暂存、未暂存和拟纳入提交的新增文件，
+   确认工作区 `marketplaceVersion` 严格高于 HEAD、最新 `origin/main`，以及适用的上游分支和待合并提交版本。
+   不能仅凭“本次曾经 bump 过”或插件自身版本已递增判断通过；自动化或其他 Agent 可能已占用同一市场版本。
+   有冲突时先修正版本，再交付；发现检查基线不可用时明确报告未验证，不能宣称可发布。
+4. **交付时**：说明本次市场版本、所比较的远端提交和检查结果。没有提交授权时检查工作区即可，不为运行
+   `--staged` 擅自暂存文件。之后若新增改动、重新构建、合并或远端前进，必须重新执行交付前检查。
+
+Git hooks、自动提交检查和 CI 是上述主动检查的兜底，不能替代它。用户另行要求提交时，再对实际暂存区运行
+`node scripts/check-marketplace-version.mjs --staged`。
+
 ## 添加一个能力的流程
 
 1. 选类型：`skill` / `mcp` / `plugin` / `bundle`（没有别的类型，`scene` 不被支持）
@@ -12,7 +31,7 @@
 4. 写展示层 `ability.json`（可选 `detail.json`、`assets/`）
 5. 需要独立展示时在 `.vetta/marketplace.json` 的 `abilities[]` 注册；仅 bundle 成员则在 bundle 中写包路径引用
 6. **bump 顶层 `marketplaceVersion`**
-7. 按「提交前检查清单」自检
+7. 按「每次修改任务的版本检查」完成交付前检查；用户要求提交时再按「提交前检查清单」自检
 
 插件项目的目录、职责拆分、Tailwind 接入和用户流程测试遵循
 [`docs/plugin-project-structure.md`](docs/plugin-project-structure.md)。文件名必须表达职责；不要使用 `ui.ts`、`ui.tsx`、`utils.ts` 或 `primitives.tsx` 作为多个职责的容器。所有 UI `.tsx` 生产文件放在 feature/shared 的 `components/` 下（根目录 `index.tsx` 仅作为插件装配入口），基础组件原则上一个文件只放一个组件；`tools/` 仅用于 `ctx.agent.registerTool()` 的 Agent 工具。
@@ -49,6 +68,13 @@ abilities/<type>/<slug>/assets/
 - 版本格式：`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`
 
 ### `marketplaceVersion` 发布规则（强制）
+
+首次进入克隆仓库后运行 `node scripts/install-git-hooks.mjs`，启用本仓库的提交、合并和推送检查。
+先完成上文要求的开发阶段及交付前版本检查，提交前再运行 `node scripts/check-marketplace-version.mjs --staged`；检查读取暂存区，并比较 HEAD、
+已获取的 `origin/main`、上游分支和待合并提交，不能以工作区中未暂存的版本变更代替。
+检查失败必须递增版本并重新暂存；禁止跳过 hook。自动化提交也必须在 `git add` 后、`git commit` 前调用同一检查。
+推送检查使用远端实际 SHA；对象缺失时先 `git fetch origin`，不得省略比较。PR 使用同一脚本逐提交验证。
+空提交及合并也需要新版本，因为 GitHub 归档可能包含提交标识，不能仅凭文件树相同复用版本。
 
 Desktop 会保存 `marketplaceVersion` 与整个 GitHub 归档的 SHA-256。只要版本号相同而归档任一字节不同，
 就会拒绝同步并记录 `Marketplace content changed without a marketplaceVersion update`。因此：
@@ -407,6 +433,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 ## 提交前检查清单
 
+- [ ] 已安装 Git hooks，且 `node scripts/check-marketplace-version.mjs --staged` 对本次暂存内容检查通过
 - [ ] 本次所有内容修改完成后，`marketplaceVersion` 已递增为从未发布过的新值；bump 之后没有再追加沿用该版本的提交
 - [ ] 新能力的 `slug` 在 manifest 内唯一
 - [ ] 默认名称与多语言名称不包含能力类型后缀，现有 slug 未因展示改名而变化

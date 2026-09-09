@@ -67,6 +67,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add .vetta/marketplace.json abilities/plugins/cli-proxy-api
+          node scripts/check-marketplace-version.mjs --staged
           git commit -m "chore: 更新 CLIProxyAPI 运行时锁"
           git push origin "HEAD:$branch"
           gh pr create \

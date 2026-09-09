@@ -1,0 +1,32 @@
+name: Marketplace checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  marketplace-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check every proposed marketplace snapshot
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/check-marketplace-version.mjs --range "$BASE_SHA" "$HEAD_SHA"
+
+      - name: Test version guard and marketplace contracts
+        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/update-cli-proxy-api.test.mjs
