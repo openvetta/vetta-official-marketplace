@@ -55,7 +55,7 @@ export function SelectionToolbar({ selection: _selection, actions, locale, t, on
     <div
       role="toolbar"
       aria-label={t("selection.actions")}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-nowrap items-center gap-1 rounded-2xl border border-border/60 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl ring-1 ring-black/[0.05] dark:ring-white/[0.08] select-none motion-safe:animate-shimo-in"
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-nowrap items-center gap-1 rounded-2xl border border-border/60 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl ring-1 ring-black/[0.05] dark:ring-white/[0.08] select-none motion-safe:animate-shimo-in"
     >
       {actions.map((action, index) => {
         const isCommonStart = action.id === "ask";

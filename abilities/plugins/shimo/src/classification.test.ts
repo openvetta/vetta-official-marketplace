@@ -4,7 +4,7 @@ import { ACTIONS, inferCategory, parseAiCategory } from "./classification";
 describe("Shimo classification", () => {
   it("keeps category actions predesigned and complete", () => {
     expect(ACTIONS.poetry.some((action) => action.id === "pinyin")).toBe(true);
-    expect(ACTIONS.article.some((action) => action.id === "summary")).toBe(true);
+    expect(ACTIONS.article.some((action) => action.id === "explain")).toBe(true);
     expect(ACTIONS.book.some((action) => action.id === "character")).toBe(true);
   });
 

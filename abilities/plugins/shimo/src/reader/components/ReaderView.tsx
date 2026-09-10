@@ -217,6 +217,16 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
               />
             ) : null}
 
+            {/* 划选操作悬浮坞 */}
+            {reader.selection && reader.manifest ? (
+              <SelectionToolbar
+                selection={reader.selection}
+                actions={actionsFor(reader)}
+                locale={reader.locale}
+                t={reader.t}
+                onAction={reader.runAction}
+              />
+            ) : null}
           </div>
 
           {/* 右侧：阅读记录面板 */}
@@ -236,16 +246,6 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         {reader.notice ? <StatusToast notice={reader.notice} /> : null}
       </section>
 
-      {/* 划选与交互浮层 */}
-      {reader.selection && reader.manifest ? (
-        <SelectionToolbar
-          selection={reader.selection}
-          actions={actionsFor(reader)}
-          locale={reader.locale}
-          t={reader.t}
-          onAction={reader.runAction}
-        />
-      ) : null}
 
       {reader.pendingNote ? (
         <NoteComposer

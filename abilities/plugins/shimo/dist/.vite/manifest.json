@@ -59,7 +59,7 @@
     ]
   },
   "src/index.tsx": {
-    "file": "assets/index-DeGv30eG.js",
+    "file": "assets/index-CKTveDWL.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -110,7 +110,7 @@
     ]
   },
   "src/reader/components/ReaderView.tsx": {
-    "file": "assets/ReaderView-aMo-0IUh.js",
+    "file": "assets/ReaderView-CiGxQ4H7.js",
     "name": "ReaderView",
     "src": "src/reader/components/ReaderView.tsx",
     "isDynamicEntry": true,
@@ -140,7 +140,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
-    "file": "assets/virtualExposes-D-6qX_y-.js",
+    "file": "assets/virtualExposes-DzowCsuz.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,

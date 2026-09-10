@@ -26,9 +26,6 @@ export const ACTIONS: Record<ReadingCategory, SelectionAction[]> = {
   ],
   article: [
     { id: "explain", zh: "解释", en: "Explain", promptZh: "请用清晰的语言解释这段内容", promptEn: "Explain this passage clearly" },
-    { id: "summary", zh: "总结", en: "Summarize", promptZh: "请概括这段内容的核心观点", promptEn: "Summarize the central claim" },
-    { id: "argument", zh: "论证", en: "Argument", promptZh: "请分析论点、论据和推理漏洞", promptEn: "Analyze claims, evidence, and reasoning gaps" },
-    { id: "term", zh: "术语", en: "Terms", promptZh: "请解释其中的关键术语", promptEn: "Explain the key terms" },
     { id: "translate", zh: "翻译", en: "Translate", promptZh: "请翻译并保留原文语气", promptEn: "Translate while preserving tone" },
     ...COMMON
   ],
