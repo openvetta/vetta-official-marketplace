@@ -2,5 +2,5 @@
 # current tested release archive with the marketplace source.
 node_modules/
 release/*
-!release/shimo-reader-1.0.19.zip
+!release/shimo-reader-1.0.20.zip
 bun.lock
