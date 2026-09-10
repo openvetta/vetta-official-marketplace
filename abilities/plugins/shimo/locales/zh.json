@@ -105,6 +105,7 @@
   "records.description": "对照原文，回看解答与思考。",
   "records.expand": "显示阅读记录",
   "records.collapse": "隐藏阅读记录",
+  "library.reading": "正在阅读",
   "library.searchPlaceholder": "搜索资料…",
   "library.searchClear": "清空搜索",
   "library.noSearchResults": "未找到匹配资料",

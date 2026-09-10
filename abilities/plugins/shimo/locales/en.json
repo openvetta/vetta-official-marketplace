@@ -105,6 +105,7 @@
   "records.description": "Answers and notes, alongside your reading.",
   "records.expand": "Show reading records",
   "records.collapse": "Hide reading records",
+  "library.reading": "Reading",
   "library.searchPlaceholder": "Search materials…",
   "library.searchClear": "Clear search",
   "library.noSearchResults": "No matching materials",
