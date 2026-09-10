@@ -63,7 +63,7 @@ export function QuestionComposer({
         </DialogHeader>
 
         <div className="space-y-3 px-6">
-          <blockquote className="max-h-28 overflow-y-auto border-l border-primary/50 pl-4 font-serif text-sm leading-7">
+          <blockquote className="max-h-28 overflow-y-auto rounded-r-lg border-l-2 border-primary/50 bg-muted/20 py-2 pl-3.5 pr-3 font-serif text-sm leading-6 text-foreground/90">
             {pending.selection.quote}
           </blockquote>
           <p className="text-[10px] tracking-wide text-muted-foreground">{locationLabel(pending.selection.anchor, locale)}</p>

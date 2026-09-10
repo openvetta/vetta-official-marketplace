@@ -52,14 +52,16 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
           type="button"
           size="sm"
           variant="ghost"
-          aria-label={libraryOpen ? t("library.collapse") : t("library.expand")}
-          title={libraryOpen ? t("library.collapse") : t("library.expand")}
+          aria-label={t("library.expand")}
+          title={t("library.expand")}
           aria-expanded={libraryOpen}
           aria-controls={libraryId}
           onClick={onToggleLibrary}
-          className="gap-2 rounded-lg font-serif text-xs tracking-wide text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+          className={`gap-2 rounded-lg font-serif text-xs tracking-wide text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors ${
+            libraryOpen ? "hidden" : "inline-flex"
+          }`}
         >
-          {libraryOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          <PanelLeftOpen className="h-4 w-4" />
           <span className="@max-[32rem]/shimo-reader:hidden">{t("library.title")}</span>
         </Button>
       </div>

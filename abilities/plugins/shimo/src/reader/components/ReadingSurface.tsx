@@ -56,10 +56,10 @@ export function ReadingSurface({
     widthClass = "w-full max-w-none";
   }
 
-  // 内边距
+  // 内边距（底部预留空间给浮动控制坞）
   const padClass = poetry
-    ? "px-8 py-12 sm:px-14 sm:py-16"
-    : "px-6 py-10 sm:px-12 sm:py-14";
+    ? "px-8 pt-12 pb-24 sm:px-14 sm:pt-16 sm:pb-28"
+    : "px-6 pt-10 pb-24 sm:px-12 sm:pt-14 sm:pb-28";
 
   // 字号适配
   const fontClass =

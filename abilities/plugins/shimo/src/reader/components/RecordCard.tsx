@@ -57,17 +57,17 @@ export function RecordCard({
       </div>
 
       {/* 原文引用段落 */}
-      <blockquote className="relative mt-3 rounded-lg border-l-2 border-primary/40 bg-muted/30 py-1.5 pl-3 pr-2 font-serif text-[13px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">
-        <Quote className="absolute -top-1 -left-1.5 h-3 w-3 text-primary/30" />
-        {record.quote}
+      <blockquote className="mt-2.5 flex items-start gap-2 rounded-r-lg border-l-2 border-primary/50 bg-muted/25 px-3 py-2 font-serif text-[13px] leading-relaxed text-foreground/85 [overflow-wrap:anywhere]">
+        <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/40" />
+        <span className="min-w-0 flex-1">{record.quote}</span>
       </blockquote>
 
       {/* 针对提问的说明 */}
       {isAnswer && question?.body ? (
-        <p className="mt-3 rounded-md bg-muted/40 px-3 py-2 text-xs font-medium leading-relaxed text-foreground [overflow-wrap:anywhere]">
-          <span className="text-primary mr-1 font-bold">Q:</span>
-          {question.body}
-        </p>
+        <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-primary/15 bg-primary/[0.03] px-3 py-2 text-xs leading-relaxed text-foreground [overflow-wrap:anywhere]">
+          <span className="shrink-0 rounded bg-primary/10 px-1 py-0.5 font-mono text-[10px] font-bold text-primary">Q</span>
+          <span className="min-w-0 flex-1 font-medium">{question.body}</span>
+        </div>
       ) : null}
 
       {/* 回答正文或笔记正文 */}

@@ -224,18 +224,18 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
             {reader.manifest ? (
               <aside
                 aria-label="Reading controls"
-                className={`pointer-events-none sticky bottom-3 mx-auto mt-2 flex items-center justify-center transition-opacity duration-200 ${
+                className={`pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center transition-opacity duration-200 ${
                   reader.chromeQuiet ? "opacity-25 hover:opacity-100" : "opacity-100"
                 }`}
               >
-                <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/85 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
+                <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
                   {/* 字数与耗时 */}
                   {wordCount > 0 ? (
                     <div className="flex items-center gap-2 border-r border-border/40 pr-2.5 text-[11px] text-muted-foreground">
                       <span>{reader.t("reader.statsWords", { count: wordCount })}</span>
                       <span aria-hidden="true" className="opacity-40">·</span>
                       <span>{reader.t("reader.statsReadTime", { minutes: estimatedMinutes })}</span>
-                      <span className="rounded-full bg-primary/10 px-1.5 py-0.2 font-mono text-[10px] text-primary">
+                      <span className="rounded-full bg-primary/10 px-1.5 py-0.2 font-mono text-[10px] font-medium text-primary">
                         {scrollPercent}%
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
                     </Button>
                   ) : null}
 
-                  {/* 字号循环 */}
+                  {/* 字号切换 */}
                   {reader.manifest.kind !== "pdf" ? (
                     <Button
                       type="button"
@@ -266,10 +266,18 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
                       size="xs"
                       onClick={cycleFontSize}
                       title={`${reader.t("reader.fontSize")}: ${reader.t(`reader.fontSize${fontSize.charAt(0).toUpperCase() + fontSize.slice(1)}`)}`}
-                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <Type className="h-3.5 w-3.5" />
-                      <span className="font-mono text-[10px] uppercase">{fontSize.slice(0, 1)}</span>
+                      <span className="font-serif text-[10px] font-medium">
+                        {reader.locale === "zh"
+                          ? fontSize === "small"
+                            ? "小"
+                            : fontSize === "medium"
+                            ? "中"
+                            : "大"
+                          : fontSize.slice(0, 1).toUpperCase()}
+                      </span>
                     </Button>
                   ) : null}
 
@@ -281,9 +289,18 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
                       size="xs"
                       onClick={cycleLayoutWidth}
                       title={`${reader.t("reader.layoutWidth")}: ${reader.t(`reader.width${layoutWidth.charAt(0).toUpperCase() + layoutWidth.slice(1)}`)}`}
-                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <AlignJustify className="h-3.5 w-3.5" />
+                      <span className="font-serif text-[10px] font-medium">
+                        {reader.locale === "zh"
+                          ? layoutWidth === "standard"
+                            ? "标"
+                            : layoutWidth === "wide"
+                            ? "宽"
+                            : "全"
+                          : layoutWidth.slice(0, 1).toUpperCase()}
+                      </span>
                     </Button>
                   ) : null}
 
