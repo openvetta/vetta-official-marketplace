@@ -108,7 +108,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         ref={headerControls}
         className="@container/shimo-reader relative flex min-w-0 flex-1 flex-col overflow-hidden bg-background/50"
       >
-        {!zenMode ? (
+        {!zenMode && reader.manifest ? (
           <ReaderHeader
             title={reader.manifest?.title ?? reader.t("name")}
             onBackToOverview={reader.clearSelection}
