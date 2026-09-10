@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button, Popover, PopoverTrigger } from "@vetta/ui";
-import { Bookmark, Library, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { Bookmark, ChevronLeft, Library, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingCategory } from "../../domain";
 import { CategoryBadge } from "./CategoryBadge";
@@ -25,6 +25,7 @@ interface ReaderHeaderProps {
   isMarkdown?: boolean;
   outlineOpen?: boolean;
   onToggleOutline?(): void;
+  onBackToOverview?(): void;
   onToggleLibrary(): void;
   onToggleRecords(): void;
   onPreferencesOpenChange(open: boolean): void;
@@ -32,6 +33,7 @@ interface ReaderHeaderProps {
 
 export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
   const {
+    onBackToOverview,
     title,
     subtitle,
     category,
@@ -58,8 +60,23 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
 
   return (
     <header className="group sticky top-0 z-10 grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,2.6fr)_minmax(0,1fr)] items-center gap-4 border-b border-border/40 bg-background/85 px-4 py-2.5 backdrop-blur-md transition-all duration-200">
-      {/* 左侧：资料库切换 */}
-      <div className="justify-self-start">
+      {/* 左侧：资料库切换与返回总览 */}
+      <div className="flex items-center gap-1.5 justify-self-start">
+        {active && onBackToOverview ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            aria-label={t("overview.backToOverview")}
+            title={t("overview.backToOverview")}
+            onClick={onBackToOverview}
+            className="gap-1 rounded-xl border border-border/50 bg-background/80 px-2.5 py-1.5 text-xs font-medium shadow-2xs hover:bg-muted/60 hover:text-foreground transition-all"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="@max-[36rem]/shimo-reader:hidden">{t("overview.backToOverview")}</span>
+          </Button>
+        ) : null}
+
         <Button
           type="button"
           size="sm"

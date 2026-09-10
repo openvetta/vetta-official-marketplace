@@ -111,6 +111,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
         {!zenMode ? (
           <ReaderHeader
             title={reader.manifest?.title ?? reader.t("name")}
+            onBackToOverview={reader.clearSelection}
             subtitle={subtitle}
             category={reader.manifest?.category}
             recordCount={reader.records.length}

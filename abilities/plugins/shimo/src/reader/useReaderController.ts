@@ -51,6 +51,7 @@ export interface ReaderController {
   textRoot: RefObject<HTMLDivElement | null>;
   refreshLibrary(): Promise<void>;
   selectMaterial(id: string): Promise<void>;
+  clearSelection(): void;
   importFiles(files: FileList | File[]): Promise<void>;
   captureSelection(): void;
   runAction(action: SelectionAction): Promise<void>;
@@ -196,6 +197,18 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
       setLoading(false);
     }
   };
+
+  const clearSelection = useCallback((): void => {
+    answerAbortController.current?.abort();
+    runtime.setSelectedId(null);
+    setManifest(null);
+    setSourceUrl("");
+    setContent("");
+    setRecords([]);
+    setSelection(null);
+    setPendingNote(null);
+    setPendingQuestion(null);
+  }, [runtime]);
 
   const importFiles = async (files: FileList | File[]): Promise<void> => {
     setLoading(true);
@@ -473,6 +486,7 @@ export function useReaderController(runtime: ShimoRuntime): ReaderController {
     textRoot,
     refreshLibrary,
     selectMaterial,
+    clearSelection,
     importFiles,
     captureSelection,
     runAction,

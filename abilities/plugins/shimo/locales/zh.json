@@ -129,4 +129,21 @@
   "reader.statsWords": "{{count}} 字",
   "reader.statsReadTime": "约 {{minutes}} 分钟",
   "reader.statsPage": "第 {{page}} / {{count}} 页"
+,
+  "overview.title": "书架与研读总览",
+  "overview.subtitle": "浏览个人藏书、继续阅读、回顾跨文档研读笔记与思考",
+  "overview.continueReading": "继续研读",
+  "overview.allMaterials": "藏书全景",
+  "overview.globalRecords": "研读时光流",
+  "overview.recordsSubtitle": "全库汇聚的高亮、手记与 AI 精析",
+  "overview.statMaterials": "{{count}} 篇文稿",
+  "overview.statRecords": "{{count}} 条研读笔记",
+  "overview.backToOverview": "返回总览",
+  "overview.openReader": "开始研读",
+  "overview.lastRead": "上次研读",
+  "overview.dragDropHint": "拖放 PDF、Markdown 或 TXT 到此处快速收录",
+  "overview.noRecordsYet": "暂无研读记录，在正文中划选内容即可提问与摘录。",
+  "overview.searchPlaceholder": "搜索全库文稿与书名…",
+  "overview.viewGrid": "网格",
+  "overview.viewList": "列表"
 }

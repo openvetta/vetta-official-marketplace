@@ -5,11 +5,11 @@ export interface ShimoRuntime {
   context: PluginContext;
   repository: ShimoRepository;
   getSelectedId(): string | null;
-  setSelectedId(id: string): void;
+  setSelectedId(id: string | null): void;
   notifyRecordsChanged(materialId: string): void;
   subscribe(listener: (event: ShimoRuntimeEvent) => void): () => void;
 }
 
 export type ShimoRuntimeEvent =
-  | { type: "material-selected"; materialId: string }
+  | { type: "material-selected"; materialId: string | null }
   | { type: "records-changed"; materialId: string };

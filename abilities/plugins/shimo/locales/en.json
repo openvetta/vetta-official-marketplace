@@ -129,4 +129,21 @@
   "reader.statsWords": "{{count}} words",
   "reader.statsReadTime": "About {{minutes}} min",
   "reader.statsPage": "Page {{page}} / {{count}}"
+,
+  "overview.title": "Library Overview",
+  "overview.subtitle": "Browse materials, resume reading, and review notes & insights across documents",
+  "overview.continueReading": "Continue Reading",
+  "overview.allMaterials": "All Materials",
+  "overview.globalRecords": "Reading Stream",
+  "overview.recordsSubtitle": "Aggregated highlights, notes, and AI insights across all materials",
+  "overview.statMaterials": "{{count}} materials",
+  "overview.statRecords": "{{count}} records",
+  "overview.backToOverview": "Back to Overview",
+  "overview.openReader": "Read",
+  "overview.lastRead": "Last read",
+  "overview.dragDropHint": "Drop PDF, Markdown, or TXT here to add",
+  "overview.noRecordsYet": "No reading records yet. Select text in any material to ask or note.",
+  "overview.searchPlaceholder": "Search materials…",
+  "overview.viewGrid": "Grid",
+  "overview.viewList": "List"
 }

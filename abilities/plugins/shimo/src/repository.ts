@@ -115,6 +115,18 @@ export class ShimoRepository {
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
+  async listAllRecords(): Promise<ReadingRecord[]> {
+    const paths = (await this.storage.list("records")).filter((path) => path.endsWith(".json"));
+    if (paths.length === 0) return [];
+    const snapshot = await this.storage.readSnapshot(paths, "utf8");
+    return paths
+      .flatMap((path) => {
+        const value = parseJson(snapshot.files[path]);
+        return isRecord(value) ? [value] : [];
+      })
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
   async saveRecord(record: ReadingRecord): Promise<void> {
     assertSchema(ReadingRecordSchema, record, "reading record");
     await this.storage.writeFile(recordPath(record.materialId, record.id), JSON.stringify(record, null, 2), "utf8");

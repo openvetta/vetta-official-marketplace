@@ -85,6 +85,20 @@ const messages: Record<string, string> = {
   "library.empty": "No materials",
   "library.filteredEmpty": "No materials in this category",
   "library.importHint": "Import material",
+  "overview.title": "Library Overview",
+  "overview.subtitle": "Browse materials and review insights",
+  "overview.continueReading": "Continue Reading",
+  "overview.allMaterials": "All Materials",
+  "overview.globalRecords": "Reading Stream",
+  "overview.recordsSubtitle": "Aggregated notes and insights",
+  "overview.statMaterials": "{{count}} materials",
+  "overview.statRecords": "{{count}} records",
+  "overview.backToOverview": "Back to Overview",
+  "overview.openReader": "Read",
+  "overview.lastRead": "Last read",
+  "overview.searchPlaceholder": "Search materials",
+  "overview.viewGrid": "Grid",
+  "overview.viewList": "List",
   "category.poetry": "Poetry",
   "category.book": "Book",
   "category.article": "Article",
@@ -514,6 +528,10 @@ describe("Shimo reader workspace flows", () => {
     expect(document.activeElement?.getAttribute("aria-label")).toBe("Reading records");
     await clickButton(container, "Reading records");
     expect(container.querySelector('aside[aria-label="Reading records"]')?.textContent).toContain(quote);
+
+    await clickButton(container, "Back to Overview");
+    expect(container.textContent).toContain("Library Overview");
+    expect(container.textContent).toContain("All Materials");
   });
 
   it("opens the inline panel for a selected-passage answer, shows streaming content despite a previous filter, and retains the answer after reopening", async () => {

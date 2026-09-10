@@ -3,6 +3,7 @@ import { lazy, Suspense, type ReactElement } from "react";
 import type { ShimoRuntime } from "../../runtime";
 import type { ReaderController } from "../useReaderController";
 import { EmptyLibrary } from "./EmptyLibrary";
+import { LibraryOverview } from "./LibraryOverview";
 import { TextReader } from "./TextReader";
 
 const PdfReader = lazy(async () => ({ default: (await import("./PdfReader")).PdfReader }));
@@ -39,7 +40,19 @@ export function ReadingSurface({
     return opening;
   }
   if (!reader.manifest) {
-    return <EmptyLibrary t={reader.t} onFiles={reader.importFiles} />;
+    if (reader.entries.length === 0) {
+      return <EmptyLibrary t={reader.t} onFiles={reader.importFiles} />;
+    }
+    return (
+      <LibraryOverview
+        entries={reader.entries}
+        runtime={runtime}
+        t={reader.t}
+        locale={reader.locale}
+        onSelect={reader.selectMaterial}
+        onFiles={reader.importFiles}
+      />
+    );
   }
 
   const poetry = reader.manifest.category === "poetry";
