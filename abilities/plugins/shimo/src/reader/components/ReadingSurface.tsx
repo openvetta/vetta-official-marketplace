@@ -69,7 +69,7 @@ export function ReadingSurface({
       ? "text-lg leading-loose"
       : "text-base leading-relaxed";
 
-  const sheetStyle = `min-h-full rounded-2xl border border-border/40 bg-card/90 shadow-xs backdrop-blur-xs transition-all ${widthClass} ${padClass} ${fontClass}`;
+  const sheetStyle = `min-h-full transition-all ${widthClass} ${padClass} ${fontClass}`;
 
   if (reader.manifest.kind === "markdown") {
     return (
