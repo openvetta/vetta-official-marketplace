@@ -1,18 +1,18 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button, Input } from "@vetta/ui";
 import {
+  BookMarked,
+  BookOpen,
   BookText,
+  Feather,
   FileCode,
   FileText,
-  PanelLeftClose,
   Search,
   X
 } from "lucide-react";
 import { useMemo, useState, type ReactElement } from "react";
 import type { LibraryEntry, ReadingCategory } from "../../domain";
-import { CategoryBadge } from "./CategoryBadge";
 import { ImportButton } from "./ImportButton";
-
 interface LibrarySidebarProps {
   entries: LibraryEntry[];
   selectedId?: string;
@@ -87,7 +87,7 @@ export function LibrarySidebar({
         aria-label={t("library.title")}
         aria-hidden={!open}
         inert={!open}
-        className={`fixed inset-y-0 left-0 z-50 flex w-full max-w-2xl flex-col overflow-hidden border-r border-border/60 bg-background/95 shadow-2xl backdrop-blur-2xl transition-transform duration-300 ease-out sm:w-[38rem] ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-full max-w-2xl flex-col overflow-hidden border-r border-border/60 bg-background/95 shadow-2xl backdrop-blur-2xl transition-transform duration-300 ease-out sm:w-[42rem] ${
           open ? "translate-x-0" : "-translate-x-full pointer-events-none"
         }`}
       >
@@ -102,11 +102,11 @@ export function LibrarySidebar({
               {t("brand.mark")}
             </span>
             <div className="min-w-0">
-              <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
-                {t("library.title")}
+              <h2 className="truncate text-base font-semibold tracking-tight text-foreground">
+                私享文斋
               </h2>
               <p className="text-[11px] text-muted-foreground">
-                {t("records.count", { count: entries.length })}
+                收纳长卷、诗赋与个人典籍 · {t("records.count", { count: entries.length })}
               </p>
             </div>
           </div>
@@ -125,6 +125,22 @@ export function LibrarySidebar({
                 <X className="h-4 w-4" />
               </Button>
             ) : null}
+          </div>
+        </div>
+
+        {/* 书斋藏卷统计看板 */}
+        <div className="mb-4 grid grid-cols-3 gap-2.5 rounded-2xl border border-border/40 bg-muted/20 p-2 text-center select-none">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-background/70 py-1.5 px-2 border border-border/30 shadow-2xs">
+            <span className="font-mono text-xs font-bold text-foreground">{entries.length}</span>
+            <span className="text-[10px] text-muted-foreground">总藏卷</span>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-xl bg-background/70 py-1.5 px-2 border border-border/30 shadow-2xs">
+            <span className="font-mono text-xs font-bold text-rose-600 dark:text-rose-400">{poetryCount}</span>
+            <span className="text-[10px] text-muted-foreground">诗词</span>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-xl bg-background/70 py-1.5 px-2 border border-border/30 shadow-2xs">
+            <span className="font-mono text-xs font-bold text-sky-600 dark:text-sky-400">{articleCount}</span>
+            <span className="text-[10px] text-muted-foreground">长文</span>
           </div>
         </div>
 
@@ -200,71 +216,100 @@ export function LibrarySidebar({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-3">
-              {filteredEntries.map((entry, index) => {
-                const active = selectedId === entry.id;
-                const isPoetry = entry.category === "poetry";
-                const isArticle = entry.category === "article";
+            <div className="space-y-4 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {filteredEntries.map((entry, index) => {
+                  const active = selectedId === entry.id;
+                  const isPoetry = entry.category === "poetry";
+                  const isArticle = entry.category === "article";
 
-                return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => void onSelect(entry.id)}
-                    className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 ${
-                      active
-                        ? "bg-primary/[0.06] border-primary/40 shadow-xs ring-1 ring-primary/20"
-                        : "bg-card/80 border-border/60 hover:bg-muted/40 hover:border-primary/30 hover:shadow-2xs"
-                    }`}
-                  >
-                    <div>
-                      {/* 顶部标签行与序号 */}
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[10px] font-semibold border ${
-                            isPoetry
-                              ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                              : isArticle
-                              ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20"
-                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                          }`}
-                        >
-                          {getKindIcon(entry.kind)}
-                          <span>{t(`category.${entry.category}`)}</span>
-                        </span>
+                  const spineColor = isPoetry
+                    ? "from-rose-500/90 to-rose-700/90"
+                    : isArticle
+                    ? "from-sky-500/90 to-blue-700/90"
+                    : "from-amber-500/90 to-amber-700/90";
 
-                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/60">
-                          #{String(index + 1).padStart(2, "0")}
-                        </span>
+                  const tagStyle = isPoetry
+                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                    : isArticle
+                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-current={active ? "page" : undefined}
+                      onClick={() => void onSelect(entry.id)}
+                      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 text-left transition-all duration-200 ${
+                        active
+                          ? "bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] border-primary/40 shadow-sm ring-1 ring-primary/25 -translate-y-0.5"
+                          : "bg-card/75 border-border/60 hover:border-primary/40 hover:bg-muted/40 hover:shadow-md hover:-translate-y-0.5"
+                      }`}
+                    >
+                      {/* 立体书脊模拟光影 */}
+                      <span
+                        className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${spineColor}`}
+                        aria-hidden="true"
+                      />
+
+                      {/* 书册封面内容 */}
+                      <div className="pl-1.5">
+                        {/* 顶部体裁印章与藏卷序号 */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold border ${tagStyle}`}>
+                            {isPoetry ? <Feather className="h-3 w-3" /> : isArticle ? <FileText className="h-3 w-3" /> : <BookOpen className="h-3 w-3" />}
+                            <span>{t(`category.${entry.category}`)}</span>
+                          </span>
+
+                          <span className="font-mono text-[10px] tabular-nums text-muted-foreground/60">
+                            卷{index + 1} · #{String(index + 1).padStart(2, "0")}
+                          </span>
+                        </div>
+
+                        {/* 典雅书名标题 */}
+                        <h3 className="mt-3.5 line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+                          {entry.title}
+                        </h3>
                       </div>
 
-                      {/* 书目大标题 */}
-                      <h3 className="mt-3 line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-                        {entry.title}
-                      </h3>
-                    </div>
-
-                    {/* 底部元数据与状态 */}
-                    <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-2.5 text-[10px] text-muted-foreground">
-                      <span className="font-mono uppercase tracking-wider text-muted-foreground/70">
-                        {entry.kind}
-                      </span>
-
-                      {active ? (
-                        <span className="inline-flex items-center gap-1 font-medium text-primary">
-                          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                          <span>正在阅读</span>
+                      {/* 底部书册状态栏 */}
+                      <div className="mt-4 flex items-center justify-between border-t border-border/30 pl-1.5 pt-2.5 text-[10px] text-muted-foreground">
+                        <span className="font-mono uppercase tracking-wider text-muted-foreground/70">
+                          {entry.kind}
                         </span>
-                      ) : (
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary font-medium">
-                          进入阅读 →
-                        </span>
-                      )}
+
+                        {active ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                            <span>研读中</span>
+                          </span>
+                        ) : (
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary font-medium">
+                            展卷研读 →
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 添卷启文引导卡片（填充少内容时的留白） */}
+              {filteredEntries.length <= 2 ? (
+                <div className="flex items-center justify-between rounded-2xl border-2 border-dashed border-border/50 bg-muted/20 p-4 transition-colors hover:border-primary/40 hover:bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <BookMarked className="h-4 w-4" />
                     </div>
-                  </button>
-                );
-              })}
+                    <div>
+                      <p className="text-xs font-medium text-foreground">添卷启文</p>
+                      <p className="text-[10px] text-muted-foreground">导入新篇，随时展卷品读</p>
+                    </div>
+                  </div>
+                  <ImportButton t={t} onFiles={onFiles} />
+                </div>
+              ) : null}
             </div>
           )}
         </nav>

@@ -1,7 +1,7 @@
 {
   "id": "shimo-reader",
   "name": "%name%",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "pluginApiVersion": "^2.1.0",
   "entry": "dist/mf-manifest.json",
   "moduleFederation": {
