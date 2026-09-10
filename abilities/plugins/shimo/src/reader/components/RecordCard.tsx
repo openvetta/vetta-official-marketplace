@@ -75,7 +75,9 @@ export function RecordCard({
       {/* 回答正文或笔记正文 */}
       {isAnswer && (record.body || streaming) ? (
         <div className="mt-3 border-t border-border/30 pt-3 text-xs">
-          <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
+          <div className="max-h-72 overflow-y-auto shimo-scroll pr-1.5">
+            <AnswerMarkdown streaming={streaming}>{record.body ?? ""}</AnswerMarkdown>
+          </div>
         </div>
       ) : record.body ? (
         <p className="mt-3 whitespace-pre-wrap text-xs leading-relaxed text-foreground/90 [overflow-wrap:anywhere]">

@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button, Popover, PopoverTrigger } from "@vetta/ui";
-import { NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { Bookmark, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingCategory } from "../../domain";
 import { CategoryBadge } from "./CategoryBadge";
@@ -19,6 +19,12 @@ interface ReaderHeaderProps {
   preferencesOpen: boolean;
   preferencesPanel?: ReactElement;
   t: PluginTranslate;
+  wordCount?: number;
+  estimatedMinutes?: number;
+  scrollPercent?: number;
+  isMarkdown?: boolean;
+  outlineOpen?: boolean;
+  onToggleOutline?(): void;
   onToggleLibrary(): void;
   onToggleRecords(): void;
   onPreferencesOpenChange(open: boolean): void;
@@ -39,6 +45,12 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
     preferencesOpen,
     preferencesPanel,
     t,
+    wordCount,
+    estimatedMinutes,
+    scrollPercent,
+    isMarkdown,
+    outlineOpen,
+    onToggleOutline,
     onToggleLibrary,
     onToggleRecords,
     onPreferencesOpenChange
@@ -74,13 +86,41 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
         >
           {title}
         </h1>
-        <div className="mt-0.5 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
-          {category ? <CategoryBadge category={category} t={t} /> : null}
-          {category && subtitle ? <span aria-hidden="true" className="opacity-50">·</span> : null}
-          {subtitle ? (
-            <span className="truncate tracking-wide text-muted-foreground/80">{subtitle}</span>
-          ) : null}
-        </div>
+        {active ? (
+          <div className="mt-1 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            {wordCount && wordCount > 0 ? (
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>{t("reader.statsWords", { count: wordCount })}</span>
+                <span aria-hidden="true" className="opacity-30">·</span>
+                <span>{t("reader.statsReadTime", { minutes: estimatedMinutes ?? 1 })}</span>
+                <span className="rounded-full bg-primary/10 px-1.5 py-0.2 font-mono text-[10px] font-semibold text-primary">
+                  {scrollPercent ?? 0}%
+                </span>
+              </div>
+            ) : null}
+
+            {isMarkdown && onToggleOutline ? (
+              <>
+                {wordCount && wordCount > 0 ? <span aria-hidden="true" className="opacity-30">·</span> : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  onClick={onToggleOutline}
+                  title={outlineOpen ? t("reader.tocCollapse") : t("reader.tocExpand")}
+                  className={`h-auto gap-1 rounded-full px-2 py-0.5 text-[11px] transition-colors ${
+                    outlineOpen
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Bookmark className="h-3 w-3" />
+                  <span className="@max-[40rem]/shimo-reader:hidden">{t("reader.toc")}</span>
+                </Button>
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {/* 右侧：阅读记录与偏好设置 */}

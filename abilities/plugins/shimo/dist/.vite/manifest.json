@@ -23,8 +23,8 @@
     "file": "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
     "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf"
   },
-  "_RecordList-B1SYV4w7.js": {
-    "file": "assets/RecordList-B1SYV4w7.js",
+  "_RecordList-DhLqPuTa.js": {
+    "file": "assets/RecordList-DhLqPuTa.js",
     "name": "RecordList",
     "imports": [
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
@@ -48,18 +48,18 @@
     "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
   "src/activity-panel.tsx": {
-    "file": "assets/activity-panel-CECD7vl2.js",
+    "file": "assets/activity-panel-CHlDkOr1.js",
     "name": "activity-panel",
     "src": "src/activity-panel.tsx",
     "isDynamicEntry": true,
     "imports": [
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
-      "_RecordList-B1SYV4w7.js"
+      "_RecordList-DhLqPuTa.js"
     ]
   },
   "src/index.tsx": {
-    "file": "assets/index-DhvJNzXf.js",
+    "file": "assets/index-DeGv30eG.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
@@ -86,14 +86,14 @@
     ]
   },
   "src/reader/components/MarkdownReader.tsx": {
-    "file": "assets/MarkdownReader-CmtweF_o.js",
+    "file": "assets/MarkdownReader-DsE8VEzm.js",
     "name": "MarkdownReader",
     "src": "src/reader/components/MarkdownReader.tsx",
     "isDynamicEntry": true,
     "imports": [
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
-      "_RecordList-B1SYV4w7.js"
+      "_RecordList-DhLqPuTa.js"
     ]
   },
   "src/reader/components/PdfReader.tsx": {
@@ -110,7 +110,7 @@
     ]
   },
   "src/reader/components/ReaderView.tsx": {
-    "file": "assets/ReaderView-BblF2yg3.js",
+    "file": "assets/ReaderView-aMo-0IUh.js",
     "name": "ReaderView",
     "src": "src/reader/components/ReaderView.tsx",
     "isDynamicEntry": true,
@@ -118,7 +118,7 @@
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
       "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
       "src/index.tsx",
-      "_RecordList-B1SYV4w7.js",
+      "_RecordList-DhLqPuTa.js",
       "_preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
@@ -140,7 +140,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
-    "file": "assets/virtualExposes-D5U53Xx_.js",
+    "file": "assets/virtualExposes-D-6qX_y-.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,

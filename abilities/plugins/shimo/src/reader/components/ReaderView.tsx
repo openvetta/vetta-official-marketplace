@@ -1,12 +1,3 @@
-import {
-  AlignJustify,
-  Bookmark,
-  Maximize2,
-  Minimize2,
-  SlidersHorizontal,
-  Type
-} from "lucide-react";
-import { Button } from "@vetta/ui";
 import { useCallback, useId, useMemo, useRef, useState, type ReactElement, type UIEvent } from "react";
 import type { ShimoRuntime } from "../../runtime";
 import { actionsFor, useReaderController } from "../useReaderController";
@@ -125,6 +116,12 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
             recordCount={reader.records.length}
             active={Boolean(reader.manifest)}
             quiet={reader.chromeQuiet}
+            wordCount={wordCount}
+            estimatedMinutes={estimatedMinutes}
+            scrollPercent={scrollPercent}
+            isMarkdown={reader.manifest?.kind === "markdown"}
+            outlineOpen={outlineOpen}
+            onToggleOutline={() => setOutlineOpen((prev) => !prev)}
             libraryOpen={reader.libraryOpen}
             libraryId={libraryId}
             recordsId={recordsId}
@@ -220,106 +217,6 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
               />
             ) : null}
 
-            {/* 底部悬浮阅读信息与快捷控制坞 (Floating Reader Dock) */}
-            {reader.manifest ? (
-              <aside
-                aria-label="Reading controls"
-                className={`pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center transition-all duration-200 ${
-                  reader.chromeQuiet ? "opacity-25 hover:opacity-100" : "opacity-100"
-                }`}
-              >
-                <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3.5 py-1.5 text-xs shadow-xl backdrop-blur-xl ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
-                  {/* 字数与耗时 */}
-                  {wordCount > 0 ? (
-                    <div className="flex items-center gap-2 border-r border-border/40 pr-2.5 text-[11px] text-muted-foreground">
-                      <span>{reader.t("reader.statsWords", { count: wordCount })}</span>
-                      <span aria-hidden="true" className="opacity-40">·</span>
-                      <span>{reader.t("reader.statsReadTime", { minutes: estimatedMinutes })}</span>
-                      <span className="rounded-full bg-primary/10 px-1.5 py-0.2 font-mono text-[10px] font-medium text-primary">
-                        {scrollPercent}%
-                      </span>
-                    </div>
-                  ) : null}
-
-                  {/* 目录大纲切换 */}
-                  {reader.manifest.kind === "markdown" ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      onClick={() => setOutlineOpen((prev) => !prev)}
-                      title={outlineOpen ? reader.t("reader.tocCollapse") : reader.t("reader.tocExpand")}
-                      className={`h-auto gap-1 rounded-full px-2 py-1 text-[11px] transition-colors ${
-                        outlineOpen ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Bookmark className="h-3.5 w-3.5" />
-                      <span className="@max-[40rem]/shimo-reader:hidden">{reader.t("reader.toc")}</span>
-                    </Button>
-                  ) : null}
-
-                  {/* 字号切换 */}
-                  {reader.manifest.kind !== "pdf" ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      onClick={cycleFontSize}
-                      title={`${reader.t("reader.fontSize")}: ${reader.t(`reader.fontSize${fontSize.charAt(0).toUpperCase() + fontSize.slice(1)}`)}`}
-                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Type className="h-3.5 w-3.5" />
-                      <span className="text-[10px] font-medium">
-                        {reader.locale === "zh"
-                          ? fontSize === "small"
-                            ? "小"
-                            : fontSize === "medium"
-                            ? "中"
-                            : "大"
-                          : fontSize.slice(0, 1).toUpperCase()}
-                      </span>
-                    </Button>
-                  ) : null}
-
-                  {/* 版宽循环 */}
-                  {!spread && reader.manifest.kind !== "pdf" && reader.manifest.category !== "poetry" ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      onClick={cycleLayoutWidth}
-                      title={`${reader.t("reader.layoutWidth")}: ${reader.t(`reader.width${layoutWidth.charAt(0).toUpperCase() + layoutWidth.slice(1)}`)}`}
-                      className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <AlignJustify className="h-3.5 w-3.5" />
-                      <span className="text-[10px] font-medium">
-                        {reader.locale === "zh"
-                          ? layoutWidth === "standard"
-                            ? "标"
-                            : layoutWidth === "wide"
-                            ? "宽"
-                            : "全"
-                          : layoutWidth.slice(0, 1).toUpperCase()}
-                      </span>
-                    </Button>
-                  ) : null}
-
-                  {/* 专注模式切换 */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => setZenMode((prev) => !prev)}
-                    title={zenMode ? reader.t("reader.zenExit") : reader.t("reader.zenEnter")}
-                    className={`rounded-full p-1 transition-colors ${
-                      zenMode ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {zenMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-                  </Button>
-                </div>
-              </aside>
-            ) : null}
           </div>
 
           {/* 右侧：阅读记录面板 */}
