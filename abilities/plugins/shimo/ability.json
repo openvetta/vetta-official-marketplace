@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "shimo-reader",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "icon": "solar:book-2-linear",
   "name": "Shimo Reader",
   "description": "Open copied PDF, Markdown and TXT materials in an immersive bilingual reader with embedded Shimo reading Skills for selection questions, poetry analysis and durable notes.",

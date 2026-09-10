@@ -1,6 +1,6 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
 import { Button, Popover, PopoverTrigger } from "@vetta/ui";
-import { Bookmark, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { Bookmark, Library, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingCategory } from "../../domain";
 import { CategoryBadge } from "./CategoryBadge";
@@ -69,11 +69,11 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
           aria-expanded={libraryOpen}
           aria-controls={libraryId}
           onClick={onToggleLibrary}
-          className={`gap-2 rounded-xl text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors ${
+          className={`gap-2 rounded-xl border border-border/50 bg-background/80 px-3 py-1.5 text-xs font-medium shadow-2xs hover:bg-muted/60 hover:text-foreground transition-all ${
             libraryOpen ? "hidden" : "inline-flex"
           }`}
         >
-          <PanelLeftOpen className="h-4 w-4" />
+          <Library className="h-4 w-4 text-primary" />
           <span className="@max-[32rem]/shimo-reader:hidden">{t("library.title")}</span>
         </Button>
       </div>

@@ -72,16 +72,26 @@ export function LibrarySidebar({
   }, [entries, filter, searchQuery]);
 
   return (
-    <aside
-      id={id}
-      aria-label={t("library.title")}
-      aria-hidden={!open}
-      inert={!open}
-      className={`min-h-0 shrink-0 overflow-hidden border-r border-border/50 bg-background/95 backdrop-blur-md transition-all duration-200 @max-[44rem]/shimo-workspace:max-w-[48cqw] ${
-        open ? "w-80" : "hidden"
-      }`}
-    >
-      <div className="flex h-full w-full flex-col px-4 pb-4 pt-5">
+    <>
+      {/* 抽屉半透明遮罩背景 */}
+      {open ? (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <aside
+        id={id}
+        aria-label={t("library.title")}
+        aria-hidden={!open}
+        inert={!open}
+        className={`fixed inset-y-0 left-0 z-50 flex w-full max-w-2xl flex-col overflow-hidden border-r border-border/60 bg-background/95 shadow-2xl backdrop-blur-2xl transition-transform duration-300 ease-out sm:w-[38rem] ${
+          open ? "translate-x-0" : "-translate-x-full pointer-events-none"
+        }`}
+      >
+        <div className="flex h-full w-full flex-col px-5 pb-5 pt-5">
         {/* 顶部品牌与控制栏 */}
         <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/40 pb-4">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -110,8 +120,9 @@ export function LibrarySidebar({
                 aria-label={t("library.collapse")}
                 title={t("library.collapse")}
                 onClick={onClose}
+                className="rounded-xl hover:bg-muted/70"
               >
-                <PanelLeftClose className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             ) : null}
           </div>
@@ -189,49 +200,76 @@ export function LibrarySidebar({
               </div>
             </div>
           ) : (
-            <ol className="m-0 list-none space-y-1.5 p-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-3">
               {filteredEntries.map((entry, index) => {
                 const active = selectedId === entry.id;
+                const isPoetry = entry.category === "poetry";
+                const isArticle = entry.category === "article";
+
                 return (
-                  <li key={entry.id}>
-                    <button
-                      type="button"
-                      aria-current={active ? "page" : undefined}
-                      onClick={() => void onSelect(entry.id)}
-                      className={`group relative flex w-full items-start gap-2.5 rounded-xl p-3 text-left transition-all duration-150 border ${
-                        active
-                          ? "bg-primary/[0.06] border-primary/25 text-foreground shadow-2xs ring-1 ring-primary/10"
-                          : "border-transparent text-muted-foreground hover:bg-muted/50 hover:border-border/40 hover:text-foreground"
-                      }`}
-                    >
-                      <span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border transition-colors ${
-                        active
-                          ? "bg-background border-primary/30 text-primary shadow-2xs"
-                          : "bg-background/80 border-border/40 shadow-2xs"
-                      }`}>
-                        {getKindIcon(entry.kind)}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">
-                          {entry.title}
+                  <button
+                    key={entry.id}
+                    type="button"
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => void onSelect(entry.id)}
+                    className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      active
+                        ? "bg-primary/[0.06] border-primary/40 shadow-xs ring-1 ring-primary/20"
+                        : "bg-card/80 border-border/60 hover:bg-muted/40 hover:border-primary/30 hover:shadow-2xs"
+                    }`}
+                  >
+                    <div>
+                      {/* 顶部标签行与序号 */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[10px] font-semibold border ${
+                            isPoetry
+                              ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                              : isArticle
+                              ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                          }`}
+                        >
+                          {getKindIcon(entry.kind)}
+                          <span>{t(`category.${entry.category}`)}</span>
                         </span>
-                        <span className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-                          <CategoryBadge category={entry.category} t={t} />
-                          <span aria-hidden="true" className="opacity-30">·</span>
-                          <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/70">{entry.kind}</span>
-                          <span className="ml-auto rounded-md bg-muted/60 px-1.5 py-0.2 font-mono text-[10px] tabular-nums text-muted-foreground/80">
-                            #{String(index + 1).padStart(2, "0")}
-                          </span>
+
+                        <span className="font-mono text-[10px] tabular-nums text-muted-foreground/60">
+                          #{String(index + 1).padStart(2, "0")}
                         </span>
+                      </div>
+
+                      {/* 书目大标题 */}
+                      <h3 className="mt-3 line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
+                        {entry.title}
+                      </h3>
+                    </div>
+
+                    {/* 底部元数据与状态 */}
+                    <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-2.5 text-[10px] text-muted-foreground">
+                      <span className="font-mono uppercase tracking-wider text-muted-foreground/70">
+                        {entry.kind}
                       </span>
-                    </button>
-                  </li>
+
+                      {active ? (
+                        <span className="inline-flex items-center gap-1 font-medium text-primary">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                          <span>正在阅读</span>
+                        </span>
+                      ) : (
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-primary font-medium">
+                          进入阅读 →
+                        </span>
+                      )}
+                    </div>
+                  </button>
                 );
               })}
-            </ol>
+            </div>
           )}
         </nav>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
