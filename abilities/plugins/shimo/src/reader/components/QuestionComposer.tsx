@@ -56,14 +56,14 @@ export function QuestionComposer({
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open && !submitting) onCancel(); }}>
-      <DialogContent className="overflow-hidden rounded-none p-0 sm:max-w-lg" showCloseButton={false}>
+      <DialogContent className="overflow-hidden rounded-2xl p-0 sm:max-w-lg shadow-2xl border border-border/60" showCloseButton={false}>
         <DialogHeader className="px-6 pb-0 pt-6">
-          <DialogTitle className="font-serif text-xl font-medium tracking-wide">{t("question.title")}</DialogTitle>
+          <DialogTitle className="text-lg font-semibold tracking-tight">{t("question.title")}</DialogTitle>
           <DialogDescription>{t("question.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 px-6">
-          <blockquote className="max-h-28 overflow-y-auto rounded-r-lg border-l-2 border-primary/50 bg-muted/20 py-2 pl-3.5 pr-3 font-serif text-sm leading-6 text-foreground/90">
+          <blockquote className="max-h-28 overflow-y-auto rounded-xl border border-primary/20 bg-primary/[0.04] p-3 text-sm leading-relaxed text-foreground/90">
             {pending.selection.quote}
           </blockquote>
           <p className="text-[10px] tracking-wide text-muted-foreground">{locationLabel(pending.selection.anchor, locale)}</p>
@@ -75,7 +75,7 @@ export function QuestionComposer({
             aria-label={t("question.inputLabel")}
             onChange={(event) => setQuestion(event.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full resize-none border border-input bg-background px-3.5 py-3 font-serif text-sm leading-7 text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+            className="w-full resize-none rounded-xl border border-input bg-background/80 px-3.5 py-3 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
           />
           {!modelAvailable ? <p className="text-xs text-destructive">{t("ai.modelRequired")}</p> : null}
         </div>

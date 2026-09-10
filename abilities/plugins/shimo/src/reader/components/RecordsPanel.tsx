@@ -31,14 +31,14 @@ export function RecordsPanel({
     >
       <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/40 px-5 pb-3.5 pt-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-primary">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-2xs">
               <Sparkles className="h-3.5 w-3.5" />
             </span>
-            <h2 className="font-serif text-base font-semibold tracking-wide text-foreground">
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
               {t("records.title")}
             </h2>
-            <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+            <span className="rounded-full bg-muted/80 px-2 py-0.5 font-mono text-[10px] font-medium text-muted-foreground">
               {records.length}
             </span>
           </div>
@@ -53,7 +53,7 @@ export function RecordsPanel({
           aria-label={t("records.collapse")}
           title={t("records.collapse")}
           onClick={onClose}
-          className="rounded-lg hover:bg-muted/70"
+          className="rounded-xl hover:bg-muted/70"
         >
           <X className="h-4 w-4" />
         </Button>

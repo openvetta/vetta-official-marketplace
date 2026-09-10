@@ -57,7 +57,7 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
           aria-expanded={libraryOpen}
           aria-controls={libraryId}
           onClick={onToggleLibrary}
-          className={`gap-2 rounded-lg font-serif text-xs tracking-wide text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors ${
+          className={`gap-2 rounded-xl text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors ${
             libraryOpen ? "hidden" : "inline-flex"
           }`}
         >
@@ -69,7 +69,7 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
       {/* 中间：文档标题与分类 */}
       <div className="min-w-0 justify-self-center text-center">
         <h1
-          className="truncate font-serif text-base font-semibold tracking-wide text-foreground sm:text-lg"
+          className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg"
           title={title}
         >
           {title}
@@ -99,15 +99,17 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
             aria-expanded={recordsOpen}
             aria-controls={recordsId}
             onClick={onToggleRecords}
-            className={`gap-2 rounded-lg font-serif text-xs tracking-wide transition-colors ${
+            className={`gap-2 rounded-xl text-xs font-medium tracking-wide transition-all ${
               recordsOpen
-                ? "bg-primary/10 text-primary font-medium"
+                ? "bg-primary/15 text-primary shadow-2xs font-semibold"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
             <NotebookPen className="h-4 w-4" />
             <span className="@max-[32rem]/shimo-reader:hidden">{t("records.title")}</span>
-            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-muted px-1 font-mono text-[10px] font-medium text-foreground">
+            <span className={`grid h-4.5 min-w-4.5 place-items-center rounded-full px-1.5 font-mono text-[10px] font-medium transition-colors ${
+              recordsOpen ? "bg-primary text-primary-foreground font-bold" : "bg-muted text-foreground"
+            }`}>
               {recordCount}
             </span>
           </Button>
@@ -121,7 +123,7 @@ export function ReaderHeader(props: ReaderHeaderProps): ReactElement {
                 aria-label={t("preferences.title")}
                 title={t("preferences.title")}
                 aria-pressed={preferencesOpen}
-                className={`rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground ${
+                className={`rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors ${
                   preferencesOpen ? "bg-muted/80 text-foreground" : ""
                 }`}
               >

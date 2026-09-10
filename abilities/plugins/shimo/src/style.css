@@ -7,7 +7,7 @@
 
 /* Host tokens only. Dark mode is inherited; do not use ancestor dark selectors. */
 @theme inline {
-  --font-serif: Georgia, "Noto Serif SC", "Songti SC", "Source Han Serif SC", serif;
+  --font-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -37,18 +37,20 @@
 
 /* Generated reading/markdown HTML cannot take utility classes. */
 .shimo-reading-text {
-  font-family: var(--font-serif);
-  font-size: clamp(1.06rem, 0.98rem + 0.28vw, 1.22rem);
-  line-height: 2.05;
-  letter-spacing: 0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  font-size: clamp(1rem, 0.94rem + 0.22vw, 1.15rem);
+  line-height: 1.95;
+  letter-spacing: 0.012em;
   overflow-wrap: anywhere;
   text-wrap: pretty;
+  color: var(--foreground);
 }
 
 .shimo-reading-text[data-category="poetry"] {
+  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "PingFang SC", "Microsoft YaHei", serif;
   font-size: clamp(1.12rem, 1.02rem + 0.36vw, 1.36rem);
-  line-height: 2.4;
-  letter-spacing: 0.08em;
+  line-height: 2.3;
+  letter-spacing: 0.06em;
 }
 
 .shimo-reading-text::selection,

@@ -58,7 +58,7 @@ export function SelectionToolbar({ selection, actions, locale, t, onAction }: Se
       role="toolbar"
       aria-label={t("selection.actions")}
       style={position}
-      className="fixed z-[9999] flex max-w-[min(32rem,calc(100vw-1.5rem))] origin-top-left flex-nowrap items-center gap-0 overflow-x-auto bg-background px-1.5 py-1 shadow-[0_18px_40px_-24px_color-mix(in_oklab,var(--foreground)_40%,transparent)] ring-1 ring-border/70 select-none motion-safe:animate-shimo-in"
+      className="fixed z-[9999] flex max-w-[min(32rem,calc(100vw-1.5rem))] origin-top-left flex-nowrap items-center gap-0.5 overflow-x-auto rounded-2xl border border-border/60 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl ring-1 ring-black/[0.05] dark:ring-white/[0.08] select-none motion-safe:animate-shimo-in"
     >
       {actions.map((action, index) => {
         const isCommonStart = action.id === "ask";
@@ -75,10 +75,10 @@ export function SelectionToolbar({ selection, actions, locale, t, onAction }: Se
               variant="ghost"
               size="xs"
               onClick={() => void onAction(action)}
-              className={`gap-1.5 rounded-none px-2 py-1 font-serif text-xs ${
+              className={`gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
                 isPrimaryAction
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               }`}
             >
               <Icon aria-hidden="true" className="size-3.5 shrink-0" />

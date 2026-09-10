@@ -13,7 +13,7 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="font-serif text-xl font-medium tracking-wide text-foreground sm:text-2xl">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               {t("empty.title")}
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -22,7 +22,7 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
           </div>
         </div>
         <div
-          className="grid h-10 w-10 place-items-center rounded-lg border border-primary/20 bg-primary/5 font-serif text-2xl font-bold leading-none text-primary"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-primary/25 bg-gradient-to-br from-primary/15 to-primary/5 text-2xl font-bold leading-none text-primary shadow-2xs"
           aria-hidden="true"
         >
           {t("brand.mark")}
@@ -47,7 +47,7 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
         <div className="rounded-xl border border-border/40 bg-background/50 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center gap-2 text-primary">
             <Feather className="h-4 w-4" />
-            <dt className="font-serif text-xs font-medium tracking-wider">{t("empty.poetryTitle")}</dt>
+            <dt className="text-xs font-semibold tracking-wide">{t("empty.poetryTitle")}</dt>
           </div>
           <dd className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("empty.poetryDescription")}</dd>
         </div>
@@ -55,7 +55,7 @@ export function EmptyLibrary({ t, onFiles }: { t: PluginTranslate; onFiles(files
         <div className="rounded-xl border border-border/40 bg-background/50 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center gap-2 text-primary">
             <BookOpen className="h-4 w-4" />
-            <dt className="font-serif text-xs font-medium tracking-wider">{t("empty.articleTitle")}</dt>
+            <dt className="text-xs font-semibold tracking-wide">{t("empty.articleTitle")}</dt>
           </div>
           <dd className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("empty.articleDescription")}</dd>
         </div>

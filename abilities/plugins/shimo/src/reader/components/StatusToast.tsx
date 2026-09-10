@@ -11,7 +11,7 @@ export function StatusToast({ notice }: { notice: ReaderNotice }): ReactElement 
   return (
     <div
       role={notice.tone === "error" ? "alert" : "status"}
-      className={`absolute right-5 bottom-5 z-40 max-w-sm bg-background px-4 py-3 font-serif text-xs leading-6 shadow-[0_18px_40px_-24px_color-mix(in_oklab,var(--foreground)_40%,transparent)] ring-1 ring-border/70 ${toneClass}`}
+      className={`absolute right-6 bottom-6 z-40 max-w-sm rounded-2xl bg-background/95 backdrop-blur-xl px-4 py-3 text-xs font-medium leading-relaxed shadow-xl border border-border/60 animate-in fade-in slide-in-from-bottom-2 duration-200 ${toneClass}`}
     >
       {notice.message}
     </div>

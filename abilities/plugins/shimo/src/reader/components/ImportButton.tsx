@@ -17,7 +17,7 @@ export function ImportButton({ t, onFiles, prominent = false }: ImportButtonProp
       asChild
       size={prominent ? "lg" : "icon"}
       variant={prominent ? "primary" : "ghost"}
-      className={prominent ? "h-10 cursor-pointer rounded-none px-7 font-serif tracking-[0.16em]" : "cursor-pointer"}
+      className={prominent ? "h-10 cursor-pointer rounded-xl px-6 font-medium shadow-xs" : "cursor-pointer rounded-xl"}
     >
       <label title={t("library.importHint")}>
         <Upload />

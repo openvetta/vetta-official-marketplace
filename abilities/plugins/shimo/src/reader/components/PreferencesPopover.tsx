@@ -62,14 +62,14 @@ export function PreferencesPopover(props: PreferencesPopoverProps): ReactElement
       align="end"
       sideOffset={10}
       aria-label={t("preferences.title")}
-      className="w-[21rem] max-w-[calc(100vw-2rem)] gap-0 p-4 shadow-xl"
+      className="w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl gap-0 p-4 shadow-xl border border-border/60"
     >
       <PopoverHeader className="mb-4 flex-row items-start justify-between gap-3">
         <div>
-          <PopoverTitle className="font-serif">{t("preferences.title")}</PopoverTitle>
+          <PopoverTitle className="text-sm font-semibold tracking-tight">{t("preferences.title")}</PopoverTitle>
           <PopoverDescription className="mt-0.5 text-[11px]">{t("preferences.description")}</PopoverDescription>
         </div>
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")} onClick={onClose}>
+        <Button type="button" variant="ghost" size="icon-sm" aria-label={t("common.close")} onClick={onClose} className="rounded-xl">
           <X />
         </Button>
       </PopoverHeader>

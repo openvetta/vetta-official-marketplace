@@ -86,13 +86,13 @@ export function LibrarySidebar({
         <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/40 pb-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <span
-              className="grid h-8 w-8 place-items-center rounded-lg border border-primary/20 bg-primary/10 font-serif text-lg font-bold leading-none text-primary"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/25 text-base font-bold text-primary shadow-2xs"
               aria-hidden="true"
             >
               {t("brand.mark")}
             </span>
             <div className="min-w-0">
-              <h2 className="truncate font-serif text-sm font-semibold tracking-wide text-foreground">
+              <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
                 {t("library.title")}
               </h2>
               <p className="text-[11px] text-muted-foreground">
@@ -119,13 +119,13 @@ export function LibrarySidebar({
 
         {/* 搜索框 */}
         <div className="relative mb-3">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t("library.searchPlaceholder")}
             aria-label={t("library.searchPlaceholder")}
-            className="h-8 pl-8 pr-7 text-xs"
+            className="h-8.5 rounded-xl border-border/60 bg-muted/40 pl-8.5 pr-8 text-xs transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
           />
           {searchQuery ? (
             <Button
@@ -142,25 +142,23 @@ export function LibrarySidebar({
         </div>
 
         {/* 分类标签导航 */}
-        <div className="mb-3 flex items-end gap-3 border-b border-border/40">
+        <div className="mb-3.5 flex items-center rounded-xl bg-muted/60 p-1 border border-border/40 gap-1">
           {FILTERS.map((value) => {
             const selected = filter === value;
             return (
-              <Button
+              <button
                 key={value}
                 type="button"
-                size="xs"
-                variant="ghost"
                 aria-pressed={selected}
                 onClick={() => setFilter(value)}
-                className={`h-auto rounded-none border-b-2 px-1 pb-2 font-serif text-xs transition-colors ${
+                className={`flex-1 rounded-lg py-1 px-1.5 text-center text-xs font-medium transition-all ${
                   selected
-                    ? "border-primary font-medium text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "bg-background text-foreground shadow-2xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/40"
                 }`}
               >
                 {value === "all" ? t("library.filterAll") : t(`category.${value}`)} ({filterCount(value)})
-              </Button>
+              </button>
             );
           })}
         </div>
@@ -196,43 +194,37 @@ export function LibrarySidebar({
                 const active = selectedId === entry.id;
                 return (
                   <li key={entry.id}>
-                    <Button
+                    <button
                       type="button"
-                      size="lg"
-                      variant="ghost"
                       aria-current={active ? "page" : undefined}
                       onClick={() => void onSelect(entry.id)}
-                      className={`group relative h-auto w-full items-start justify-start rounded-xl p-3 text-left whitespace-normal transition-all duration-150 ${
+                      className={`group relative flex w-full items-start gap-2.5 rounded-xl p-3 text-left transition-all duration-150 border ${
                         active
-                          ? "bg-muted/80 text-foreground shadow-sm ring-1 ring-border/60"
-                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                          ? "bg-primary/[0.06] border-primary/25 text-foreground shadow-2xs ring-1 ring-primary/10"
+                          : "border-transparent text-muted-foreground hover:bg-muted/50 hover:border-border/40 hover:text-foreground"
                       }`}
                     >
-                      {active ? (
-                        <span
-                          className="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-primary"
-                          aria-hidden="true"
-                        />
-                      ) : null}
-                      <span className="flex w-full items-start gap-2.5">
-                        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-background/80 shadow-xs border border-border/40">
-                          {getKindIcon(entry.kind)}
+                      <span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border transition-colors ${
+                        active
+                          ? "bg-background border-primary/30 text-primary shadow-2xs"
+                          : "bg-background/80 border-border/40 shadow-2xs"
+                      }`}>
+                        {getKindIcon(entry.kind)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">
+                          {entry.title}
                         </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="line-clamp-2 font-serif text-[13px] font-medium leading-snug text-foreground">
-                            {entry.title}
-                          </span>
-                          <span className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-                            <CategoryBadge category={entry.category} t={t} />
-                            <span aria-hidden="true">·</span>
-                            <span className="font-mono uppercase">{entry.kind}</span>
-                            <span className="ml-auto font-mono tabular-nums text-muted-foreground/60">
-                              #{String(index + 1).padStart(2, "0")}
-                            </span>
+                        <span className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <CategoryBadge category={entry.category} t={t} />
+                          <span aria-hidden="true" className="opacity-30">·</span>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/70">{entry.kind}</span>
+                          <span className="ml-auto rounded-md bg-muted/60 px-1.5 py-0.2 font-mono text-[10px] tabular-nums text-muted-foreground/80">
+                            #{String(index + 1).padStart(2, "0")}
                           </span>
                         </span>
                       </span>
-                    </Button>
+                    </button>
                   </li>
                 );
               })}

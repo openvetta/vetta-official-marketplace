@@ -224,11 +224,11 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
             {reader.manifest ? (
               <aside
                 aria-label="Reading controls"
-                className={`pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center transition-opacity duration-200 ${
+                className={`pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center transition-all duration-200 ${
                   reader.chromeQuiet ? "opacity-25 hover:opacity-100" : "opacity-100"
                 }`}
               >
-                <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border/60 bg-background/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
+                <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3.5 py-1.5 text-xs shadow-xl backdrop-blur-xl ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
                   {/* 字数与耗时 */}
                   {wordCount > 0 ? (
                     <div className="flex items-center gap-2 border-r border-border/40 pr-2.5 text-[11px] text-muted-foreground">
@@ -269,7 +269,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
                       className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <Type className="h-3.5 w-3.5" />
-                      <span className="font-serif text-[10px] font-medium">
+                      <span className="text-[10px] font-medium">
                         {reader.locale === "zh"
                           ? fontSize === "small"
                             ? "小"
@@ -292,7 +292,7 @@ export function ReaderView({ runtime }: { runtime: ShimoRuntime }): ReactElement
                       className="h-auto gap-1 rounded-full px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <AlignJustify className="h-3.5 w-3.5" />
-                      <span className="font-serif text-[10px] font-medium">
+                      <span className="text-[10px] font-medium">
                         {reader.locale === "zh"
                           ? layoutWidth === "standard"
                             ? "标"
