@@ -65,6 +65,10 @@ vi.mock("@vetta-org/plugin-sdk", () => ({
 				"accounts.statActive": "当前生效账号",
 				"accounts.statService": "后台服务状态",
 				"accounts.statSaved": "多账号池",
+				"accounts.tagCurrent": "当前生效",
+				"accounts.tagRuntime": "运行环境",
+				"accounts.tagSecurity": "本地存储",
+				"accounts.serviceDesc": "小红书 MCP 插件守护进程正常",
 				"accounts.emptyTitle": "还没有连接账号",
 				"accounts.emptyDesc":
 					"连接小红书账号后，可以在会话中无缝使用小红书 MCP",
@@ -145,10 +149,32 @@ describe("xiaohongshu plugin account UI", () => {
 		).toBe(true);
 	});
 
+	it("renders accounts in a responsive grid rather than a single-column full-width strip", async () => {
+		render(<XhsAccountsView context={context} />);
+		await waitFor(() => expect(screen.getByTestId("accounts-grid")).toBeTruthy());
+		const grid = screen.getByTestId("accounts-grid");
+		expect(grid.className).toContain("grid-cols-1");
+		expect(grid.className).toContain("sm:grid-cols-2");
+		expect(grid.className).toContain("lg:grid-cols-3");
+		const card = grid.querySelector("article");
+		expect(card?.className).toContain("flex-col");
+		expect(card?.className).not.toContain("sm:flex-row");
+	});
+
 	it("keeps the account workspace scrollable when the account list overflows", async () => {
 		render(<XhsAccountsView context={context} />);
 		await waitFor(() => expect(screen.getByText("已保存的账号")).toBeTruthy());
 		expect(document.querySelector("main")?.className).toContain("overflow-y-auto");
+	});
+
+	it("renders Chinese tags in summary cards instead of raw English", async () => {
+		render(<XhsAccountsView context={context} />);
+		await waitFor(() => expect(screen.getByText("当前生效")).toBeTruthy());
+		expect(screen.getByText("运行环境")).toBeTruthy();
+		expect(screen.getByText("本地存储")).toBeTruthy();
+		expect(screen.queryByText("CURRENT")).toBeNull();
+		expect(screen.queryByText("RUNTIME")).toBeNull();
+		expect(screen.queryByText("SECURITY")).toBeNull();
 	});
 
 	it("keeps the three account summary cards in one row", async () => {

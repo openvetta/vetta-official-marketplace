@@ -27,7 +27,7 @@
   "setup.openAccounts": "管理多个账号",
   "setup.qrAlt": "小红书登录二维码",
   "accounts.title": "小红书账号",
-  "accounts.eyebrow": "ACCOUNT CENTER",
+  "accounts.eyebrow": "账号中心",
   "accounts.subtitle": "账号切换会安全重启服务，当前请求会在切换完成后恢复。",
   "accounts.active": "当前使用",
   "accounts.switch": "切换",
@@ -85,5 +85,9 @@
   "accounts.copyId": "复制用户 ID",
   "accounts.idCopied": "已复制",
   "accounts.emptyCta": "添加第一个小红书账号",
-  "accounts.emptyDesc": "连接小红书账号后，可以在会话中无缝使用小红书 MCP 搜索热门笔记、分析互动趋势与检索灵感。"
+  "accounts.emptyDesc": "连接小红书账号后，可以在会话中无缝使用小红书 MCP 搜索热门笔记、分析互动趋势与检索灵感。",
+  "accounts.tagCurrent": "当前生效",
+  "accounts.tagRuntime": "运行环境",
+  "accounts.tagSecurity": "本地存储",
+  "accounts.serviceDesc": "小红书 MCP 插件守护进程正常"
 }

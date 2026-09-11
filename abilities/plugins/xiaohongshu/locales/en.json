@@ -85,5 +85,9 @@
   "accounts.copyId": "Copy User ID",
   "accounts.idCopied": "Copied",
   "accounts.emptyCta": "Connect your first account",
-  "accounts.emptyDesc": "Once connected, the Agent can seamlessly use Xiaohongshu MCP tools to search popular notes, analyze engagement trends, and gather creative ideas."
+  "accounts.emptyDesc": "Once connected, the Agent can seamlessly use Xiaohongshu MCP tools to search popular notes, analyze engagement trends, and gather creative ideas.",
+  "accounts.tagCurrent": "CURRENT",
+  "accounts.tagRuntime": "RUNTIME",
+  "accounts.tagSecurity": "SECURITY",
+  "accounts.serviceDesc": "Xiaohongshu MCP plugin daemon is running normally"
 }

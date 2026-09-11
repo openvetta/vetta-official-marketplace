@@ -313,7 +313,7 @@ export function XhsAccountsView({
 					<div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/45 p-4 shadow-xs">
 						<div className="flex items-center justify-between text-xs text-muted-foreground">
 							<span>{t("accounts.statActive")}</span>
-							<span className="font-mono text-[10px]">CURRENT</span>
+							<span className="text-[10px] tracking-wide text-muted-foreground/80">{t("accounts.tagCurrent")}</span>
 						</div>
 						<div className="mt-3 flex items-center gap-3">
 							{active ? (
@@ -363,7 +363,7 @@ export function XhsAccountsView({
 					<div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/45 p-4 shadow-xs">
 						<div className="flex items-center justify-between text-xs text-muted-foreground">
 							<span>{t("accounts.statService")}</span>
-							<span className="font-mono text-[10px]">RUNTIME</span>
+							<span className="text-[10px] tracking-wide text-muted-foreground/80">{t("accounts.tagRuntime")}</span>
 						</div>
 						<div className="mt-3">
 							<div className="flex items-center gap-2">
@@ -373,7 +373,7 @@ export function XhsAccountsView({
 								</span>
 							</div>
 							<p className="m-0 mt-1 text-[11px] text-muted-foreground">
-								小红书 MCP 插件守护进程正常
+								{t("accounts.serviceDesc")}
 							</p>
 						</div>
 						<div className="mt-3 border-t border-border/40 pt-2">
@@ -400,7 +400,7 @@ export function XhsAccountsView({
 					<div className="flex flex-col justify-between rounded-xl border border-border/60 bg-card/45 p-4 shadow-xs">
 						<div className="flex items-center justify-between text-xs text-muted-foreground">
 							<span>{t("accounts.statSaved")}</span>
-							<span className="font-mono text-[10px]">SECURITY</span>
+							<span className="text-[10px] tracking-wide text-muted-foreground/80">{t("accounts.tagSecurity")}</span>
 						</div>
 						<div className="mt-3 flex items-baseline gap-1.5">
 							<span className="text-2xl font-bold tracking-tight text-foreground">
@@ -478,7 +478,7 @@ export function XhsAccountsView({
 							</div>
 						</div>
 					) : (
-						<div className="grid gap-2.5">
+						<div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3" data-testid="accounts-grid">
 							{accounts.map((account) => (
 								<AccountCardItem
 									key={account.id}
