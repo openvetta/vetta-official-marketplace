@@ -69,6 +69,8 @@ vi.mock("@vetta-org/plugin-sdk", () => ({
 				"accounts.tagRuntime": "运行环境",
 				"accounts.tagSecurity": "本地存储",
 				"accounts.serviceDesc": "小红书 MCP 插件守护进程正常",
+				"accounts.sessionActive": "会话正常",
+				"accounts.activeSession": "当前活动账号",
 				"accounts.emptyTitle": "还没有连接账号",
 				"accounts.emptyDesc":
 					"连接小红书账号后，可以在会话中无缝使用小红书 MCP",
@@ -159,6 +161,22 @@ describe("xiaohongshu plugin account UI", () => {
 		const card = grid.querySelector("article");
 		expect(card?.className).toContain("flex-col");
 		expect(card?.className).not.toContain("sm:flex-row");
+	});
+
+	it("adjusts section spacing and removes redundant connected status text", async () => {
+		render(<XhsAccountsView context={context} />);
+		await waitFor(() => expect(screen.getByTestId("accounts-grid")).toBeTruthy());
+
+		// Verify section spacing has ample breathing room
+		const section = document.querySelector("section");
+		expect(section?.className).toContain("mt-11");
+
+		// "已连接" only appears once (on the account card), not in the section header or duplicated in Card 1
+		const connectedElements = screen.getAllByText("已连接");
+		expect(connectedElements.length).toBe(1);
+
+		// Card 1 shows "会话正常"
+		expect(screen.getByText("会话正常")).toBeTruthy();
 	});
 
 	it("keeps the account workspace scrollable when the account list overflows", async () => {

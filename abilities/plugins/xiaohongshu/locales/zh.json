@@ -89,5 +89,7 @@
   "accounts.tagCurrent": "当前生效",
   "accounts.tagRuntime": "运行环境",
   "accounts.tagSecurity": "本地存储",
-  "accounts.serviceDesc": "小红书 MCP 插件守护进程正常"
+  "accounts.serviceDesc": "小红书 MCP 插件守护进程正常",
+  "accounts.sessionActive": "会话正常",
+  "accounts.activeSession": "当前活动账号"
 }

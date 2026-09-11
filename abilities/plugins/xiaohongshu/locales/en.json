@@ -89,5 +89,7 @@
   "accounts.tagCurrent": "CURRENT",
   "accounts.tagRuntime": "RUNTIME",
   "accounts.tagSecurity": "SECURITY",
-  "accounts.serviceDesc": "Xiaohongshu MCP plugin daemon is running normally"
+  "accounts.serviceDesc": "Xiaohongshu MCP plugin daemon is running normally",
+  "accounts.sessionActive": "Session valid",
+  "accounts.activeSession": "Active account"
 }

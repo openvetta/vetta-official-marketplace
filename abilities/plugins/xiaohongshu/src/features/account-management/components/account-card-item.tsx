@@ -129,9 +129,8 @@ export function AccountCardItem({
 							{t("accounts.switch")}
 						</button>
 					) : (
-						<span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-							<span className="size-1.5 rounded-full bg-emerald-400" />
-							{t("accounts.currentHint")}
+						<span className="text-[11px] text-muted-foreground/75">
+							{t("accounts.activeSession")}
 						</span>
 					)}
 				</div>
