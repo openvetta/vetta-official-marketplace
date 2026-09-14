@@ -1,7 +1,7 @@
 {
-  "__virtual_mf___mfe_internal__feishu__mf_owner__172233321312575__loadShare__react__loadShare__.js-BSvjLFmh.js": {
-    "file": "assets/_virtual_mf___mfe_internal__feishu__mf_owner__172233321312575__loadShare__react__loadShare__.js-BSvjLFmh.js",
-    "name": "_virtual_mf___mfe_internal__feishu__mf_owner__172233321312575__loadShare__react__loadShare__.js"
+  "__virtual_mf___mfe_internal__feishu__mf_owner__126172875944446__loadShare__react__loadShare__.js-8undRfJs.js": {
+    "file": "assets/_virtual_mf___mfe_internal__feishu__mf_owner__126172875944446__loadShare__react__loadShare__.js-8undRfJs.js",
+    "name": "_virtual_mf___mfe_internal__feishu__mf_owner__126172875944446__loadShare__react__loadShare__.js"
   },
   "_index-0xf-q3zY.js": {
     "file": "assets/index-0xf-q3zY.js",
@@ -12,14 +12,14 @@
     "name": "vite-preload-helper"
   },
   "src/index.tsx": {
-    "file": "assets/index-DaCTcx3Z.js",
+    "file": "assets/index-D94p9c83.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
       "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
-      "__virtual_mf___mfe_internal__feishu__mf_owner__172233321312575__loadShare__react__loadShare__.js-BSvjLFmh.js",
+      "__virtual_mf___mfe_internal__feishu__mf_owner__126172875944446__loadShare__react__loadShare__.js-8undRfJs.js",
       "_vite-preload-helper-BXl3LOEh.js",
       "_index-0xf-q3zY.js"
     ]
@@ -39,7 +39,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__feishu__remoteEntry_js": {
-    "file": "assets/virtualExposes-DxPPBeGp.js",
+    "file": "assets/virtualExposes-BpfF52fn.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__feishu__remoteEntry_js",
     "isDynamicEntry": true,
@@ -51,7 +51,7 @@
     ]
   },
   "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__feishu__mf_owner__1-D6YsUdMd.js",
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__feishu__mf_owner__1-CRPB3nPo.js",
     "name": "_virtual_mf-localSharedImportMap___mfe_internal__feishu__mf_owner__1",
     "src": "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1",
     "isDynamicEntry": true,
@@ -60,7 +60,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__feishu__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-C11balTR.js",
+    "file": "assets/hostInit-CTkGWd2x.js",
     "name": "hostInit",
     "src": "virtual:mf:__mfe_internal__feishu__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
@@ -68,6 +68,17 @@
     ],
     "dynamicImports": [
       "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__feishu__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1"
+    ]
+  },
+  "virtual:mf:__mfe_internal__feishu__mf_owner__1__P_S__pendingShares__P_S__.js": {
+    "file": "assets/pendingShares-BiUHa6BR.js",
+    "name": "pendingShares",
+    "src": "virtual:mf:__mfe_internal__feishu__mf_owner__1__P_S__pendingShares__P_S__.js",
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
       "virtual:mf-localSharedImportMap:__mfe_internal__feishu__mf_owner__1"
     ]
   }

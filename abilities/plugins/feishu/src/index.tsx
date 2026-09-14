@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   Spin
-} from "@vetta/ui";
+} from "@vetta-org/ui";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { readFeishuUserIdentity, type FeishuUserIdentity } from "./auth-status";
 
