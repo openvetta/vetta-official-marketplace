@@ -10,16 +10,17 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.12",
+    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",
-    "@testing-library/react": "^16.3.0",
-    "@vetta-org/plugin-sdk": "^0.3.1",
+    "@vetta-org/plugin-cli": "^0.1.4",
+    "@vetta-org/plugin-sdk": "^0.3.2",
     "@vetta-org/plugin-vite": "^0.2.0",
+    "jsdom": "^26.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "jsdom": "^26.1.0",
-    "vitest": "^3.2.6",
     "typescript": "^5.9.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vitest": "^3.2.6"
   }
 }
