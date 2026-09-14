@@ -30,3 +30,8 @@ jobs:
 
       - name: Test version guard and marketplace contracts
         run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/update-cli-proxy-api.test.mjs
+
+      # 通用身份对账：条目 version 必须等于包里的版本，plugin 的 entry/styles 必须真实存在。
+      # 现有 tests/marketplace.test.mjs 是逐个能力手写断言，新增能力不会自动被覆盖。
+      - name: Reconcile the marketplace index against the ability packages
+        run: npx --yes @vetta-org/plugin-cli@^0.1.1 sync --check

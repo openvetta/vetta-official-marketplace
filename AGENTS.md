@@ -36,6 +36,43 @@ Git hooks、自动提交检查和 CI 是上述主动检查的兜底，不能替�
 插件项目的目录、职责拆分、Tailwind 接入和用户流程测试遵循
 [`docs/plugin-project-structure.md`](docs/plugin-project-structure.md)。文件名必须表达职责；不要使用 `ui.ts`、`ui.tsx`、`utils.ts` 或 `primitives.tsx` 作为多个职责的容器。所有 UI `.tsx` 生产文件放在 feature/shared 的 `components/` 下（根目录 `index.tsx` 仅作为插件装配入口），基础组件原则上一个文件只放一个组件；`tools/` 仅用于 `ctx.agent.registerTool()` 的 Agent 工具。
 
+## 开发插件：工具与手册
+
+插件类能力的**开发单位是它自己的目录**（`abilities/plugins/<slug>/`），每个目录里有一份
+`AGENTS.md` 交代该怎么开工。开发时先 `cd` 进去——所有工具命令都作用于「最近的那个 `plugin.json`」。
+
+```bash
+cd abilities/plugins/<slug> && npm install
+npx vetta-plugin-cli docs          # 手册目录绝对路径 + 对应的 SDK 版本
+npm run build                      # dist/ 必须提交，桌面端不会替你构建
+```
+
+SDK 手册随 `@vetta-org/plugin-sdk` 装进各插件自己的 `node_modules`，因此读到的合同与该插件
+实际编译的版本一致。**不要硬编码 node_modules 路径**，用上面的命令解析。
+
+> 现状：四个插件钉的都是 `^0.1.1` / `^0.2.0`，**早于手册随包发布的 0.3.1**，所以 `docs` 现在
+> 都报找不到。升到 `^0.3.1` 才能用上，但那是跨 0.3.0 破坏性变更的升级，需要逐个插件评估。
+
+新建插件工程（仓库根没有 `node_modules`，用全名）：
+
+```bash
+npx @vetta-org/plugin-cli init --id <slug> --name "<Display Name>" abilities/plugins/<slug>
+```
+
+它只创建目录，**不动索引**——什么时候上架是人的决定，按上面「添加一个能力的流程」登记。
+
+### 索引对账
+
+条目的 `version` 必须与包里的版本完全相等，否则宿主同步直接失败。改完能力后在仓库根：
+
+```bash
+npx @vetta-org/plugin-cli sync          # 回填 version 并推进 marketplaceVersion
+npx @vetta-org/plugin-cli sync --check  # 只报不写、非零退出（CI 已接入）
+```
+
+`sync` **不写** `config.api_version` / `config.permissions`：宿主建目录时用 `plugin.json` 推导的值
+覆盖整个 `config`，索引里留副本只会变成会漂移的第二份真相。已有副本与包不符时它会提醒你删掉。
+
 ## 目录结构
 
 ```text
