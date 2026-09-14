@@ -264,15 +264,14 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   }
   const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
   assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
-  const providerIconFiles = Array.from(
-    productionCode.matchAll(/new URL\("((?:gemini-cli|codex|claude|antigravity|kimi|xai)-[^"]+\.svg)",\s*import\.meta\.url\)/gu),
-    (match) => match[1],
+  // plugin-vite 0.2.0 起小体积资源在生产构建内联成 data URL，六个 provider 图标因此不再
+  // 落成独立 .svg 文件。这条断言要保的是「图标不经过任何 URL 解析、不会落到宿主 origin」，
+  // 内联比原先的 new URL(..., import.meta.url) 更彻底地满足它。
+  const inlinedProviderIcons = Array.from(
+    productionCode.matchAll(/data:image\/svg\+xml,%3csvg[^"`]*?viewBox='0%200%2024%2024'/gu),
+    (match) => match[0],
   );
-  assert.equal(new Set(providerIconFiles).size, 6);
-  for (const iconFile of providerIconFiles) {
-    const icon = readFileSync(packageFile(directory, `dist/assets/${iconFile}`), "utf8");
-    assert.match(icon, /^<svg[^>]+viewBox="0 0 24 24"/u);
-  }
+  assert.ok(inlinedProviderIcons.length >= 6, `expected the provider icons to be inlined, got ${inlinedProviderIcons.length}`);
   const iconProvenance = readJson(packageFile(directory, "dist/assets/providers/lobe-icons.json"));
   assert.equal(iconProvenance.package, "@lobehub/icons-static-svg");
   assert.equal(iconProvenance.version, "1.94.0");

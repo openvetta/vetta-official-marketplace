@@ -1,6 +1,6 @@
 {
   "name": "@vetta-marketplace/xiaohongshu",
-  "version": "1.1.21",
+  "version": "1.1.22",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,8 +19,8 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",
-    "@vetta-org/plugin-sdk": "^0.2.0",
-    "@vetta-org/plugin-vite": "^0.0.5",
+    "@vetta-org/plugin-sdk": "^0.3.1",
+    "@vetta-org/plugin-vite": "^0.2.0",
     "jsdom": "^26.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
