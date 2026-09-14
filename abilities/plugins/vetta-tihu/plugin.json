@@ -1,0 +1,28 @@
+{
+  "id": "vetta-tihu",
+  "name": "%name%",
+  "version": "0.3.0",
+  "pluginApiVersion": "^2.0.0",
+  "entry": "dist/mf-manifest.json",
+  "moduleFederation": {
+    "remoteName": "vetta_tihu",
+    "expose": "./plugin"
+  },
+  "styles": [
+    "dist/style.css"
+  ],
+  "permissions": [
+    "ui.slot.activity-tab",
+    "agent.tools.register",
+    "agent.toolHandler.execute"
+  ],
+  "guidingWords": [
+    "%guidingWords.faster%",
+    "%guidingWords.jumpAndRing%",
+    "%guidingWords.rain%"
+  ],
+  "description": "%description%",
+  "author": "Vetta",
+  "icon": "solar:bicycling-bold",
+  "defaultLocale": "en"
+}

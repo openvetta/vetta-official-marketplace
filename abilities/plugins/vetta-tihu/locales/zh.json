@@ -1,0 +1,19 @@
+{
+  "name": "鹈鹕骑车",
+  "description": "活动面板里骑自行车的鹈鹕，只能通过和 AI 对话控制骑行速度、跳跃、按铃铛以及白天/黄昏/天黑/下雨场景。",
+  "tab.label": "鹈鹕骑车",
+  "tool.label": "鹈鹕骑车",
+  "guidingWords.faster": "让鹈鹕骑快一点",
+  "guidingWords.jumpAndRing": "让鹈鹕跳三下再按铃铛",
+  "guidingWords.rain": "把场景切换到下雨天",
+  "scene.day": "白天",
+  "scene.dusk": "黄昏",
+  "scene.night": "天黑",
+  "scene.rain": "下雨",
+  "panel.status": "速度 {{speed}}/{{max}} · {{scene}}",
+  "panel.hint": "这只鹈鹕只听 AI 的：在对话里说「骑快点」「跳三下」「按铃铛」「切到天黑」「下雨吧」试试。",
+  "panel.bellSound": "叮铃铃~",
+  "error.canvas": "鹈鹕骑车画布初始化失败",
+  "error.bell": "铃铛声音播放失败",
+  "error.openPanel": "无法打开鹈鹕骑车面板"
+}

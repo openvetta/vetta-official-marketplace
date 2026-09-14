@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.14-6",
+  "marketplaceVersion": "2026.09.14-7",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.50",
   "abilities": [
@@ -508,6 +508,44 @@
             }
           }
         ]
+      }
+    },
+    {
+      "type": "plugin",
+      "slug": "vetta-tihu",
+      "name": "Pelican Ride",
+      "description": "A bicycle-riding pelican mini game in the activity panel. Chat with the AI to change its speed, make it jump, ring the bell or switch between day, dusk, night and rain.",
+      "version": "0.3.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Entertainment",
+      "categoryI18n": {
+        "zh": "娱乐",
+        "en": "Entertainment"
+      },
+      "tags": [
+        "game",
+        "pelican",
+        "animation",
+        "fun"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "鹈鹕骑车",
+            "description": "活动面板里骑自行车的鹈鹕小游戏。和 AI 对话即可调速度、让它跳跃、按铃铛，或切换白天、黄昏、天黑与下雨场景。",
+            "tags": [
+              "游戏",
+              "鹈鹕",
+              "动画",
+              "趣味"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/vetta-tihu"
       }
     }
   ]

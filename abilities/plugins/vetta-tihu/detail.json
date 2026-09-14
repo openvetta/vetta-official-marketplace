@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Mini game",
+      "title": "A pelican on a bike that only listens to your chat",
+      "description": "Pelican Ride adds an animated scene to the activity panel. There are no buttons: ask the AI to change its speed, make it jump, ring the bell or switch the weather.",
+      "badges": ["Chat controlled", "Day, dusk, night and rain", "No setup"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "Make the pelican ride faster, jump three times, then switch to night.",
+        "assistant_reply": "Speed is up from 3 to 5, the pelican is jumping three times, and the scene is fading into night. The Pelican Ride panel is open on the right."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:bicycling-bold",
+          "title": "Speed levels",
+          "description": "Ride from a full stop to level 10. Ask for faster or slower and the AI adjusts from the current level."
+        },
+        {
+          "icon": "solar:bell-bold",
+          "title": "Jumps and bell",
+          "description": "Combine up to five jumps and five bell rings in a single request."
+        },
+        {
+          "icon": "solar:cloud-rain-bold",
+          "title": "Four scenes",
+          "description": "Switch between day, dusk, night and rain with a smooth transition."
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "Install and enable Pelican Ride", "description": "No account, key or extra software is required." },
+        { "title": "Start a conversation", "description": "Try a suggestion from the new conversation page, or describe what the pelican should do." },
+        { "title": "Watch the activity panel", "description": "Pelican Ride opens automatically when the AI changes the scene." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "The game state lives only in the running app and resets when Vetta restarts or the plugin reloads. The bell plays a short sound."
+    }
+  ]
+}

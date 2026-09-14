@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "小游戏",
+      "title": "一只只听你对话指挥的骑车鹈鹕",
+      "description": "鹈鹕骑车会在活动面板里放一段动画场景。它没有任何按钮：让 AI 帮你调速度、让它跳起来、按铃铛，或者切换天气。",
+      "badges": ["对话控制", "白天 / 黄昏 / 天黑 / 下雨", "无需配置"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "让鹈鹕骑快一点，跳三下，然后切到天黑。",
+        "assistant_reply": "速度已从 3 档提到 5 档，鹈鹕正在连跳三下，场景也在慢慢变成夜晚。右侧已打开鹈鹕骑车面板。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:bicycling-bold",
+          "title": "速度档位",
+          "description": "从停下到 10 档随意调节。说「快一点」「慢一点」时，AI 会在当前档位上加减。"
+        },
+        {
+          "icon": "solar:bell-bold",
+          "title": "跳跃与铃铛",
+          "description": "一句话里最多可以组合五次跳跃和五次按铃。"
+        },
+        {
+          "icon": "solar:cloud-rain-bold",
+          "title": "四种场景",
+          "description": "在白天、黄昏、天黑和下雨之间平滑切换。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "安装并启用鹈鹕骑车", "description": "不需要账号、密钥或额外软件。" },
+        { "title": "开始一段对话", "description": "点新会话页上的引导词，或直接描述想让鹈鹕做什么。" },
+        { "title": "看活动面板", "description": "AI 改变场景时会自动打开鹈鹕骑车面板。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "游戏状态只保存在运行中的应用里，重启 Vetta 或重新加载插件后会恢复初始状态。按铃铛时会播放一小段声音。"
+    }
+  ]
+}

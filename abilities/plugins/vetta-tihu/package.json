@@ -1,0 +1,30 @@
+{
+  "name": "@vetta-marketplace/vetta-tihu",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "vetta-plugin dev",
+    "pack": "vetta-plugin pack",
+    "validate": "vetta-plugin validate",
+    "docs": "vetta-plugin-cli docs",
+    "install:vetta": "vite build && vetta-plugin pack && vetta-plugin-cli add ."
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.12",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
+    "@vetta-org/plugin-cli": "^0.1.0",
+    "@vetta-org/plugin-sdk": "^0.3.1",
+    "@vetta-org/plugin-vite": "^0.2.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "tailwindcss": "^4.1.12",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.6"
+  }
+}

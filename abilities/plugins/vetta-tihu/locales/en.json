@@ -1,0 +1,19 @@
+{
+  "name": "Pelican Ride",
+  "description": "A bicycle-riding pelican in the activity panel. Control its speed, jumps, bell and day, dusk, night or rain scenes only by chatting with the AI.",
+  "tab.label": "Pelican Ride",
+  "tool.label": "Pelican Ride",
+  "guidingWords.faster": "Make the pelican ride faster",
+  "guidingWords.jumpAndRing": "Make the pelican jump three times, then ring the bell",
+  "guidingWords.rain": "Switch the scene to a rainy day",
+  "scene.day": "Day",
+  "scene.dusk": "Dusk",
+  "scene.night": "Night",
+  "scene.rain": "Rain",
+  "panel.status": "Speed {{speed}}/{{max}} · {{scene}}",
+  "panel.hint": "This pelican only listens to the AI. Try saying \"ride faster\", \"jump three times\", \"ring the bell\", \"make it night\" or \"let it rain\" in the conversation.",
+  "panel.bellSound": "Ring ring!",
+  "error.canvas": "The Pelican Ride canvas could not be initialized",
+  "error.bell": "The bell sound could not be played",
+  "error.openPanel": "The Pelican Ride panel could not be opened"
+}
