@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle
-} from "@vetta/ui";
+} from "@vetta-org/ui";
 import { Quote, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from "react";
 import type { Locale, PendingNote } from "../types";

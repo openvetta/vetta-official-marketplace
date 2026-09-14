@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   Spin
-} from "@vetta/ui";
+} from "@vetta-org/ui";
 import { Quote, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactElement } from "react";
 import type { Locale, PendingQuestion } from "../types";

@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button } from "@vetta/ui";
+import { Button } from "@vetta-org/ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactElement } from "react";
 

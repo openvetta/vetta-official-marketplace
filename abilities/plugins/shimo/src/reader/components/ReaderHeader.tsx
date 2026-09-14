@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button, Popover, PopoverTrigger } from "@vetta/ui";
+import { Button, Popover, PopoverTrigger } from "@vetta-org/ui";
 import { Bookmark, ChevronLeft, Library, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingCategory } from "../../domain";

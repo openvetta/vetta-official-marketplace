@@ -4,7 +4,7 @@ import {
   PROVIDER_ICONS,
   type ModelSelectorOptionView,
   type ModelSelectorProviderGroup
-} from "@vetta/theme-ui/plugin-ui";
+} from "@vetta-org/theme-ui/plugin-ui";
 import { useMemo, type ReactElement } from "react";
 import type { ReadingAiModel } from "../../ai";
 

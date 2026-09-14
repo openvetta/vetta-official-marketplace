@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button, Spin } from "@vetta/ui";
+import { Button, Spin } from "@vetta-org/ui";
 import { useCallback, useEffect, useState, type ReactElement, type RefObject } from "react";
 import type { MaterialManifest, OcrPageCache, ReadingPreferences, ReadingRecord } from "../../domain";
 import type { ShimoRuntime } from "../../runtime";

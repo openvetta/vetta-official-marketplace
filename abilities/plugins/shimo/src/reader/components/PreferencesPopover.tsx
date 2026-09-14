@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
   Switch
-} from "@vetta/ui";
+} from "@vetta-org/ui";
 import { Ellipsis, X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingAiModel } from "../../ai";

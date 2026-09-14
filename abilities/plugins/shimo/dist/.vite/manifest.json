@@ -1,92 +1,95 @@
 {
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf": {
-    "file": "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf"
-  },
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff": {
-    "file": "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff"
-  },
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf": {
-    "file": "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf"
-  },
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf": {
-    "file": "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf"
-  },
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf": {
-    "file": "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf"
-  },
-  "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf": {
-    "file": "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
-    "src": "../../../../vetta/.tmp-shimo-markdown-deps/node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf"
-  },
-  "_ReaderView-BJqLnS7-.js": {
-    "file": "assets/ReaderView-BJqLnS7-.js",
+  "_ReaderView-BYuuC4E3.js": {
+    "file": "assets/ReaderView-BYuuC4E3.js",
     "name": "ReaderView",
     "isDynamicEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
       "src/index.tsx",
-      "_RecordList-CEvLreQn.js",
-      "_preload-helper-BXl3LOEh.js"
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+      "_RecordList-BPBJXlAK.js",
+      "_vite-preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
       "src/reader/components/PdfReader.tsx",
       "src/reader/components/MarkdownReader.tsx"
     ]
   },
-  "_RecordList-CEvLreQn.js": {
-    "file": "assets/RecordList-CEvLreQn.js",
+  "_RecordList-BPBJXlAK.js": {
+    "file": "assets/RecordList-BPBJXlAK.js",
     "name": "RecordList",
     "imports": [
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js"
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js"
     ]
   },
-  "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js": {
-    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
-    "name": "_virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js"
+  "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js": {
+    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+    "name": "_virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js"
   },
-  "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js": {
-    "file": "assets/_virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-    "name": "_virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js"
+  "_index-0xf-q3zY.js": {
+    "file": "assets/index-0xf-q3zY.js",
+    "name": "index"
   },
-  "_preload-helper-BXl3LOEh.js": {
-    "file": "assets/preload-helper-BXl3LOEh.js",
-    "name": "preload-helper"
+  "_vite-preload-helper-BXl3LOEh.js": {
+    "file": "assets/vite-preload-helper-BXl3LOEh.js",
+    "name": "vite-preload-helper"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf": {
+    "file": "assets/KaTeX_AMS-Regular-DRggAlZN.ttf",
+    "src": "node_modules/katex/dist/fonts/KaTeX_AMS-Regular.ttf"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff": {
+    "file": "assets/KaTeX_AMS-Regular-DMm9YOAa.woff",
+    "src": "node_modules/katex/dist/fonts/KaTeX_AMS-Regular.woff"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf": {
+    "file": "assets/KaTeX_Main-Bold-waoOVXN0.ttf",
+    "src": "node_modules/katex/dist/fonts/KaTeX_Main-Bold.ttf"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf": {
+    "file": "assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf",
+    "src": "node_modules/katex/dist/fonts/KaTeX_Main-BoldItalic.ttf"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf": {
+    "file": "assets/KaTeX_Main-Italic-3WenGoN9.ttf",
+    "src": "node_modules/katex/dist/fonts/KaTeX_Main-Italic.ttf"
+  },
+  "node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf": {
+    "file": "assets/KaTeX_Main-Regular-ypZvNtVU.ttf",
+    "src": "node_modules/katex/dist/fonts/KaTeX_Main-Regular.ttf"
   },
   "node_modules/pdfjs-dist/build/pdf.worker.min.mjs": {
     "file": "assets/pdf.worker.min-iDqQPrd3.mjs",
     "src": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
   "src/activity-panel.tsx": {
-    "file": "assets/activity-panel-BPXVLvFV.js",
+    "file": "assets/activity-panel-11f3JFX1.js",
     "name": "activity-panel",
     "src": "src/activity-panel.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
-      "_RecordList-CEvLreQn.js"
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+      "_RecordList-BPBJXlAK.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js"
     ]
   },
   "src/index.tsx": {
-    "file": "assets/index-CDz3QfFF.js",
+    "file": "assets/index-CGOZV2JN.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_preload-helper-BXl3LOEh.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js"
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+      "_index-0xf-q3zY.js"
     ],
     "dynamicImports": [
-      "_ReaderView-BJqLnS7-.js",
+      "_ReaderView-BYuuC4E3.js",
       "src/activity-panel.tsx"
     ],
     "css": [
@@ -102,27 +105,31 @@
     ]
   },
   "src/reader/components/MarkdownReader.tsx": {
-    "file": "assets/MarkdownReader-QahbrObD.js",
+    "file": "assets/MarkdownReader-CnhSX_mS.js",
     "name": "MarkdownReader",
     "src": "src/reader/components/MarkdownReader.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js",
-      "_ReaderView-BJqLnS7-.js",
-      "_RecordList-CEvLreQn.js",
       "src/index.tsx",
-      "_preload-helper-BXl3LOEh.js"
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+      "_ReaderView-BYuuC4E3.js",
+      "_RecordList-BPBJXlAK.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js"
     ]
   },
   "src/reader/components/PdfReader.tsx": {
-    "file": "assets/PdfReader-Bs4fy9yN.js",
+    "file": "assets/PdfReader-BwWABrPW.js",
     "name": "PdfReader",
     "src": "src/reader/components/PdfReader.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react_mf_1_jsx_mf_2_runtime__loadShare__.js-uPawUfkr.js",
-      "__virtual_mf___mfe_internal__shimo_reader__loadShare__react__loadShare__.js-MyGk2dVm.js"
+      "src/index.tsx",
+      "__virtual_mf___mfe_internal__shimo_reader__mf_owner__196234672899322__loadShare__react__loadShare__.js-DHcyoKzh.js",
+      "_vite-preload-helper-BXl3LOEh.js",
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "_index-0xf-q3zY.js"
     ],
     "assets": [
       "assets/pdf.worker.min-iDqQPrd3.mjs"
@@ -134,44 +141,56 @@
     "src": "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_preload-helper-BXl3LOEh.js"
+      "_vite-preload-helper-BXl3LOEh.js",
+      "_index-0xf-q3zY.js"
     ],
     "dynamicImports": [
-      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader",
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
       "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js"
     ]
   },
   "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js": {
-    "file": "assets/virtualExposes-C7TaACPI.js",
+    "file": "assets/virtualExposes-BMsbpyjn.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__shimo_reader__remoteEntry_js",
     "isDynamicEntry": true,
     "imports": [
-      "_preload-helper-BXl3LOEh.js"
+      "_vite-preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
       "src/index.tsx"
     ]
   },
-  "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader-DV2pGGCV.js",
-    "name": "_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader",
-    "src": "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader",
+  "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1": {
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1-Cf3ZPDCt.js",
+    "name": "_virtual_mf-localSharedImportMap___mfe_internal__shimo_reader__mf_owner__1",
+    "src": "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1",
     "isDynamicEntry": true,
     "imports": [
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
-      "_preload-helper-BXl3LOEh.js"
+      "_index-0xf-q3zY.js"
     ]
   },
-  "virtual:mf:__mfe_internal__shimo_reader__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-C0TgB5d0.js",
+  "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
+    "file": "assets/hostInit-fxervgbH.js",
     "name": "hostInit",
-    "src": "virtual:mf:__mfe_internal__shimo_reader__H_A_I__hostAutoInit__H_A_I__.js",
+    "src": "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [
-      "_preload-helper-BXl3LOEh.js"
+      "_vite-preload-helper-BXl3LOEh.js"
     ],
     "dynamicImports": [
-      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js"
+      "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__shimo_reader__remoteEntry_js",
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1"
+    ]
+  },
+  "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__P_S__pendingShares__P_S__.js": {
+    "file": "assets/pendingShares-CMTGkCCt.js",
+    "name": "pendingShares",
+    "src": "virtual:mf:__mfe_internal__shimo_reader__mf_owner__1__P_S__pendingShares__P_S__.js",
+    "imports": [
+      "_vite-preload-helper-BXl3LOEh.js"
+    ],
+    "dynamicImports": [
+      "virtual:mf-localSharedImportMap:__mfe_internal__shimo_reader__mf_owner__1"
     ]
   }
 }

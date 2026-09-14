@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import type { ModelSelectorViewProps } from "@vetta/theme-ui/plugin-ui";
+import type { ModelSelectorViewProps } from "@vetta-org/theme-ui/plugin-ui";
 import {
   act,
   type ButtonHTMLAttributes,
@@ -27,7 +27,7 @@ import { RecordsPanel } from "./RecordsPanel";
 import { SelectionToolbar } from "./SelectionToolbar";
 import { DocumentOutline, extractHeadings } from "./DocumentOutline";
 
-vi.mock("@vetta/ui", () => ({
+vi.mock("@vetta-org/ui", () => ({
   Button: ({ children, asChild: _asChild, size: _size, variant: _variant, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean; size?: string; variant?: string }) => <button {...props}>{children}</button>,
   Dialog: ({ children }: { children: ReactNode }) => <>{children}</>,
   DialogContent: ({ children, showCloseButton: _showCloseButton, ...props }: HTMLAttributes<HTMLDivElement> & { showCloseButton?: boolean }) => <div {...props}>{children}</div>,
@@ -59,7 +59,7 @@ vi.mock("@vetta/ui", () => ({
   )
 }));
 
-vi.mock("@vetta/theme-ui/plugin-ui", () => ({
+vi.mock("@vetta-org/theme-ui/plugin-ui", () => ({
   PROVIDER_ICONS: { gemini: "gemini-icon", openai: "openai-icon" },
   ModelSelectorView: ({ groups, onModelSelect, selectedModel }: ModelSelectorViewProps) => (
     <select

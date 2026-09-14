@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button, Input } from "@vetta/ui";
+import { Button, Input } from "@vetta-org/ui";
 import { Upload } from "lucide-react";
 import type { ReactElement } from "react";
 

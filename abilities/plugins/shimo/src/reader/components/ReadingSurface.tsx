@@ -1,4 +1,4 @@
-import { Spin } from "@vetta/ui";
+import { Spin } from "@vetta-org/ui";
 import { lazy, Suspense, type ReactElement } from "react";
 import type { ShimoRuntime } from "../../runtime";
 import type { ReaderController } from "../useReaderController";

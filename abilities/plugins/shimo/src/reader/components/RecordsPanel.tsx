@@ -1,5 +1,5 @@
 import type { PluginTranslate } from "@vetta-org/plugin-sdk";
-import { Button } from "@vetta/ui";
+import { Button } from "@vetta-org/ui";
 import { Sparkles, X } from "lucide-react";
 import type { ReactElement } from "react";
 import type { ReadingRecord } from "../../domain";
