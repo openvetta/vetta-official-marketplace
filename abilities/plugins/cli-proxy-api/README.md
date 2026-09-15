@@ -6,7 +6,9 @@ live in this package; the Desktop host only provides generic service and owned-m
 
 The first release supports OAuth for Gemini CLI, OpenAI Codex, Claude Code, Google Antigravity, Kimi and xAI. It
 discovers live routes from `/v1/models` and publishes Google, Anthropic, Responses and compatible Completions model
-providers in the plugin-owned namespace.
+providers in the plugin-owned namespace. Image-only models such as `gpt-image-2` are excluded from those text
+providers and exposed through the Vetta media provider, which calls CPA's `/v1/images/generations` and
+`/v1/images/edits` endpoints and stores returned images as Vetta-managed artifacts.
 
 Runtime updates are made by changing the fixed release URLs in `runtime-lock.json` and matching SHA-256 values in both
 the lock and `plugin.json`, rebuilding `dist/`,

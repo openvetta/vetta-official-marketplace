@@ -209,7 +209,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   const plugin = readJson(packageFile(directory, "plugin.json"));
 	assert.equal(plugin.pluginApiVersion, "^2.0.0");
-  assert.deepEqual(plugin.permissions.sort(), ["models.manage", "network.fetch", "shell.openExternal", "storage.read", "storage.write", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
+  assert.deepEqual(plugin.permissions.sort(), ["media.provider.register", "models.manage", "network.fetch", "shell.openExternal", "storage.read", "storage.write", "ui.slot.ability-detail", "ui.slot.workspace-view"]);
   assert.deepEqual(plugin.network.allowedHosts.sort(), ["github.com", "release-assets.githubusercontent.com"]);
 
   const services = plugin.providers?.services;

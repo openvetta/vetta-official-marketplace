@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createProxyClient, safeExternalUrl } from "../src/proxy-client";
+import { createProxyClient, isImageOnlyModelId, safeExternalUrl } from "../src/proxy-client";
 import { OAUTH_PROVIDERS, protocolGroupFor } from "../src/provider-contract";
 import { maintainModelConnection } from "../src/model-connection";
 import { groupModels } from "../src/model-reconciler";
@@ -36,6 +36,14 @@ describe("CLIProxyAPI contracts", () => {
       completions: expect.objectContaining({ api: "openai-completions" })
     }));
     expect(f.context.services.connection).toHaveBeenCalledWith("proxy", "api-key");
+  });
+  it("keeps image-only models out of the text model provider", () => {
+    const client = createProxyClient(fixture().context);
+    expect(isImageOnlyModelId("gpt-image-2")).toBe(true);
+    expect(client.readModels({ data: [
+      { id: "gpt-image-2", owned_by: "openai" },
+      { id: "gpt-5.5", owned_by: "openai" }
+    ] })).toEqual([{ id: "gpt-5.5", ownedBy: "openai" }]);
   });
   it("publishes the upstream context window instead of letting the host fall back to 128k", async () => {
     const f = fixture();

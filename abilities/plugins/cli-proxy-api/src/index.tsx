@@ -6,6 +6,7 @@ import { maintainModelConnection } from "./model-connection";
 import type { ManagedPluginContext } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";
 import { maintainServiceReadiness } from "./service-readiness";
+import { registerImageProvider } from "./media-provider";
 import "./style.css";
 
 export default definePlugin({
@@ -14,6 +15,7 @@ export default definePlugin({
     const readiness = maintainServiceReadiness(context);
     void ensureServiceStarted(context).catch(() => undefined);
     const connection = maintainModelConnection(context);
+    const imageProvider = registerImageProvider(context);
     const slot = context.ui.registerAbilityDetailSlot({
       id: "setup", abilityId: "cli-proxy-api",
       component: () => createElement(ProxySetupSlot, { context })
@@ -39,6 +41,7 @@ export default definePlugin({
     return async () => {
       view.dispose();
       slot.dispose();
+      imageProvider.dispose();
       await readiness.dispose();
       await connection.dispose();
     };

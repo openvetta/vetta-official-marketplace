@@ -17,6 +17,11 @@ export type JsonRecord = Record<string, unknown>;
 export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
 
+/** Image-only models must not be published as text/Responses models. */
+export function isImageOnlyModelId(id: string): boolean {
+  return /^gpt-image(?:-|$)/iu.test(id.trim());
+}
+
 /** A model together with the protocol group it is published under. */
 export type PublishedModel = ProxyModel & { group: ProtocolGroup };
 
@@ -260,7 +265,7 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
     for (const item of models) {
       const entry = record(item);
       const id = textField(entry, "id");
-      if (!entry || !id) continue;
+      if (!entry || !id || isImageOnlyModelId(id)) continue;
       const metadata = readModelMetadata(entry);
       const displayName = textField(entry, "display_name", "name");
       listing.push({ id, ...(displayName ? { displayName } : {}), ...metadata });
@@ -292,7 +297,7 @@ function readModels(value: unknown, catalog?: ModelCatalog): ProxyModel[] {
   for (const item of data) {
     const entry = record(item);
     const id = textField(entry, "id");
-    if (!id || seen.has(id)) continue;
+    if (!id || isImageOnlyModelId(id) || seen.has(id)) continue;
     seen.add(id);
     const ownedBy = textField(entry, "owned_by", "ownedBy") ?? "";
     models.push({ id, ownedBy, ...catalog?.lookup(id, ownedBy) });
@@ -506,7 +511,7 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
   for (const item of data) {
     const entry = record(item);
     const id = textField(entry, "id");
-    if (!id || seen.has(id)) continue;
+    if (!id || isImageOnlyModelId(id) || seen.has(id)) continue;
     seen.add(id);
     const displayName = textField(entry, "display_name", "name");
     const owner = textField(entry, "owned_by", "ownedBy") ?? account.provider;

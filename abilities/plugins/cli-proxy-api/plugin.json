@@ -2,7 +2,7 @@
   "id": "cli-proxy-api",
   "name": "%name%",
   "icon": "assets/nav-icon.png",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "styles": ["dist/style.css"],
@@ -17,6 +17,7 @@
     "storage.write",
     "shell.openExternal",
     "models.manage",
+    "media.provider.register",
     "network.fetch"
   ],
   "network": {
