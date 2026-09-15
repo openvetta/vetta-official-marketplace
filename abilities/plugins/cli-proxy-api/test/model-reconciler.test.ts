@@ -44,6 +44,19 @@ describe("model reconciliation", () => {
     expect(reconcileModels(sources({ accounts: disabled })).models.map((model) => model.id)).toEqual(["gpt-5.5"]);
   });
 
+  it("keeps the models of a credential that is only temporarily unavailable", () => {
+    // Antigravity access tokens last an hour, so a launch after a break starts
+    // with the credential refreshing or cooling down (`unavailable` with a
+    // `next_retry_after`). That is the gateway saying "not right now", not
+    // "gone": dropping here swapped the user's selected Gemini model for another.
+    const cooling = [account("antigravity", { active: false, disabled: false }), account("codex")];
+    const { models, complete } = reconcileModels(sources({ accounts: cooling }));
+    expect(models.map((model) => `${model.group}/${model.id}`)).toEqual([
+      "anthropic/claude-sonnet-4-6", "google/gemini-3-flash", "responses/gpt-5.5"
+    ]);
+    expect(complete).toBe(false);
+  });
+
   it("drops a model its own channel answered without", () => {
     const catalog = catalogOf({ antigravity: [{ id: "gemini-3-flash" }], codex: CODEX_CHANNEL });
     expect(reconcileModels(sources({ catalog })).models.map((model) => model.id)).toEqual(["gemini-3-flash", "gpt-5.5"]);

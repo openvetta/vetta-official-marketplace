@@ -36,8 +36,9 @@ export type ReconcileSources = {
  *   - the credentials that do back it answered with their catalog this pass,
  *     and that catalog no longer lists the model.
  *
- * Anything else — a channel that answered nothing, a credential whose provider
- * this plugin does not recognise — is missing evidence, not evidence of
+ * Anything else — a channel that answered nothing, a credential the gateway has
+ * parked as unavailable, a credential whose provider this plugin does not
+ * recognise — is missing evidence, not evidence of
  * absence, and the previously published model stays.
  *
  * `complete` reports whether this pass saw everything the enabled credentials
@@ -61,7 +62,10 @@ export function reconcileModels({ published, routable, accounts, catalog }: Reco
   const backed = new Set<ProtocolGroup>();
   const unproven = new Set<ProtocolGroup>();
   for (const account of accounts) {
-    if (!account.active) continue;
+    // Only a switched-off credential is evidence. `unavailable` is the gateway
+    // parking one until `next_retry_after` (an expired token being refreshed, a
+    // cooldown) — it comes back on its own, so its models must stay published.
+    if (account.disabled) continue;
     const channel = modelChannelFor(account.provider);
     const listing = channel === undefined ? undefined : catalog.channels.get(channel);
     if (listing === undefined || listing.length === 0) {
