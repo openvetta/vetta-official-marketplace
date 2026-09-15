@@ -283,6 +283,13 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(template, /host: "127\.0\.0\.1"/u);
   assert.match(template, /allow-remote: false/u);
   assert.match(template, /disable-control-panel: true/u);
+  assert.match(template, /passthrough-headers: true/u);
+  assert.match(template, /request-retry: 0/u);
+  assert.match(template, /max-retry-credentials: 1/u);
+  assert.match(template, /max-retry-interval: 0/u);
+  assert.match(template, /quota-exceeded:[\s\S]*switch-project: false/u);
+  assert.match(template, /quota-exceeded:[\s\S]*switch-preview-model: false/u);
+  assert.match(template, /quota-exceeded:[\s\S]*antigravity-credits: false/u);
   assert.match(template, /plugins:[\s\S]*gemini-cli:/u);
   assert.doesNotMatch(template, /0\.0\.0\.0/u);
 

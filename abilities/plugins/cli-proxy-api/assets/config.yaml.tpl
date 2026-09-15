@@ -13,6 +13,18 @@ api-keys:
 debug: false
 logging-to-file: false
 usage-statistics-enabled: false
+passthrough-headers: true
+
+# Vetta owns retry classification, backoff, cancellation, and user-visible errors.
+# Each incoming request therefore reaches at most one CPA credential attempt.
+request-retry: 0
+max-retry-credentials: 1
+max-retry-interval: 0
+
+quota-exceeded:
+  switch-project: false
+  switch-preview-model: false
+  antigravity-credits: false
 
 plugins:
   enabled: true
