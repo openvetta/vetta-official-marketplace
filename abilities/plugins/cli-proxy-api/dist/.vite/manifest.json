@@ -1,7 +1,7 @@
 {
-  "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20473615748636__loadShare__react__loadShare__.js-DWZ99Z1G.js": {
-    "file": "assets/_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20473615748636__loadShare__react__loadShare__.js-DWZ99Z1G.js",
-    "name": "_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20473615748636__loadShare__react__loadShare__.js"
+  "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20254766504500__loadShare__react__loadShare__.js-D7wHVk76.js": {
+    "file": "assets/_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20254766504500__loadShare__react__loadShare__.js-D7wHVk76.js",
+    "name": "_virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20254766504500__loadShare__react__loadShare__.js"
   },
   "_index-0xf-q3zY.js": {
     "file": "assets/index-0xf-q3zY.js",
@@ -12,14 +12,14 @@
     "name": "vite-preload-helper"
   },
   "src/index.tsx": {
-    "file": "assets/index-CGfs8NWa.js",
+    "file": "assets/index-BiHl1x2m.js",
     "name": "index",
     "src": "src/index.tsx",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
       "virtual:mf-REMOTE_ENTRY_ID:__mfe_internal__cli_proxy_api__remoteEntry_js",
-      "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20473615748636__loadShare__react__loadShare__.js-DWZ99Z1G.js",
+      "__virtual_mf___mfe_internal__cli_proxy_api__mf_owner__20254766504500__loadShare__react__loadShare__.js-D7wHVk76.js",
       "_vite-preload-helper-PPVm8Dsz.js",
       "_index-0xf-q3zY.js"
     ],
@@ -42,7 +42,7 @@
     ]
   },
   "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js": {
-    "file": "assets/virtualExposes-Dl8ZqYut.js",
+    "file": "assets/virtualExposes-Bthr0Pee.js",
     "name": "virtualExposes",
     "src": "virtual:mf-exposes:__mfe_internal__cli_proxy_api__remoteEntry_js",
     "isDynamicEntry": true,
@@ -54,7 +54,7 @@
     ]
   },
   "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1": {
-    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__cli_proxy_api__mf_owner__1-DickUNlM.js",
+    "file": "assets/_virtual_mf-localSharedImportMap___mfe_internal__cli_proxy_api__mf_owner__1-DETyvYeI.js",
     "name": "_virtual_mf-localSharedImportMap___mfe_internal__cli_proxy_api__mf_owner__1",
     "src": "virtual:mf-localSharedImportMap:__mfe_internal__cli_proxy_api__mf_owner__1",
     "isDynamicEntry": true,
@@ -63,7 +63,7 @@
     ]
   },
   "virtual:mf:__mfe_internal__cli_proxy_api__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js": {
-    "file": "assets/hostInit-CeZFIzMq.js",
+    "file": "assets/hostInit-DIr9ksnk.js",
     "name": "hostInit",
     "src": "virtual:mf:__mfe_internal__cli_proxy_api__mf_owner__1__H_A_I__hostAutoInit__H_A_I__.js",
     "imports": [

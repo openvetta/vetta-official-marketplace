@@ -36,3 +36,7 @@ plugins:
 
 routing:
   strategy: "round-robin"
+  # Keep every model call from one Vetta conversation on the same healthy account.
+  # CPA automatically fails over and rebinds when that credential is unavailable.
+  session-affinity: true
+  session-affinity-ttl: "1h"

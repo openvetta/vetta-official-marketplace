@@ -10,6 +10,11 @@ providers in the plugin-owned namespace. Image-only models such as `gpt-image-2`
 providers and exposed through the Vetta media provider, which calls CPA's `/v1/images/generations` and
 `/v1/images/edits` endpoints and stores returned images as Vetta-managed artifacts.
 
+Routing uses CPA session affinity. Main responses, automatic titles and other model calls that carry the same Vetta
+conversation identity stay on one healthy account; CPA may rebind the conversation only when that credential becomes
+unavailable. This prevents a single user turn from appearing as simultaneous traffic on multiple accounts of the same
+provider while preserving normal account-level failover.
+
 Runtime updates are made by changing the fixed release URLs in `runtime-lock.json` and matching SHA-256 values in both
 the lock and `plugin.json`, rebuilding `dist/`,
 and releasing a new plugin patch after the six-platform combined canary passes. Runtime installation never follows
@@ -22,7 +27,7 @@ See [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) and the separate
 twelve platform assets, advances the package and marketplace versions, and updates the lock. The scheduled workflow
 then rebuilds `dist/`, runs marketplace tests and opens a review PR; it never merges automatically.
 
-Development checks: run `bun install`, `bun run check`, `bun run test`, and `bun run build` in this directory.
+Development checks: run `npm install`, `npm run check`, `npm run test`, and `npm run build` in this directory.
 The configuration template, bilingual details and provenance files are emitted into `dist/assets`, so the ZIP
 contains every manifest resource even with the currently published packaging tool. The tool still warns about its
 default `@vetta/ui` shared entry; this plugin does not import that unavailable package and uses its own small controls.

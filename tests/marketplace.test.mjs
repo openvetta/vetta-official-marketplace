@@ -287,6 +287,8 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(template, /request-retry: 0/u);
   assert.match(template, /max-retry-credentials: 1/u);
   assert.match(template, /max-retry-interval: 0/u);
+  assert.match(template, /routing:[\s\S]*session-affinity: true/u);
+  assert.match(template, /routing:[\s\S]*session-affinity-ttl: "1h"/u);
   assert.match(template, /quota-exceeded:[\s\S]*switch-project: false/u);
   assert.match(template, /quota-exceeded:[\s\S]*switch-preview-model: false/u);
   assert.match(template, /quota-exceeded:[\s\S]*antigravity-credits: false/u);
