@@ -95,6 +95,8 @@
   "console.pickerSubtitle": "按路由它们的凭据分组。应用后会覆盖 Vetta 当前持有的模型。",
   "console.selectedCount": "已选 {{picked}} / {{total}}",
   "console.groupCount": "{{picked}}/{{total}}",
+  "console.poolAccounts": "{{total}} 个账号中 {{enabled}} 个已启用",
+  "console.modelCoverage": "{{available}}/{{total}} 个账号可用",
   "console.selectAll": "全选",
   "console.clearAll": "全不选",
   "console.selectGroup": "全选 {{account}} 的模型",

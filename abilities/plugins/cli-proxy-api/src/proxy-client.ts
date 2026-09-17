@@ -17,9 +17,9 @@ export type JsonRecord = Record<string, unknown>;
 export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
 
-/** Image-only models must not be published as text/Responses models. */
+/** Fallback for older catalogs that omit structured output modalities. */
 export function isImageOnlyModelId(id: string): boolean {
-  return /^gpt-image(?:-|$)/iu.test(id.trim());
+  return /(^gpt-image(?:-|$)|imagen|(?:^|[-_.])image(?:[-_.]|$))/iu.test(id.trim());
 }
 
 /** A model together with the protocol group it is published under. */
@@ -28,12 +28,22 @@ export type PublishedModel = ProxyModel & { group: ProtocolGroup };
 /** One model as the upstream channel catalog describes it, before any account is connected. */
 export type ChannelModel = { id: string; displayName?: string } & ModelMetadata;
 
+export type ImageModelRoute = {
+  id: string;
+  displayName?: string;
+  sourceId: string;
+  sourceDisplayName: string;
+  adapter: "openai-images" | "google-generate-content";
+  modes: readonly ("text-to-image" | "image-to-image")[];
+};
+
 /** Resolves a model advertised by `/v1/models` to its upstream capabilities. */
 export type ModelCatalog = {
   lookup(id: string, ownedBy: string): ModelMetadata | undefined;
   size: number;
   /** Everything each channel says it can route, keyed by channel name. */
   channels: ReadonlyMap<string, ChannelModel[]>;
+  imageModels?: readonly ImageModelRoute[];
 };
 
 /** A ten-minute request bucket as reported by `/v0/management/auth-files`. */
@@ -200,6 +210,32 @@ function readModelMetadata(entry: JsonRecord): ModelMetadata {
   };
 }
 
+function stringList(entry: JsonRecord, ...keys: string[]): string[] {
+  for (const key of keys) {
+    const value = entry[key];
+    if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  }
+  return [];
+}
+
+function imageRoute(channel: string, entry: JsonRecord, id: string): ImageModelRoute | undefined {
+  const outputs = stringList(entry, "supported_output_modalities", "supportedOutputModalities", "output_modalities")
+    .map((value) => value.toLowerCase());
+  if (!outputs.includes("image") && !isImageOnlyModelId(id)) return undefined;
+  const inputs = stringList(entry, "supported_input_modalities", "supportedInputModalities", "input_modalities")
+    .map((value) => value.toLowerCase());
+  const google = ["antigravity", "aistudio", "gemini", "vertex"].includes(channel);
+  const displayName = textField(entry, "display_name", "name");
+  return {
+    id,
+    ...(displayName ? { displayName } : {}),
+    sourceId: channel,
+    sourceDisplayName: google ? (channel === "antigravity" ? "Google Antigravity" : "Google") : channel === "codex" ? "OpenAI Codex" : channel,
+    adapter: google ? "google-generate-content" : "openai-images",
+    modes: inputs.length === 0 || inputs.includes("image") ? ["text-to-image", "image-to-image"] : ["text-to-image"]
+  };
+}
+
 export function safeExternalUrl(value: string): string {
   const url = new URL(value);
   if (url.protocol !== "https:" || url.username || url.password) throw new Error("Invalid authentication URL");
@@ -260,12 +296,18 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
   const qualified = new Map<string, ModelMetadata>();
   const byId = new Map<string, ModelMetadata>();
   const channels = new Map<string, ChannelModel[]>();
+  const imageModels = new Map<string, ImageModelRoute>();
   for (const { channel, models } of perChannel) {
     const listing: ChannelModel[] = [];
     for (const item of models) {
       const entry = record(item);
       const id = textField(entry, "id");
-      if (!entry || !id || isImageOnlyModelId(id)) continue;
+      if (!entry || !id) continue;
+      const image = imageRoute(channel, entry, id);
+      if (image) {
+        imageModels.set(`${image.sourceId}/${image.id}`, image);
+        continue;
+      }
       const metadata = readModelMetadata(entry);
       const displayName = textField(entry, "display_name", "name");
       listing.push({ id, ...(displayName ? { displayName } : {}), ...metadata });
@@ -285,6 +327,7 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
   return {
     size: byId.size,
     channels,
+    imageModels: [...imageModels.values()].sort((left, right) => left.sourceId.localeCompare(right.sourceId) || left.id.localeCompare(right.id)),
     lookup: (id, ownedBy) => qualified.get(`${ownedBy.trim().toLowerCase()}/${id}`) ?? byId.get(id)
   };
 }
@@ -297,9 +340,11 @@ function readModels(value: unknown, catalog?: ModelCatalog): ProxyModel[] {
   for (const item of data) {
     const entry = record(item);
     const id = textField(entry, "id");
-    if (!id || isImageOnlyModelId(id) || seen.has(id)) continue;
-    seen.add(id);
     const ownedBy = textField(entry, "owned_by", "ownedBy") ?? "";
+    if (!id || isImageOnlyModelId(id)) continue;
+    const routeKey = `${protocolGroupFor(ownedBy, id)}/${id}`;
+    if (seen.has(routeKey)) continue;
+    seen.add(routeKey);
     models.push({ id, ownedBy, ...catalog?.lookup(id, ownedBy) });
   }
   return models.sort((left, right) => left.id.localeCompare(right.id));
@@ -366,7 +411,7 @@ const PROVIDER_CONFIG: Record<ProtocolGroup, { basePath: string; api: string; ti
 async function publishModels(
   models: readonly PublishedModel[],
   isCurrent = () => true,
-  selection: ModelSelection = null
+  selection: ModelSelection = { mode: "all" }
 ): Promise<void> {
   const connection = await pluginContext.services.connection(SERVICE_ID, API_CREDENTIAL);
   if (!connection.credential) throw new Error("The managed API credential is unavailable");
@@ -396,6 +441,25 @@ async function publishModels(
     })
   );
   await pluginContext.models.replaceOwnedProviders(providers);
+}
+
+async function loadImageModels(): Promise<ImageModelRoute[]> {
+  const [payload, catalog] = await Promise.all([
+    serviceRequest<unknown>("/v1/models", { credentialId: API_CREDENTIAL }),
+    fetchModelCatalog()
+  ]);
+  const data = record(payload)?.data;
+  if (!Array.isArray(data)) throw new Error("Invalid model catalog response");
+  const routable = new Map<string, string>();
+  for (const item of data) {
+    const entry = record(item);
+    const id = textField(entry, "id");
+    if (!id) continue;
+    routable.set(`${(textField(entry, "owned_by", "ownedBy") ?? "").toLowerCase()}/${id}`, id);
+    routable.set(`/${id}`, id);
+  }
+  return (catalog.imageModels ?? []).filter((model) =>
+    routable.has(`${model.sourceId.toLowerCase()}/${model.id}`) || routable.has(`/${model.id}`));
 }
 
 /**
@@ -523,6 +587,6 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
 return {
   serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels,
   readPublishedModels, loadPublishableModels,
-  setAccountDisabled, resetAccountQuota, fetchAccountModels
+  setAccountDisabled, resetAccountQuota, fetchAccountModels, loadImageModels
 };
 }
