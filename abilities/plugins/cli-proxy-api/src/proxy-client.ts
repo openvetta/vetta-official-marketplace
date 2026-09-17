@@ -14,7 +14,7 @@ export type JsonRecord = Record<string, unknown>;
  * and guessing is worse than the host default: a wrong context window makes the
  * agent compact too early or overflow the upstream request.
  */
-export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean };
+export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean; reasoningLevels?: string[] };
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
 
 /** Fallback for older catalogs that omit structured output modalities. */
@@ -199,14 +199,22 @@ export function positiveInteger(value: unknown): number | undefined {
 }
 
 /** Reads one `/v0/management/model-definitions` entry. Absent figures stay absent. */
-function readModelMetadata(entry: JsonRecord): ModelMetadata {
+function readModelMetadata(entry: JsonRecord, channel: string): ModelMetadata {
   const contextWindow = positiveInteger(entry.context_length);
   const maxTokens = positiveInteger(entry.max_completion_tokens);
+  const thinking = record(entry.thinking);
+  // Native Google/Anthropic adapters still map Vetta levels to token budgets.
+  // Only effort-based protocols can consume the gateway's raw level vocabulary.
+  const group = protocolGroupFor(textField(entry, "owned_by", "ownedBy") ?? channel, textField(entry, "id") ?? "");
+  const levels = group === "responses" || group === "completions" ? thinking?.levels : undefined;
+  const reasoningLevels = Array.isArray(levels) && levels.length > 0 && levels.every((level) => typeof level === "string" && level.trim().length > 0)
+    ? [...new Set(levels.map((level: string) => level.trim()))] : undefined;
   return {
     ...(contextWindow === undefined ? {} : { contextWindow }),
     ...(maxTokens === undefined ? {} : { maxTokens }),
     // A `thinking` block is upstream's own statement that the model reasons.
-    ...(record(entry.thinking) ? { reasoning: true } : {})
+    ...(thinking ? { reasoning: true } : {}),
+    ...(reasoningLevels ? { reasoningLevels } : {})
   };
 }
 
@@ -308,7 +316,7 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
         imageModels.set(`${image.sourceId}/${image.id}`, image);
         continue;
       }
-      const metadata = readModelMetadata(entry);
+      const metadata = readModelMetadata(entry, channel);
       const displayName = textField(entry, "display_name", "name");
       listing.push({ id, ...(displayName ? { displayName } : {}), ...metadata });
       // A listing entry without figures still belongs on the page, but it must not
@@ -435,7 +443,8 @@ async function publishModels(
           api: config.api,
           ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
           ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
-          ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
+          ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning }),
+          ...(model.reasoningLevels === undefined ? {} : { reasoningLevels: [...model.reasoningLevels] })
         }))
       }]];
     })
@@ -497,7 +506,8 @@ async function readPublishedModels(): Promise<PublishedModel[] | undefined> {
         group,
         ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
         ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
-        ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning })
+        ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning }),
+          ...(model.reasoningLevels === undefined ? {} : { reasoningLevels: [...model.reasoningLevels] })
       });
     }
   }
