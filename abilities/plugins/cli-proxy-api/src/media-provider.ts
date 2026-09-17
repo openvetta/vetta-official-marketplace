@@ -6,7 +6,7 @@ import type {
   PluginMediaProviderRegistration,
   PluginMediaProviderSubmitRequest,
 } from "@vetta-org/plugin-sdk";
-import type { ManagedPluginContext } from "./runtime-contract";
+import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
 import { API_CREDENTIAL, createProxyClient, record, textField, type ImageModelRoute } from "./proxy-client";
 
 export const IMAGE_PROVIDER_ID = "images";
@@ -279,6 +279,7 @@ export function registerImageProvider(context: ManagedPluginContext): Disposable
   let lastError = "";
   let generation = 0;
   let disposed = false;
+  let phase: ServiceStatus["phase"] | undefined;
 
   const refresh = (): void => {
     const current = ++generation;
@@ -306,8 +307,11 @@ export function registerImageProvider(context: ManagedPluginContext): Disposable
     });
   };
   refreshCurrentProvider = refresh;
-  const status = context.services.onStatusChange((next) => {
-    if (next.serviceId !== "proxy") return;
+  const updateStatus = (next: ServiceStatus): void => {
+    if (disposed || next.serviceId !== "proxy" || next.phase === phase) return;
+    phase = next.phase;
+    // The host also broadcasts ready-phase status for every child log chunk.
+    // Refreshing on those events makes catalog requests feed back into logs.
     if (next.phase === "ready") refresh();
     else if (["disabled", "stopped", "failed"].includes(next.phase)) {
       generation += 1;
@@ -315,8 +319,11 @@ export function registerImageProvider(context: ManagedPluginContext): Disposable
       provider = undefined;
       signature = "";
     }
+  };
+  const status = context.services.onStatusChange(updateStatus);
+  void context.services.getStatus("proxy").then((current) => {
+    if (phase === undefined) updateStatus(current);
   });
-  void context.services.getStatus("proxy").then((current) => { if (current.phase === "ready") refresh(); });
 
   return {
     dispose() {

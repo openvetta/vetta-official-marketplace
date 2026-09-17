@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createImageProviderRegistration } from "../src/media-provider";
-import type { ManagedPluginContext } from "../src/runtime-contract";
+import { createImageProviderRegistration, registerImageProvider } from "../src/media-provider";
+import type { ManagedPluginContext, ServiceStatus } from "../src/runtime-contract";
 
 function fixture(responseBody: unknown) {
   const request = vi.fn(async () => ({ ok: true, status: 200, statusText: "OK", body: responseBody }));
@@ -32,6 +32,43 @@ function fixture(responseBody: unknown) {
 }
 
 describe("CLIProxyAPI image provider", () => {
+  it("refreshes the catalog on ready transitions, not on child log output", async () => {
+    const ready: ServiceStatus = { serviceId: "proxy", phase: "ready", version: "test", installed: true, recentOutput: "" };
+    const listeners = new Set<(status: ServiceStatus) => void>();
+    const request = vi.fn(async (_serviceId: string, input: { path: string }) => ({
+      ok: true, status: 200, statusText: "OK",
+      body: input.path === "/v1/models" ? { data: [] } : { models: [] },
+    }));
+    const context = {
+      services: {
+        getStatus: vi.fn(async () => ready),
+        request,
+        onStatusChange: (listener: (status: ServiceStatus) => void) => {
+          listeners.add(listener);
+          return { dispose: () => { listeners.delete(listener); } };
+        },
+      },
+      media: { registerProvider: vi.fn() },
+      ui: { notify: vi.fn() },
+    } as unknown as ManagedPluginContext;
+    const emit = (status: ServiceStatus) => { for (const listener of listeners) listener(status); };
+    const modelReads = () => request.mock.calls.filter(([, input]) => input.path === "/v1/models").length;
+    const provider = registerImageProvider(context);
+    try {
+      await vi.waitFor(() => expect(modelReads()).toBe(1));
+      emit({ ...ready, recentOutput: "request log 1" });
+      emit({ ...ready, recentOutput: "request log 2" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(modelReads()).toBe(1);
+
+      emit({ ...ready, phase: "stopped" });
+      emit(ready);
+      await vi.waitFor(() => expect(modelReads()).toBe(2));
+    } finally {
+      provider.dispose();
+    }
+  });
+
   it("uses the Images generations endpoint and stores base64 output", async () => {
     const f = fixture({ data: [{ b64_json: "aW1hZ2U=" }] });
     const job = await f.registration.submit({ operation: "generate", kind: "image", mode: "text-to-image", modelId: "codex/gpt-image-2", prompt: "a red fox" }, { invocationId: "text", readInput: vi.fn(), uploadInput: vi.fn() });
