@@ -32,13 +32,13 @@
         },
         {
           "icon": "solar:server-minimalistic-bold",
-          "title": "One model list per supplier",
-          "description": "Accounts from the same supplier form one routing pool. Each model and protocol route appears once, while every enabled account remains available for balancing and failover."
+          "title": "Protocol-aware Vetta models",
+          "description": "Discovered routes are grouped into Google Generative AI, Anthropic Messages, OpenAI Responses and compatible Chat Completions providers. Unknown ownership falls back conservatively to Chat Completions."
         },
         {
           "icon": "solar:gallery-add-bold",
-          "title": "OpenAI and Google image models",
-          "description": "Image-capable OpenAI, Google and Antigravity routes appear as individual image models. Requests use the matching Images or generateContent adapter for text-to-image and supported image-to-image work."
+          "title": "Codex image generation",
+          "description": "Image-only models such as gpt-image-2 use CPA's OpenAI Images API for text-to-image and image-to-image requests, instead of being sent to a text endpoint."
         },
         {
           "icon": "solar:chart-square-bold",
@@ -60,7 +60,7 @@
         },
         {
           "title": "Sync models",
-          "description": "Fetch the live /v1/models catalog, choose routes by supplier, and publish text protocol groups into the plugin-owned Vetta namespace. Image-capable routes appear in Vetta's image model settings."
+          "description": "Fetch the live /v1/models catalog and publish each text protocol group into the plugin-owned Vetta model namespace. Image-only models stay available to the image provider."
         },
         {
           "title": "Run it from the CPA setup page",

@@ -8,9 +8,8 @@ import { ProviderIcon } from "./provider-icon";
 import { ActionIcon, Button, Checkbox, ProviderTag, Spin, Toggle } from "./ui-kit";
 import { Dialog } from "./dialog";
 import { providerForAccount, useProxyConsole } from "./use-proxy-console";
-import { migrateLegacySelection, readModelSelection, writeModelSelection, type ModelRouteKey, type ModelSelection } from "./model-selection";
+import { readModelSelection, writeModelSelection } from "./model-selection";
 import { SERVICE_ID, createProxyClient, type AccountQuota, type ChannelModel, type ProxyAccount, type QuotaWindow, type UsageBucket } from "./proxy-client";
-import { buildProviderPools, type AccountModelState, type ProviderPool } from "./provider-pools";
 
 export const WORKSPACE_VIEW_ID = "console";
 
@@ -575,64 +574,58 @@ function ConnectDialog({ onClose, onPick, disabled }: {
 }
 
 /** What one credential answered when asked for its models. */
-export type ModelGroupState = AccountModelState;
+export type ModelGroupState = { models: ChannelModel[]; error?: string };
 
-/** One supplier pool's effective routes, as tick boxes. */
-function ModelGroup({ pool, settling, selected, onToggle, onGroup }: {
-  pool: ProviderPool;
+/** One credential's models, as tick boxes. */
+function ModelGroup({ account, provider, state, settling, selected, onToggle, onGroup }: {
+  account: ProxyAccount;
+  provider: OAuthProviderId | undefined;
+  state: ModelGroupState;
   settling: boolean;
-  selected: ReadonlySet<ModelRouteKey>;
-  onToggle: (id: ModelRouteKey) => void;
-  onGroup: (ids: ModelRouteKey[], next: boolean) => void;
+  selected: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  onGroup: (ids: string[], next: boolean) => void;
 }): ReactElement {
   const { t } = useTranslation();
-  const models = pool.models;
-  const ids = models.map((model) => model.routeKey);
+  const models = state.models;
+  const ids = models.map((model) => model.id);
   const picked = ids.filter((id) => selected.has(id)).length;
   const all = picked === ids.length && ids.length > 0;
 
   return (
-    <section
-      className="rounded-xl border border-border/50 bg-card/25"
-      aria-label={pool.accounts.length === 1 ? pool.accounts[0]?.displayName : pool.id}
-    >
+    <section className="rounded-xl border border-border/50 bg-card/25" aria-label={account.displayName}>
       <header className="flex flex-wrap items-center gap-2 border-b border-border/40 px-3 py-2">
         <Checkbox
           checked={all}
           disabled={ids.length === 0}
-          label={t(all ? "console.clearGroup" : "console.selectGroup", { account: pool.id })}
+          label={t(all ? "console.clearGroup" : "console.selectGroup", { account: account.displayName })}
           onChange={() => onGroup(ids, !all)}
         />
-        <ProviderTag>{pool.provider ? t(`provider.short.${pool.provider}`) : pool.id}</ProviderTag>
-        <span className="min-w-0 truncate text-xs text-foreground">
-          {t("console.poolAccounts", { enabled: pool.enabledAccountCount, total: pool.accounts.length })}
-        </span>
+        <ProviderTag>{provider ? t(`provider.short.${provider}`) : account.provider}</ProviderTag>
+        <span className="min-w-0 truncate text-xs text-foreground" title={account.displayName}>{account.displayName}</span>
         <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">
           {t("console.groupCount", { picked, total: ids.length })}
         </span>
       </header>
-      {pool.errors.length > 0 && models.length === 0 ? (
+      {state.error ? (
         <p className="px-3 py-2.5 text-[11px] text-destructive" role="alert">
-          {t("console.groupFailed", { details: pool.errors[0] })}
+          {t("console.groupFailed", { details: state.error })}
         </p>
       ) : models.length === 0 ? (
         <p className="px-3 py-2.5 text-[11px] text-muted-foreground">
-          {settling && pool.enabledAccountCount > 0 ? <><Spin /> {t("console.groupSettling")}</> : t("console.groupEmpty")}
+          {settling && account.active ? <><Spin /> {t("console.groupSettling")}</> : t("console.groupEmpty")}
         </p>
       ) : (
       <div className="grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2 xl:grid-cols-3">
         {models.map((model) => {
           const context = formatTokens(model.contextWindow);
           return (
-            <label key={model.routeKey} className="flex min-w-0 cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40">
-              <Checkbox checked={selected.has(model.routeKey)} label={model.id} onChange={() => onToggle(model.routeKey)} />
+            <label key={model.id} className="flex min-w-0 cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40">
+              <Checkbox checked={selected.has(model.id)} label={model.id} onChange={() => onToggle(model.id)} />
               <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground" title={model.displayName ?? model.id}>
                 {model.id}
               </span>
               {model.reasoning ? <span className="shrink-0 rounded bg-primary/10 px-1 text-[10px] text-primary">{t("console.reasoning")}</span> : null}
-              <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                {t("console.modelCoverage", { available: model.enabledAccountCount, total: pool.enabledAccountCount })}
-              </span>
               {context ? <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">{context}</span> : null}
             </label>
           );
@@ -646,8 +639,9 @@ function ModelGroup({ pool, settling, selected, onToggle, onGroup }: {
 /**
  * Chooses what the gateway publishes into Vetta.
  *
- * Grouped by supplier because credentials are a routing pool. Account cards
- * remain the health surface; this picker controls each effective route once.
+ * Grouped by credential because that is how the models are actually reached — a
+ * model is only routable while the account behind it is connected and healthy,
+ * so a flat list would hide the thing that decides whether it works.
  *
  * Applying replaces the published set outright rather than merging: the ticked
  * boxes are what the picker will contain, which is the only rule that stays
@@ -660,29 +654,28 @@ function ModelPicker({
   accountModels: ReadonlyMap<string, ModelGroupState>;
   loading: boolean;
   settling: boolean;
-  selected: ReadonlySet<ModelRouteKey>;
-  setSelected: (next: ReadonlySet<ModelRouteKey>, allMode: boolean) => void;
+  selected: ReadonlySet<string>;
+  setSelected: (next: ReadonlySet<string>) => void;
   onApply: () => void;
   applying: boolean;
 }): ReactElement {
   const { t } = useTranslation();
-  const pools = useMemo(() => buildProviderPools(accounts, accountModels), [accountModels, accounts]);
   const everyId = useMemo(() => {
-    const ids = new Set<ModelRouteKey>();
-    for (const pool of pools) for (const model of pool.models) ids.add(model.routeKey);
+    const ids = new Set<string>();
+    for (const group of accountModels.values()) for (const model of group.models) ids.add(model.id);
     return ids;
-  }, [pools]);
+  }, [accountModels]);
   const pickedCount = [...everyId].filter((id) => selected.has(id)).length;
 
-  const toggle = (id: ModelRouteKey): void => {
+  const toggle = (id: string): void => {
     const next = new Set(selected);
     if (next.has(id)) next.delete(id); else next.add(id);
-    setSelected(next, false);
+    setSelected(next);
   };
-  const setGroup = (ids: ModelRouteKey[], on: boolean): void => {
+  const setGroup = (ids: string[], on: boolean): void => {
     const next = new Set(selected);
     for (const id of ids) if (on) next.add(id); else next.delete(id);
-    setSelected(next, false);
+    setSelected(next);
   };
 
   return (
@@ -696,8 +689,8 @@ function ModelPicker({
           <span className="text-[11px] tabular-nums text-muted-foreground">
             {t("console.selectedCount", { picked: pickedCount, total: everyId.size })}
           </span>
-          <Button disabled={everyId.size === 0} onClick={() => setSelected(new Set(everyId), true)}>{t("console.selectAll")}</Button>
-          <Button disabled={pickedCount === 0} onClick={() => setSelected(new Set(), false)}>{t("console.clearAll")}</Button>
+          <Button disabled={everyId.size === 0} onClick={() => setSelected(new Set(everyId))}>{t("console.selectAll")}</Button>
+          <Button disabled={pickedCount === 0} onClick={() => setSelected(new Set())}>{t("console.clearAll")}</Button>
           <Button
             className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
             disabled={applying || loading || everyId.size === 0}
@@ -714,10 +707,12 @@ function ModelPicker({
         </p>
       ) : (
         <div className="space-y-3">
-          {pools.map((pool) => (
+          {accounts.map((account) => (
             <ModelGroup
-              key={pool.id}
-              pool={pool}
+              key={account.key}
+              account={account}
+              provider={providerForAccount(account)}
+              state={accountModels.get(account.key) ?? { models: [] }}
               settling={settling}
               selected={selected}
               onToggle={toggle}
@@ -768,8 +763,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
   const [retryTick, setRetryTick] = useState(0);
   const retries = useRef(0);
   const settling = useRef(false);
-  const [selected, setSelected] = useState<ReadonlySet<ModelRouteKey>>(new Set());
-  const allMode = useRef(true);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   /**
    * Whether the stored selection has been read.
    *
@@ -786,13 +780,13 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
    * those ids look brand new when they came back — silently re-ticking models
    * the user had deselected.
    */
-  const knownIds = useRef<ReadonlySet<ModelRouteKey>>(new Set());
+  const knownIds = useRef<ReadonlySet<string>>(new Set());
   /** Latest ids the gateway offered, whether or not the selection has been read. */
-  const offered = useRef<ReadonlySet<ModelRouteKey>>(new Set());
+  const offered = useRef<ReadonlySet<string>>(new Set());
   /** Set once the user changes the selection, so a late read cannot overwrite it. */
   const touched = useRef(false);
   /** The stored choice, once read; `null` means "everything". */
-  const storedSelection = useRef<ModelSelection>({ mode: "all" });
+  const storedSelection = useRef<ReadonlySet<string> | null>(null);
   const seeded = useRef(false);
   const [confirmApply, setConfirmApply] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -819,7 +813,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     })).then((entries) => {
       if (!active) return;
       const next = new Map(entries);
-      const every = new Set(buildProviderPools(accounts, next).flatMap((pool) => pool.models.map((model) => model.routeKey)));
+      const every = new Set([...next.values()].flatMap((group) => group.models).map((model) => model.id));
       setGroupedModels(next);
       setPickerLoading(false);
       // Seeding is the other effect's job. Two loads could otherwise both find
@@ -837,16 +831,11 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
       }
       offered.current = every;
       if (seedSelection()) return;
-      // "All" follows future routes. A custom selection intentionally does not.
+      // A model the picker has never shown is ticked by default: authorizing an
+      // account is a request for its models, not an invitation to hunt for them.
       const fresh = [...every].filter((id) => !knownIds.current.has(id));
       knownIds.current = new Set([...knownIds.current, ...every]);
-      const stored = storedSelection.current;
-      const legacyFresh = stored.mode === "legacy"
-        ? fresh.filter((route) => stored.ids.has(route.slice(route.indexOf("/") + 1)))
-        : [];
-      if (fresh.length > 0 && (allMode.current || legacyFresh.length > 0)) {
-        setSelected((current) => new Set([...current, ...(allMode.current ? fresh : legacyFresh)]));
-      }
+      if (fresh.length > 0) setSelected((current) => new Set([...current, ...fresh]));
     });
     return () => { active = false; };
   }, [accountKeys, catalog, client, retryTick]);
@@ -864,13 +853,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     if (seeded.current || !selectionLoaded.current || offered.current.size === 0) return false;
     seeded.current = true;
     knownIds.current = offered.current;
-    if (!touched.current) {
-      const stored = storedSelection.current;
-      allMode.current = stored.mode === "all";
-      if (stored.mode === "all") setSelected(offered.current);
-      else if (stored.mode === "custom") setSelected(new Set([...offered.current].filter((route) => stored.routes.has(route))));
-      else setSelected(new Set([...offered.current].filter((route) => stored.ids.has(route.slice(route.indexOf("/") + 1)))));
-    }
+    if (!touched.current) setSelected(storedSelection.current ?? offered.current);
     return true;
   }, []);
 
@@ -889,18 +872,11 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
     setConfirmApply(false);
     setApplying(true);
     try {
+      await writeModelSelection(pluginContext, selected);
       // Re-read rather than publish the page's routable list: applying a choice
       // must not double as a deletion of models the gateway has not registered.
-      const { models: publishable, complete } = await client.loadPublishableModels();
-      const desired: ModelSelection = !touched.current && storedSelection.current.mode === "legacy"
-        ? storedSelection.current
-        : allMode.current
-          ? { mode: "all" }
-          : { mode: "custom", routes: selected };
-      const selection = complete ? migrateLegacySelection(desired, publishable) : desired;
-      // Do not overwrite v1 until every credential catalog is conclusive.
-      if (selection.mode !== "legacy") await writeModelSelection(pluginContext, selection);
-      await client.publishModels(publishable, () => true, selection);
+      const { models: publishable } = await client.loadPublishableModels();
+      await client.publishModels(publishable, () => true, selected);
       // The picker is only true once the window re-reads the model settings.
       window.location.reload();
     } catch (reason) {
@@ -1051,11 +1027,7 @@ export function ProxyWorkspaceView({ context: pluginContext }: { context: Manage
             loading={pickerLoading}
             settling={settling.current}
             selected={selected}
-            setSelected={(next, nextAllMode) => {
-              touched.current = true;
-              allMode.current = nextAllMode;
-              setSelected(next);
-            }}
+            setSelected={(next) => { touched.current = true; setSelected(next); }}
             applying={applying}
             onApply={() => setConfirmApply(true)}
           />

@@ -40,7 +40,7 @@ export interface ManagedServiceApi {
 
 /** One published provider as the host hands it back. */
 export interface OwnedProviderSnapshot {
-  models?: Array<{ id: string; contextWindow?: number; maxTokens?: number; reasoning?: boolean; reasoningLevels?: string[] }>;
+  models?: Array<{ id: string; contextWindow?: number; maxTokens?: number; reasoning?: boolean }>;
 }
 
 /**

@@ -6,11 +6,9 @@ live in this package; the Desktop host only provides generic service and owned-m
 
 The first release supports OAuth for Gemini CLI, OpenAI Codex, Claude Code, Google Antigravity, Kimi and xAI. It
 discovers live routes from `/v1/models` and publishes Google, Anthropic, Responses and compatible Completions model
-providers in the plugin-owned namespace. The model picker groups credentials into supplier pools: one route is shown
-once per supplier and protocol, while every matching enabled credential remains available to CPA for balancing and
-failover. Image-capable routes are excluded from text providers and exposed as individual Vetta image models. OpenAI
-routes use CPA's Images API; Google and Antigravity routes use `generateContent`, including scoped input reads for
-image-to-image requests. Returned images are stored as Vetta-managed artifacts.
+providers in the plugin-owned namespace. Image-only models such as `gpt-image-2` are excluded from those text
+providers and exposed through the Vetta media provider, which calls CPA's `/v1/images/generations` and
+`/v1/images/edits` endpoints and stores returned images as Vetta-managed artifacts.
 
 Routing uses CPA session affinity. Main responses, automatic titles and other model calls that carry the same Vetta
 conversation identity stay on one healthy account; CPA may rebind the conversation only when that credential becomes
@@ -34,14 +32,11 @@ The configuration template, bilingual details and provenance files are emitted i
 contains every manifest resource even with the currently published packaging tool. The tool still warns about its
 default `@vetta/ui` shared entry; this plugin does not import that unavailable package and uses its own small controls.
 
-The host must implement Plugin API 2.4.0. The plugin declares semantic readiness: Desktop keeps the service in
+The host must implement Plugin API 2.0.0. The plugin declares semantic readiness: Desktop keeps the service in
 `starting` after the loopback health endpoint responds, and the plugin reports `ready` only after account-backed model
 routes are usable. This prevents an early empty `/v1/models` response from erasing the persisted provider snapshot.
-The selected published routes are stored in the plugin-private `published-models.json` file through the generic
-storage file API. Route keys include their protocol so identical bare model IDs never select each other. The explicit
-`all` mode follows models discovered later, while a custom selection remains stable. Version 1 selections migrate only
-after a complete catalog read; missing storage and an empty selection remain distinct states, and updates replace the
-file atomically.
+The selected published model IDs are stored in the plugin-private `published-models.json` file through the generic
+storage file API. Missing storage and an empty selection are distinct states; updates replace the file atomically.
 Until the matching SDK is published,
 `src/runtime-contract.ts` describes only the consumed public API, without importing Desktop source files.
 Runtime configuration is regenerated in the cache directory for each launch; credentials and OAuth accounts remain

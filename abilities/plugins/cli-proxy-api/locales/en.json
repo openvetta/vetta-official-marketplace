@@ -95,8 +95,6 @@
   "console.pickerSubtitle": "Grouped by the credential that routes them. Applying replaces what Vetta currently holds.",
   "console.selectedCount": "{{picked}} of {{total}} selected",
   "console.groupCount": "{{picked}}/{{total}}",
-  "console.poolAccounts": "{{enabled}} of {{total}} accounts enabled",
-  "console.modelCoverage": "{{available}}/{{total}} accounts",
   "console.selectAll": "Select all",
   "console.clearAll": "Clear all",
   "console.selectGroup": "Select every model from {{account}}",

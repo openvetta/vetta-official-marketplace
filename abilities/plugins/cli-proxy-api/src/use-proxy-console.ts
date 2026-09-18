@@ -6,7 +6,6 @@ import { toDisplayErrorMessage } from "./error-message";
 import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type AccountQuota, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
 import { hasQuotaProbe, probeAccountQuota } from "./quota-probe";
 import { readModelSelection } from "./model-selection";
-import { refreshImageProviderCatalog } from "./media-provider";
 
 export type OAuthFlow = {
   provider: OAuthProviderId;
@@ -93,17 +92,12 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       setCatalog(nextCatalog);
       setAccounts(nextAccounts);
       accountsRef.current = nextAccounts;
-      refreshImageProviderCatalog();
       if (publish) {
         // Publishing outside the picker must still honour what the user chose:
         // the post-authorization poll runs this several times, and publishing
         // everything there would quietly undo their curation.
         const selection = await readModelSelection(pluginContext);
-        const published = selection.mode === "all"
-          ? publishable
-          : selection.mode === "legacy"
-            ? publishable.filter((model) => selection.ids.has(model.id))
-            : publishable.filter((model) => selection.routes.has(`${model.group}/${model.id}`));
+        const published = selection ? publishable.filter((model) => selection.has(model.id)) : publishable;
         probedRef.current.clear();
         await publishModels(publishable, () => true, selection);
         setSyncedModelCount(published.length);
