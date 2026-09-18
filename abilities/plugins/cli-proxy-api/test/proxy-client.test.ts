@@ -8,6 +8,42 @@ import { fixture } from "./helpers";
 afterEach(() => vi.useRealTimers());
 
 describe("CLIProxyAPI contracts", () => {
+  it.each([{ levels: [] }, { levels: ["high", 42] }, { levels: [" "] }])("omits malformed or empty upstream level lists: $levels", async ({ levels }) => {
+    const f = fixture();
+    f.handle.mockImplementation(async ({ path }) => {
+      if (path === "/v1/models") return { data: [{ id: "gpt-6", owned_by: "openai" }] };
+      if (path.endsWith("/codex")) return { models: [{ id: "gpt-6", owned_by: "openai", thinking: { levels } }] };
+      return { models: [] };
+    });
+    const { models } = await createProxyClient(f.context).loadModels();
+    expect(models).toEqual([{ id: "gpt-6", ownedBy: "openai", reasoning: true }]);
+  });
+  it("publishes discovered GPT effort levels and retains them while discovery is unavailable", async () => {
+    const f = fixture();
+    const levels = ["none", "low", "medium", "high", "xhigh", "max"];
+    let discovering = true;
+    f.handle.mockImplementation(async ({ path }) => {
+      if (path === "/v1/models") return { data: discovering ? [{ id: "gpt-6", owned_by: "openai" }] : [] };
+      if (path === "/v0/management/auth-files") return { files: [{ name: "codex.json", provider: "codex" }] };
+      if (path === "/v0/management/model-definitions/codex" && discovering) {
+        return { models: [{ id: "gpt-6", owned_by: "openai", thinking: { levels } }] };
+      }
+      throw new Error("catalog unavailable");
+    });
+    const client = createProxyClient(f.context);
+    const first = await client.loadPublishableModels();
+    await client.publishModels(first.models);
+    expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith(expect.objectContaining({
+      responses: expect.objectContaining({ models: [{ id: "gpt-6", api: "openai-responses", reasoning: true, reasoningLevels: levels }] })
+    }));
+    discovering = false;
+    const retained = await client.loadPublishableModels();
+    await client.publishModels(retained.models);
+    expect(retained.models[0]).toMatchObject({ id: "gpt-6", reasoningLevels: levels });
+    expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith(expect.objectContaining({
+      responses: expect.objectContaining({ models: [{ id: "gpt-6", api: "openai-responses", reasoning: true, reasoningLevels: levels }] })
+    }));
+  });
   it("selects known native protocols and keeps unknown owners on compatible Completions", () => {
     expect(protocolGroupFor("google", "alias")).toBe("google");
     expect(protocolGroupFor("antigravity", "claude-sonnet")).toBe("anthropic");

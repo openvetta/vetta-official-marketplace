@@ -230,12 +230,14 @@ describe("CLIProxyAPI console", () => {
     const confirm = await screen.findByRole("dialog");
     fireEvent.click(within(confirm).getByRole("button", { name: "console.applyAndReload" }));
 
-    // The applied set is the whole truth: an unticked model leaves the picker.
+    // The same bare id on a different protocol remains an independent route.
     await waitFor(() => expect(f.writeFile).toHaveBeenCalledWith(
       "published-models.json",
-      JSON.stringify({ schemaVersion: 1, models: [] }, null, 2),
+      JSON.stringify({ schemaVersion: 2, mode: "custom", routes: ["anthropic/gemini-test"] }, null, 2),
       "utf8",
     ));
+    // The remaining Anthropic route belongs only to a disabled credential, so
+    // it stays remembered without being published until that pool is enabled.
     await waitFor(() => expect(f.replaceOwnedProviders).toHaveBeenCalledWith({}));
   });
 
@@ -298,7 +300,7 @@ describe("CLIProxyAPI console", () => {
     vi.useRealTimers();
   }, 20000);
 
-  it("ticks the models a newly authorized credential brings in", async () => {
+  it("keeps a custom selection stable when a newly authorized credential brings models", async () => {
     const f = fixture();
     let accounts = [{
       auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli",
@@ -319,7 +321,7 @@ describe("CLIProxyAPI console", () => {
     await waitFor(() => expect((screen.getByRole("button", { name: "console.clearAll" }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByRole("button", { name: "console.clearAll" }));
 
-    // A second credential arrives; its models are a request, not a suggestion.
+    // A custom selection remains explicit when a second credential arrives.
     accounts = [...accounts, {
       auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi",
       email: "second@example.com", disabled: false, success: 0, failed: 0
@@ -328,7 +330,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(screen.getByRole("button", { name: "console.resetQuota user@example.com" }));
 
     const second = await screen.findByRole("region", { name: "second@example.com" });
-    await waitFor(() => expect((within(second).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(true));
+    await waitFor(() => expect((within(second).getByRole("checkbox", { name: "kimi-new" }) as HTMLInputElement).checked).toBe(false));
     // The models the user had just cleared stay cleared.
     expect((within(first).getByRole("checkbox", { name: "gemini-test" }) as HTMLInputElement).checked).toBe(false);
   });

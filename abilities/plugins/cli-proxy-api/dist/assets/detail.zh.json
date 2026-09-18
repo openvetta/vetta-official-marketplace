@@ -32,13 +32,13 @@
         },
         {
           "icon": "solar:server-minimalistic-bold",
-          "title": "按协议注册 Vetta 模型",
-          "description": "动态路由会分为 Google Generative AI、Anthropic Messages、OpenAI Responses 和兼容 Chat Completions；来源未知时保守回退到 Chat Completions。"
+          "title": "每个供应商只展示一份模型",
+          "description": "同供应商账号组成一个路由池；每个模型与协议路由只展示一次，所有已启用账号仍可参与负载均衡和故障切换。"
         },
         {
           "icon": "solar:gallery-add-bold",
-          "title": "Codex 图片生成",
-          "description": "gpt-image-2 等仅支持图片的模型会通过 CPA 的 OpenAI Images API 处理文生图和图生图，不会被误发到文本接口。"
+          "title": "OpenAI 与 Google 图片模型",
+          "description": "支持图片的 OpenAI、Google 与 Antigravity 路由会分别显示为图片模型，并按模型使用 Images 或 generateContent 适配器处理文生图及受支持的图生图。"
         },
         {
           "icon": "solar:chart-square-bold",
@@ -60,7 +60,7 @@
         },
         {
           "title": "同步模型",
-          "description": "读取实时 `/v1/models` 目录，并把文本协议组发布到本插件拥有的 Vetta 模型命名空间；仅图片模型保留给图片 Provider。"
+          "description": "读取实时 `/v1/models` 目录，按供应商选择路由，并把文本协议组发布到本插件拥有的 Vetta 命名空间；图片路由会出现在 Vetta 的图片模型设置中。"
         },
         {
           "title": "在「CPA 配置」页面日常使用",
