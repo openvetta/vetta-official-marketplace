@@ -2,9 +2,9 @@ name: Marketplace checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, marketplace-v3]
   pull_request:
-    branches: [main]
+    branches: [main, marketplace-v3]
 
 permissions:
   contents: read
@@ -22,6 +22,30 @@ jobs:
         with:
           node-version: 22
 
+      - name: Detect marketplace schema
+        id: schema
+        run: |
+          version="$(node -p 'require("./.vetta/marketplace.json").schemaVersion')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build schema v3 plugin packages from source
+        if: steps.schema.outputs.version == '3'
+        shell: bash
+        run: |
+          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]:[]); console.log([...new Set(a.map(x=>x.source.path))].join('\n'))" > /tmp/marketplace-plugin-paths
+          while IFS= read -r path; do
+            (cd "$path" && npm ci && npm run build)
+          done < /tmp/marketplace-plugin-paths
+
+      - name: Recreate the schema v3 plugin archives
+        if: steps.schema.outputs.version == '3'
+        shell: bash
+        run: |
+          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]:[]); for(const x of a) console.log(x.slug, x.releases.at(-1).minAppVersion)" > /tmp/marketplace-plugin-releases
+          while read -r slug app_version; do
+            python3 scripts/stage-plugin-release.py "$slug" --min-app-version "$app_version"
+          done < /tmp/marketplace-plugin-releases
+
       - name: Check every proposed marketplace snapshot
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -29,9 +53,23 @@ jobs:
         run: node scripts/check-marketplace-version.mjs --range "$BASE_SHA" "$HEAD_SHA"
 
       - name: Test version guard and marketplace contracts
-        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/update-cli-proxy-api.test.mjs
+        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/stage-plugin-release.test.mjs tests/update-cli-proxy-api.test.mjs
 
       # 通用身份对账：条目 version 必须等于包里的版本，plugin 的 entry/styles 必须真实存在。
       # 现有 tests/marketplace.test.mjs 是逐个能力手写断言，新增能力不会自动被覆盖。
       - name: Reconcile the marketplace index against the ability packages
+        if: steps.schema.outputs.version == '2'
         run: npx --yes @vetta-org/plugin-cli@^0.1.1 sync --check
+
+      - uses: actions/checkout@v4
+        if: steps.schema.outputs.version == '3'
+        with:
+          repository: openvetta/open-vetta
+          ref: main
+          path: tooling/open-vetta
+
+      - name: Block unpublished App versions and changed plugin artifacts
+        if: steps.schema.outputs.version == '3'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tooling/open-vetta/scripts/release/check-plugin-marketplace-publication.mjs .vetta/marketplace.json

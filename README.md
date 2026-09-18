@@ -37,7 +37,9 @@ abilities/<type>/<slug>/README.md
 abilities/<type>/<slug>/assets/
 ```
 
-Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. With manifest schema v2, bundle
+Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. The legacy `main` ref stays on schema v2 for older Desktop builds. The separate `marketplace-v3` ref requires Desktop 0.5.59 or newer and installs plugins from versioned GitHub Release ZIPs verified by SHA-256. Source and presentation files remain in Git; `dist/` and ZIP files are not tracked on that ref. See [the v3 release runbook](docs/marketplace-v3.md).
+
+With manifest schema v2, bundle
 members may reference `skill`, `mcp`, or `plugin` packages via `source.path`, relative to the marketplace
 root. Only top-level `abilities[]` entries are independently listed. Bundle-only members remain
 viewable and selectable inside their bundle, and manageable under My Abilities once installed.
@@ -56,9 +58,9 @@ If you are an AI agent working in this repository, `AGENTS.md` is your instructi
 The short version:
 
 1. Pick a type: `skill`, `mcp`, `plugin`, or `bundle`.
-2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`).
+2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, build the plugin ZIP as a release asset.
 3. Add presentation files: `ability.json`, optionally `detail.json` and `assets/`.
-4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package using `{ type, slug, source: { path } }` in a bundle's members.
+4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package in a bundle's members. On v3, add `releases[]` to either the listed plugin or its bundle-only member.
 5. Bump the top-level `marketplaceVersion`.
 6. Work through the checklist at the end of `AGENTS.md`, then add this repository as a marketplace source in the desktop app and verify the ability installs.
 
@@ -84,7 +86,7 @@ fails the whole source; the client reports `sync-failed` and retains a usable pr
   labels on every categorized entry. Desktop switches group labels with the app language; older clients simply
   keep displaying `category`. This optional metadata does not require an ability version or `minAppVersion` bump,
   but the catalog change still requires a new `marketplaceVersion`.
-- Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets.
+- Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets. On v3, the installable `plugin.json` and built files are inside the release ZIP.
 - Managed binary MCP packages may declare a `schemaVersion: 2` runtime with HTTPS release assets and SHA-256 checksums; they must not execute install scripts.
 - Compose detail pages from the host-rendered block whitelist; never add executable HTML, JavaScript, CSS, iframe content, or custom actions.
 - `minAppVersion` gates the whole marketplace: clients older than that version refuse to load this source.

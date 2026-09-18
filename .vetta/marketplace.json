@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.18-2",
+  "marketplaceVersion": "2026.09.18-3",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
-  "minAppVersion": "0.5.58",
+  "minAppVersion": "0.5.59",
   "abilities": [
     {
       "type": "plugin",
@@ -45,7 +45,24 @@
       },
       "source": {
         "path": "abilities/plugins/feishu"
-      }
+      },
+      "releases": [
+        {
+          "version": "1.0.4",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.ability-detail",
+            "shell.openExternal",
+            "agent.skills.control"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-feishu-1.0.4/feishu-1.0.4.zip",
+            "sha256": "d5f0c080d220addbe378dea2040054083562ce42083e24d942bbef71df36ab25"
+          }
+        }
+      ]
     },
     {
       "type": "plugin",
@@ -87,7 +104,29 @@
       },
       "source": {
         "path": "abilities/plugins/cli-proxy-api"
-      }
+      },
+      "releases": [
+        {
+          "version": "1.10.2",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.4.0",
+          "permissions": [
+            "ui.slot.ability-detail",
+            "ui.slot.workspace-view",
+            "storage.read",
+            "storage.write",
+            "shell.openExternal",
+            "models.manage",
+            "media.provider.register",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-cli-proxy-api-1.10.2/cli-proxy-api-1.10.2.zip",
+            "sha256": "a811b7eab2618d7683093f9e32dcfe56092bf1cf2b99ca485d92666f6c2d5163"
+          }
+        }
+      ]
     },
     {
       "type": "mcp",
@@ -176,7 +215,32 @@
             "slug": "shimo-reader",
             "source": {
               "path": "abilities/plugins/shimo"
-            }
+            },
+            "releases": [
+              {
+                "version": "1.0.23",
+                "minAppVersion": "0.5.59",
+                "pluginApiVersion": "^2.1.0",
+                "permissions": [
+                  "ui.slot.workspace-view",
+                  "ui.slot.activity-tab",
+                  "ui.file-explorer.context-menu",
+                  "agent.skills.control",
+                  "fs.write",
+                  "storage.read",
+                  "storage.write",
+                  "ai.models.list",
+                  "ai.complete",
+                  "ai.ocr.recognize"
+                ],
+                "commands": [],
+                "artifact": {
+                  "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-shimo-reader-1.0.23/shimo-reader-1.0.23.zip",
+                  "sha256": "962f916000292f21a412d1d9951accf796fbaa8ff3ba9fd847424f26875cc513"
+                }
+              }
+            ],
+            "version": "1.0.23"
           },
           {
             "type": "skill",
@@ -420,7 +484,29 @@
       },
       "source": {
         "path": "abilities/plugins/xiaohongshu"
-      }
+      },
+      "releases": [
+        {
+          "version": "1.1.22",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "agent.mcp.control",
+            "ui.slot.ability-detail",
+            "ui.slot.workspace-view",
+            "storage.read",
+            "storage.write",
+            "secrets.read",
+            "secrets.write",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-xiaohongshu-1.1.22/xiaohongshu-1.1.22.zip",
+            "sha256": "5bd0ff8e2f75cd749c4b1dc7530fb2ecff66e3ad05a778d39f926ceee282a50f"
+          }
+        }
+      ]
     },
     {
       "type": "mcp",
@@ -546,7 +632,24 @@
       },
       "source": {
         "path": "abilities/plugins/vetta-tihu"
-      }
+      },
+      "releases": [
+        {
+          "version": "0.3.0",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.activity-tab",
+            "agent.tools.register",
+            "agent.toolHandler.execute"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-vetta-tihu-0.3.0/vetta-tihu-0.3.0.zip",
+            "sha256": "aebc25e373574e4e8975e027bfe1d2d596a44acb77c60b20244f03acffee7720"
+          }
+        }
+      ]
     }
   ]
 }

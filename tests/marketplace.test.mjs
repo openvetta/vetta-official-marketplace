@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
@@ -9,12 +10,18 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const catalog = readJson(resolve(root, ".vetta/marketplace.json"));
 const bySlug = new Map(catalog.abilities.map((ability) => [ability.slug, ability]));
+const trackedFiles = new Set(execFileSync("git", ["ls-files", "-z"], { cwd: root }).toString("utf8").split("\0"));
+
+function assertTrackedPresentationResource(path) {
+  const repositoryPath = relative(root, path).split(sep).join("/");
+  assert.ok(trackedFiles.has(repositoryPath), `Presentation resource is not tracked: ${repositoryPath}`);
+}
 
 // Inspect only explicitly referenced packages; an unrelated directory is not a catalog entry.
 for (const bundle of catalog.abilities.filter((ability) => ability.type === "bundle")) {
   for (const member of bundle.config.members) {
     if (!member.source) continue;
-    assert.equal(catalog.schemaVersion, 2);
+    assert.equal(catalog.schemaVersion, 3);
     const descriptor = readJson(packageFile(root, `${member.source.path}/ability.json`));
     assert.equal(descriptor.type, member.type);
     assert.equal(descriptor.slug, member.slug);
@@ -23,7 +30,7 @@ for (const bundle of catalog.abilities.filter((ability) => ability.type === "bun
     } else {
       assert.equal("config" in descriptor, false);
       assert.equal("source" in descriptor, false);
-      bySlug.set(member.slug, { ...descriptor, source: member.source });
+      bySlug.set(member.slug, { ...descriptor, source: member.source, releases: member.releases });
     }
   }
 }
@@ -37,6 +44,32 @@ function packageFile(directory, path) {
   assert.equal(lstatSync(target).isSymbolicLink(), false, path);
   return target;
 }
+
+test("schema v3 keeps plugin releases in the catalog and their build output out of Git", () => {
+  assert.equal(catalog.schemaVersion, 3);
+  assert.equal(catalog.minAppVersion, "0.5.59");
+  for (const ability of bySlug.values()) {
+    if (ability.type !== "plugin") continue;
+    const source = packageFile(root, ability.source.path);
+    const plugin = readJson(packageFile(source, "plugin.json"));
+    assert.equal(ability.version, plugin.version);
+    assert.ok(ability.releases?.length, ability.slug);
+    const release = ability.releases.find((item) => item.version === plugin.version);
+    assert.ok(release, ability.slug);
+    assert.equal(release.minAppVersion, "0.5.59");
+    assert.equal(release.pluginApiVersion, plugin.pluginApiVersion);
+    assert.deepEqual(release.permissions, plugin.permissions ?? []);
+    assert.deepEqual(release.commands, plugin.commands ?? []);
+    assert.match(release.artifact.url, /^https:\/\/github\.com\/openvetta\/vetta-official-marketplace\/releases\/download\/plugin-/u);
+    assert.match(release.artifact.sha256, /^[a-f0-9]{64}$/u);
+    const stagedArchive = packageFile(root, `.release-artifacts/${ability.slug}-${plugin.version}.zip`);
+    assert.equal(createHash("sha256").update(readFileSync(stagedArchive)).digest("hex"), release.artifact.sha256);
+    const tracked = execFileSync("git", ["ls-files", "--", `${ability.source.path}/dist`, `${ability.source.path}/release`], {
+      cwd: root, encoding: "utf8",
+    }).trim();
+    assert.equal(tracked, "", `${ability.slug} build output is still tracked`);
+  }
+});
 
 test("catalog identities are unique and display names do not contain ability types", () => {
   assert.equal(new Set(catalog.abilities.map((ability) => ability.slug)).size, catalog.abilities.length);
@@ -74,6 +107,7 @@ for (const ability of bySlug.values()) {
     assert.ok(detail.i18n?.zh?.path);
     for (const source of [detail, ...Object.values(detail.i18n)]) {
       const path = packageFile(directory, source.path);
+      assertTrackedPresentationResource(path);
       if ((source.format ?? detail.format) === "blocks") {
         const document = readJson(path);
         assert.equal(document.schemaVersion, 1);
@@ -81,10 +115,10 @@ for (const ability of bySlug.values()) {
       } else {
         assert.ok(readFileSync(path, "utf8").trim());
       }
-      if (source.fallback) packageFile(directory, source.fallback);
+      if (source.fallback) assertTrackedPresentationResource(packageFile(directory, source.fallback));
     }
     if (!/^(?:solar:|https:\/\/)/.test(presentation.icon)) {
-      packageFile(directory, presentation.icon);
+      assertTrackedPresentationResource(packageFile(directory, presentation.icon));
     }
     if (ability.type === "mcp") {
       assert.equal("config" in ability, false);
@@ -158,7 +192,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   assert.equal(ability?.type, "plugin");
   const directory = packageFile(root, ability.source.path);
   const packageJson = readJson(packageFile(directory, "package.json"));
-  assert.equal(packageJson.devDependencies["@vetta/ui"], "^0.1.0");
+  assert.equal(packageJson.devDependencies["@vetta-org/ui"], "^0.1.0");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.ok(plugin.permissions.includes("agent.skills.control"));
   assert.ok(plugin.permissions.includes("ai.models.list"));
@@ -182,8 +216,9 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
       .map((name) => readFileSync(packageFile(directory, `src/reader/components/${name}`), "utf8"))
       .join("\n");
     assert.doesNotMatch(readerSources, /window\.prompt/u);
-    assert.match(readerSources, /from "@vetta\/ui"/u);
-    assert.doesNotMatch(readerSources, /<(?:button|input|select)\b/u);
+    assert.match(readerSources, /from "@vetta-org\/ui"/u);
+    // Native filter buttons have an explicit type and keyboard semantics; text inputs use the UI package.
+    assert.doesNotMatch(readerSources, /<(?:input|select)\b/u);
     assert.equal(existsSync(resolve(directory, "src/reader/components/icons.tsx")), false);
 
   const skillContracts = [
@@ -201,7 +236,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
 test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and pins a six-platform runtime set", () => {
   const ability = bySlug.get("cli-proxy-api");
   assert.equal(ability?.type, "plugin");
-  assert.equal(catalog.minAppVersion, "0.5.58");
+  assert.equal(catalog.minAppVersion, "0.5.59");
   const directory = packageFile(root, ability.source.path);
   const presentation = readJson(packageFile(directory, "ability.json"));
   assert.equal(presentation.icon, "assets/icon.png");

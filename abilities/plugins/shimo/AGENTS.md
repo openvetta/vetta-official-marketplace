@@ -62,7 +62,7 @@ Desktop 校验、授权、安装。它**不会**直接写 `~/.vetta/plugins`。
 `version` / `permissions` / `pluginApiVersion` 之后要回仓库根跑一次**：
 
 ```bash
-npx @vetta-org/plugin-cli sync          # 从各能力目录回填索引，并推进 marketplaceVersion
+npx @vetta-org/plugin-cli sync          # 仅用于 schema v2 main 来源
 npx @vetta-org/plugin-cli sync --check  # 只报不写，CI 用
 ```
 
@@ -82,8 +82,8 @@ npx @vetta-org/plugin-cli sync --check  # 只报不写，CI 用
   替代做法」写进该工具 description 的反向触发段。
 - **顶层不要出现依赖共享 React 的 JSX**，放进组件或 `activate` 内（Module Federation 的加载时序）。
 - 依赖用 registry 上已发布的 semver，不要 `workspace:*`。
-- **`dist/` 要进版本库**。插件通过仓库目录分发时，宿主直接读 `plugin.json` 指向的 `entry`
-  与 `styles`，它不会替你构建——目录里没有构建产物就装不上。
+- **schema v2 目录分发时 `dist/` 要进版本库**。宿主直接读 `plugin.json` 指向的 `entry`
+  与 `styles`，它不会替你构建——目录里没有构建产物就装不上。schema v3 来源改用固定 ZIP 发布，`dist/` 留在本地并由 `scripts/stage-plugin-release.py` 打包，不提交到该来源。
 ## 信息不足时
 
 插件 id、展示名、要用哪些权限、功能边界、是否立刻安装——**问用户**，不要自己假定。
