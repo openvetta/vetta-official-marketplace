@@ -49,6 +49,38 @@ This format needs the Desktop build implementing schema v2 (target version `0.5.
 old build's catalog alone does not update its parser: old clients reject this source and retain
 available old cached content. Update the client before switching the source to v2.
 
+## Create your own marketplace with an Agent
+
+The [`create-vetta-marketplace`](https://github.com/openvetta/vetta-skills/tree/main/skills/create-vetta-marketplace)
+Skill teaches an Agent how to create, validate, publish, and connect a GitHub based Vetta ability
+marketplace using the same schema v3 release model as this repository. It covers Skills, MCP
+servers, plugins, Bundles, immutable `.vettapkg` plugin assets, GitHub Actions checks, private
+repositories, compatibility branches, and Desktop source configuration.
+
+Install it with the [Vercel Skills CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills add openvetta/vetta-skills --skill create-vetta-marketplace
+```
+
+Then give your Agent this Prompt, replacing the values in angle brackets:
+
+```text
+Use $create-vetta-marketplace to create my Vetta ability marketplace.
+
+Create a <public-or-private> GitHub repository named <repository> under <owner>. Use marketplace
+schema v3, the main branch, and minimum Vetta Desktop version <x.y.z>. Set up the standard ability
+layout for Skills, MCP servers, plugins, and Bundles; repository-level Agent instructions; and
+GitHub Actions validation. Publish plugin runtime output as immutable .vettapkg GitHub Release
+assets with SHA-256 metadata, and do not commit generated plugin archives or build output to the
+marketplace source tree.
+
+Validate the generated repository with the Vetta Plugin CLI and the Desktop publication check,
+push it to GitHub, then report the repository URL and the exact repository and branch values I
+should add under Vetta Desktop -> Abilities -> Marketplace sources. Do not add sample abilities
+unless I ask.
+```
+
 ## Adding an ability
 
 **Read [`AGENTS.md`](./AGENTS.md) first — it is the authoring manual for this repository (written in Chinese), and every rule in it maps to a hard validation in the desktop client.**
