@@ -15,10 +15,16 @@ export function publicationSettings(directory) {
   if (!validBranch(settings.sourceBranch)) throw new Error('Configure a valid sourceBranch for reviewed source changes');
   if (settings.distributionBranch !== 'gh-pages' || settings.sourceBranch === settings.distributionBranch) throw new Error('Use gh-pages only for generated distribution content');
   if (!/^[a-f0-9]{40}$/.test(settings.toolingCommit)) throw new Error('Pin the publication tool to a full commit');
+  settings.candidateAppCommits ??= {};
+  if (!settings.candidateAppCommits || typeof settings.candidateAppCommits !== 'object' || Array.isArray(settings.candidateAppCommits)) throw new Error('candidateAppCommits must map App versions to full commits');
+  for (const [version, commit] of Object.entries(settings.candidateAppCommits)) {
+    if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !/^[a-f0-9]{40}$/.test(commit)) throw new Error('Pin each candidate App version to a full commit');
+  }
   return settings;
 }
 
 export async function verifyCandidate(directory, tooling) {
+  const settings = publicationSettings(root);
   const manifest = readJson(join(directory, 'site/.vetta/marketplace.json'));
   const { syncMarketplaceIndex } = await import(pathToFileURL(join(tooling, 'packages/plugins/plugin-cli/src/sync.ts')).href);
   const reconciliation = syncMarketplaceIndex({ hubRoot: join(directory, 'site'), manifestPath: join(directory, 'site/.vetta/marketplace.json'), apply: false });
@@ -28,6 +34,7 @@ export async function verifyCandidate(directory, tooling) {
   const { verifyMarketplacePublication } = await import(pathToFileURL(join(tooling, 'scripts/release/check-plugin-marketplace-publication.mjs')).href);
   await verifyMarketplacePublication(manifest, {
     token: process.env.GITHUB_TOKEN,
+    candidateAppCommits: settings.candidateAppCommits,
     fetcher: async (url, init) => {
       const item = artifacts.get(String(url));
       if (!item) return fetch(url, init);

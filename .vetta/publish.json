@@ -1,5 +1,8 @@
 {
   "sourceBranch": "marketplace-source",
   "distributionBranch": "gh-pages",
-  "toolingCommit": "b1a575d37d5a5dadc684f25a41ee1b3706556551"
+  "toolingCommit": "7dd881222f13efc328bbe1c3c1e9e65e27b3c616",
+  "candidateAppCommits": {
+    "0.5.59": "7dd881222f13efc328bbe1c3c1e9e65e27b3c616"
+  }
 }

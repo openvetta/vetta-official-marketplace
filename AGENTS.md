@@ -13,6 +13,7 @@
 - 插件源码条目（含仅 Bundle 引用的成员）声明 minAppVersion；API、权限、命令与摘要由构建结果派生。
 - 同版本运行内容继续使用已发布制品；准备发布时提升能力版本并同步相关身份文件。
 - CI 先校验、上传并复核制品，再推进 gh-pages。已有版本不可覆盖。
+- 首次联调尚未正式发布的 Desktop 版本时，`candidateAppCommits` 只能把该版本钉到 OpenVetta 的 40 位不可变 commit；稳定 Release 存在后门禁自动优先校验 Release。
 - 文档和源码开发提交不增加市场版本。只有分发内容变化时 CI 分配新 marketplaceVersion。
 - 不执行向 `marketplace-source` 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程；不得用新模型提交改写兼容分支 `main`。
 - 完成时依次运行 node scripts/marketplace.mjs check、node scripts/marketplace.mjs build 与 node --test tests/*.test.mjs；内容测试同时检查生成后的插件资源，不能放在构建前。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。

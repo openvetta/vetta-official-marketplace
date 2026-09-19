@@ -37,7 +37,10 @@ Node.js 22.21.1+、Python 3、Git 为前置依赖。Windows Python shim 环境�
 
 构建任务无写凭证，发布任务具有 contents: write，不执行插件构建脚本。
 .vetta/publish.json 固定 Desktop 校验工具提交；调整它也需源码 PR 审核。
-稳定发布仍要求最低 Desktop 已正式发布且提供所需 API。不能以本地开发版通过为由跳过该门禁。
+通常要求最低 Desktop 已正式发布且提供所需 API。首次联调尚未正式发布的 Desktop 版本时，
+`candidateAppCommits` 可以把精确版本钉到 OpenVetta 的 40 位不可变 commit；门禁会从该提交
+核对 Desktop 版本、Plugin API 和 schema v3。候选只在稳定 Release 返回 404 时生效，正式
+Release 一旦存在便优先检查 Release，不能用候选配置绕过不完整发布或本地未提交代码。
 
 同一版本存在时核对字节，禁止覆盖。上传部分失败时重新运行最新源码的工作流；源码或 gh-pages 已前进时，旧运行拒绝写入。
 GitHub Release 和索引不是跨服务事务：索引失败时包可能已经公开，但市场仍保持上一份有效目录。

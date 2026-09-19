@@ -88,8 +88,12 @@ if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.m
   const tooling = resolve('.tooling/open-vetta');
   const { verifyCandidate } = await import('./marketplace.mjs');
   const { verifyMarketplacePublication } = await import(pathToFileURL(join(tooling, 'scripts/release/check-plugin-marketplace-publication.mjs')).href);
+  const settings = publicationSettings(root);
   publishMarketplace({ root, directory, verify: (dir, remote) => remote
-    ? verifyMarketplacePublication(readJson(join(dir, 'site/.vetta/marketplace.json')), { token: process.env.GITHUB_TOKEN })
+    ? verifyMarketplacePublication(readJson(join(dir, 'site/.vetta/marketplace.json')), {
+      token: process.env.GITHUB_TOKEN,
+      candidateAppCommits: settings.candidateAppCommits,
+    })
     : verifyCandidate(dir, tooling),
   }).catch(error => { console.error(error.message); process.exitCode = 1; });
 }

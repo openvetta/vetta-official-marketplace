@@ -6,6 +6,7 @@ import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { prepareMarketplace } from '../scripts/static-marketplace.mjs';
 import { publishMarketplace } from '../scripts/publish-marketplace.mjs';
+import { publicationSettings } from '../scripts/marketplace.mjs';
 
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'vetta-static-'));
@@ -16,7 +17,12 @@ function fixture(t) {
     { type: 'skill', slug: 'guide', name: 'Guide', version: '1.0.0', source: { path: 'abilities/skills/guide' } },
   ] };
   put('.vetta/marketplace.source.json', catalog);
-  put('.vetta/publish.json', { sourceBranch: 'marketplace-source', distributionBranch: 'gh-pages', toolingCommit: 'a'.repeat(40) });
+  put('.vetta/publish.json', {
+    sourceBranch: 'marketplace-source',
+    distributionBranch: 'gh-pages',
+    toolingCommit: 'a'.repeat(40),
+    candidateAppCommits: { '0.5.59': 'b'.repeat(40) },
+  });
   put('abilities/plugins/demo/plugin.json', { id: 'demo', name: 'Demo', version: '1.0.0', entry: 'dist/index.js', pluginApiVersion: '^2.0.0', permissions: [] });
   put('abilities/plugins/demo/ability.json', { schemaVersion: 1, type: 'plugin', slug: 'demo', version: '1.0.0' });
   put('abilities/plugins/demo/src/index.ts', 'development source');
@@ -28,6 +34,18 @@ function fixture(t) {
   const run = (name, previous) => prepareMarketplace({ root, output: join(root, name), previous, sourceSha: 'a'.repeat(40), buildPlugin: () => { builds++; }, date: '2026.09.19' });
   return { root, put, catalog, run, builds: () => builds };
 }
+
+test('publication settings accept only immutable App candidate commits', (t) => {
+  const f = fixture(t);
+  assert.deepEqual(publicationSettings(f.root).candidateAppCommits, { '0.5.59': 'b'.repeat(40) });
+  f.put('.vetta/publish.json', {
+    sourceBranch: 'marketplace-source',
+    distributionBranch: 'gh-pages',
+    toolingCommit: 'a'.repeat(40),
+    candidateAppCommits: { '0.5.59': 'dev' },
+  });
+  assert.throws(() => publicationSettings(f.root), /full commit/);
+});
 
 test('publish, browse distribution, edit source, publish next version and retain compatible history', async (t) => {
   const f = fixture(t);
