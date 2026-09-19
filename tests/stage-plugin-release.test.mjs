@@ -19,11 +19,12 @@ test("staging a plugin creates a repeatable archive and release record without t
       "--output-dir", temporary,
     ], { cwd: root, encoding: "utf8", shell: process.platform === "win32" }));
     const first = run();
-    const archive = readFileSync(join(temporary, "feishu-1.0.4.zip"));
+    const archive = readFileSync(join(temporary, "feishu-1.0.4.vettapkg"));
     assert.equal(first.artifact.sha256, sha256(archive));
     assert.deepEqual(run(), first);
-    assert.deepEqual(readFileSync(join(temporary, "feishu-1.0.4.zip")), archive);
-    const listing = execFileSync(python, ["-m", "zipfile", "-l", join(temporary, "feishu-1.0.4.zip")], {
+    assert.deepEqual(readFileSync(join(temporary, "feishu-1.0.4.vettapkg")), archive);
+    assert.match(first.artifact.url, /\/feishu-1\.0\.4\.vettapkg$/u);
+    const listing = execFileSync(python, ["-m", "zipfile", "-l", join(temporary, "feishu-1.0.4.vettapkg")], {
       encoding: "utf8", shell: process.platform === "win32",
     });
     assert.match(listing, /plugin\.json/u);

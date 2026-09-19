@@ -5,6 +5,13 @@ on:
     branches: [main, marketplace-v3]
   pull_request:
     branches: [main, marketplace-v3]
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Base branch used for a manually dispatched release-candidate check
+        required: true
+        default: marketplace-v3
+        type: string
 
 permissions:
   contents: read
@@ -48,12 +55,22 @@ jobs:
 
       - name: Check every proposed marketplace snapshot
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          DISPATCH_BASE_REF: ${{ inputs.base_ref }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: node scripts/check-marketplace-version.mjs --range "$BASE_SHA" "$HEAD_SHA"
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_sha="$EVENT_BASE_SHA"
+          if [[ -n "$DISPATCH_BASE_REF" ]]; then
+            git check-ref-format --branch "$DISPATCH_BASE_REF" >/dev/null
+            git fetch origin "refs/heads/$DISPATCH_BASE_REF:refs/remotes/origin/$DISPATCH_BASE_REF"
+            base_sha="$(git rev-parse "origin/$DISPATCH_BASE_REF")"
+          fi
+          node scripts/check-marketplace-version.mjs --range "$base_sha" "$HEAD_SHA"
 
       - name: Test version guard and marketplace contracts
-        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/stage-plugin-release.test.mjs tests/update-cli-proxy-api.test.mjs
+        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/stage-plugin-release.test.mjs tests/plugin-release-context.test.mjs tests/plugin-release-workflow.test.mjs tests/update-cli-proxy-api.test.mjs
 
       # 通用身份对账：条目 version 必须等于包里的版本，plugin 的 entry/styles 必须真实存在。
       # 现有 tests/marketplace.test.mjs 是逐个能力手写断言，新增能力不会自动被覆盖。

@@ -1,6 +1,6 @@
 # 能力编写手册
 
-本仓库是 Vetta 桌面端「开放能力市场」的官方源。旧 Desktop 继续读取 `main` 的 schema v2 目录包；新版 Desktop 从独立的 `marketplace-v3` ref 读取 schema v3。该 ref 的插件构建 ZIP 发布为固定 GitHub Release asset，仓库只跟踪源码、索引与展示资源。
+本仓库是 Vetta 桌面端「开放能力市场」的官方源。旧 Desktop 继续读取 `main` 的 schema v2 目录包；新版 Desktop 从独立的 `marketplace-v3` ref 读取 schema v3。该 ref 的插件构建 `.vettapkg` 发布为固定 GitHub Release asset，仓库只跟踪源码、索引与展示资源。
 
 这份手册面向在本仓库中添加/修改能力的人与 AI。**所有规则都对应桌面端的硬校验**：任何一条不满足，整个市场源都会同步失败——界面通常只显示 `sync-failed`，具体原因需查看主进程日志中的 `open-marketplace` 记录。所以宁可对着本手册逐条核对，也不要靠试。
 
@@ -44,7 +44,7 @@ Git hooks、自动提交检查和 CI 是上述主动检查的兜底，不能替�
 ```bash
 cd abilities/plugins/<slug> && npm install
 npx vetta-plugin-cli docs          # 手册目录绝对路径 + 对应的 SDK 版本
-npm run build                      # v3 构建后用 scripts/stage-plugin-release.py 打包，dist/ 不提交
+npm run build                      # v3 本地预检可打包；正式 .vettapkg 由受保护 CI 构建，dist/ 不提交
 ```
 
 SDK 手册随 `@vetta-org/plugin-sdk` 装进各插件自己的 `node_modules`，因此读到的合同与该插件
@@ -127,7 +127,7 @@ Desktop 会保存 `marketplaceVersion` 与整个 GitHub 归档的 SHA-256。只�
 
 - plugin、skill、MCP 的运行内容或用户可观察行为发生变化时，必须提升该包的 `version`；兼容修复和功能增量至少提升 patch。
 - 同一包身份出现于 manifest、`ability.json`、`plugin.json`、`mcp.json`、`SKILL.md` 或包管理文件时，所有版本字段必须同步一致。
-- v3 plugin 改动版本后必须重新构建、生成固定 ZIP 与 SHA-256、登记新的 `releases[]`，并在 App 正式发布、制品上传和发布门禁通过后才晋级市场索引；`dist/` 与 ZIP 不提交到 v3 ref。旧版 `main` 仍按目录包合同维护。
+- v3 plugin 改动版本后必须通过 `Publish plugin release candidate` 工作流重新构建、生成固定 `.vettapkg` 与 SHA-256、登记新的 `releases[]`，并在 App 正式发布、制品上传和 Draft PR 审查及发布门禁通过后才晋级市场索引；工作流不得直接合并目标市场分支，`dist/` 与 `.vettapkg` 不提交到 v3 ref。旧版 `main` 仍按目录包合同维护。
 - 仅修改说明文档、测试或市场展示且不改变包运行内容时，可以不提升包 `version`，但仍必须提升整仓 `marketplaceVersion`。
 - `configVersion` 只在安装配置或持久化配置合同变化时递增，不能替代包 `version` 或 `marketplaceVersion`。
 
@@ -304,7 +304,7 @@ version: 1.0.0           # 必须 === 条目的 version
 - `id` 必须 === 条目的 `slug`，`version` 必须 === 条目的 `version`
 - `name`、`pluginApiVersion`、`entry` 必填非空
 - `entry` 以及 `styles[]` 里的每个路径都必须是包内**真实存在的文件**，否则报 missing or outside the package
-- v3 构建产物只进入固定 Release ZIP，`dist/` 与 `release/` 不进入 Git；Desktop 下载并校验 ZIP。旧版 `main` 仍需目录内构建产物。
+- v3 构建产物只进入 CI 发布的固定 Release `.vettapkg`，`dist/` 与 `release/` 不进入 Git；Desktop 下载并校验包。已有 `.zip` 记录仅作兼容，旧版 `main` 仍需目录内构建产物。
 - 插件需要成熟的通用能力时应把依赖显式安装进自己的 `package.json`，不要依赖宿主或开发机偶然存在的包，
   也不要手写低质量替代实现。UI 样式优先使用 `tailwindcss` + `@tailwindcss/vite`；外部输入、
   持久化数据和协议响应的运行时校验按插件现有技术栈选择 `zod` 或 `@sinclair/typebox`；React 交互测试使用

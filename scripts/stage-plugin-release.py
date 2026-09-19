@@ -1,4 +1,4 @@
-"""Build one installable plugin ZIP outside the marketplace source tree.
+"""Build one installable .vettapkg outside the marketplace source tree.
 
 The script prints the release record to copy into schema v3. It never edits the
 catalog or uploads a release asset. Run it after the plugin's build and tests.
@@ -71,7 +71,7 @@ def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
     for required in ["plugin.json", plugin["entry"], *plugin.get("styles", [])]:
         if required not in paths:
             raise ValueError(f"Missing packaged plugin file: {slug}/{required}")
-    filename = f"{slug}-{plugin['version']}.zip"
+    filename = f"{slug}-{plugin['version']}.vettapkg"
     output_dir.mkdir(parents=True, exist_ok=True)
     target = output_dir / filename
     try:
@@ -85,7 +85,7 @@ def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
                 archive.writestr(info, path.read_bytes(), compresslevel=9)
         data = target.read_bytes()
         if len(data) > MAX_BYTES:
-            raise ValueError(f"Plugin ZIP exceeds the 50 MB Desktop limit: {slug}")
+            raise ValueError(f"Plugin package exceeds the 50 MB Desktop limit: {slug}")
     except BaseException:
         target.unlink(missing_ok=True)
         raise

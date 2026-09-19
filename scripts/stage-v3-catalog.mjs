@@ -56,8 +56,12 @@ for (const slug of slugs) {
   const descriptor = JSON.parse(readFileSync(join(root, plugin.source.path, "plugin.json"), "utf8"));
   if (descriptor.id !== slug) throw new Error(`Plugin identity mismatch: ${slug}`);
   const prefix = `${slug}-${descriptor.version}`;
-  const archive = readFileSync(join(artifactDir, `${prefix}.zip`));
   const release = JSON.parse(readFileSync(join(artifactDir, `${prefix}.json`), "utf8"));
+  const artifactName = release.artifact?.url?.split("/").at(-1);
+  if (![`${prefix}.vettapkg`, `${prefix}.zip`].includes(artifactName)) {
+    throw new Error(`Unexpected plugin artifact name: ${artifactName}`);
+  }
+  const archive = readFileSync(join(artifactDir, artifactName));
   if (release.version !== descriptor.version || release.minAppVersion !== minAppVersion ||
       release.pluginApiVersion !== descriptor.pluginApiVersion ||
       JSON.stringify(release.permissions) !== JSON.stringify(descriptor.permissions ?? []) ||

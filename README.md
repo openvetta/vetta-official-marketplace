@@ -90,11 +90,15 @@ If you are an AI agent working in this repository, `AGENTS.md` is your instructi
 The short version:
 
 1. Pick a type: `skill`, `mcp`, `plugin`, or `bundle`.
-2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, build the plugin ZIP as a release asset.
+2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, push plugin source changes to a repository branch and run the **Publish plugin release candidate** workflow.
 3. Add presentation files: `ability.json`, optionally `detail.json` and `assets/`.
-4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package in a bundle's members. On v3, add `releases[]` to either the listed plugin or its bundle-only member.
+4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package in a bundle's members. On v3, CI builds and uploads the immutable `.vettapkg`, records it in `releases[]`, and opens a Draft marketplace PR.
 5. Bump the top-level `marketplaceVersion`.
 6. Work through the checklist at the end of `AGENTS.md`, then add this repository as a marketplace source in the desktop app and verify the ability installs.
+
+The release workflow never writes to or merges the protected marketplace branch. A maintainer must
+review the generated Draft PR and its marketplace and Desktop publication checks before merging.
+Existing `.zip` release records remain valid for compatibility; new plugin releases use `.vettapkg`.
 
 For bundle-only members, `ability.json` also owns catalog metadata: name, description, version,
 configVersion, category, categoryI18n and tags. Translated names/descriptions/tags may share
@@ -118,7 +122,7 @@ fails the whole source; the client reports `sync-failed` and retains a usable pr
   labels on every categorized entry. Desktop switches group labels with the app language; older clients simply
   keep displaying `category`. This optional metadata does not require an ability version or `minAppVersion` bump,
   but the catalog change still requires a new `marketplaceVersion`.
-- Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets. On v3, the installable `plugin.json` and built files are inside the release ZIP.
+- Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets. On v3, the installable `plugin.json` and built files are inside the CI-published `.vettapkg`.
 - Managed binary MCP packages may declare a `schemaVersion: 2` runtime with HTTPS release assets and SHA-256 checksums; they must not execute install scripts.
 - Compose detail pages from the host-rendered block whitelist; never add executable HTML, JavaScript, CSS, iframe content, or custom actions.
 - `minAppVersion` gates the whole marketplace: clients older than that version refuse to load this source.

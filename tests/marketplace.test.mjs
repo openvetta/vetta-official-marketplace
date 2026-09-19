@@ -62,7 +62,8 @@ test("schema v3 keeps plugin releases in the catalog and their build output out 
     assert.deepEqual(release.commands, plugin.commands ?? []);
     assert.match(release.artifact.url, /^https:\/\/github\.com\/openvetta\/vetta-official-marketplace\/releases\/download\/plugin-/u);
     assert.match(release.artifact.sha256, /^[a-f0-9]{64}$/u);
-    const stagedArchive = packageFile(root, `.release-artifacts/${ability.slug}-${plugin.version}.zip`);
+    assert.match(release.artifact.url, /\.(?:vettapkg|zip)$/u);
+    const stagedArchive = packageFile(root, `.release-artifacts/${ability.slug}-${plugin.version}.vettapkg`);
     assert.equal(createHash("sha256").update(readFileSync(stagedArchive)).digest("hex"), release.artifact.sha256);
     const tracked = execFileSync("git", ["ls-files", "--", `${ability.source.path}/dist`, `${ability.source.path}/release`], {
       cwd: root, encoding: "utf8",
