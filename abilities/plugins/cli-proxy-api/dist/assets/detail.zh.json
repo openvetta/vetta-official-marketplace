@@ -23,7 +23,7 @@
         {
           "icon": "solar:shield-check-bold",
           "title": "不 Fork 也能持续升级",
-          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 7.2.147 与 Gemini Provider 1.0.5。组合验证后只发布插件补丁即可推进版本，无需修改 Desktop。"
+          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 7.3.8 与 Gemini Provider 1.0.5。组合验证后只发布插件补丁即可推进版本，无需修改 Desktop。"
         },
         {
           "icon": "solar:login-3-bold",

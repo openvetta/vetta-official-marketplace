@@ -23,7 +23,7 @@
         {
           "icon": "solar:shield-check-bold",
           "title": "Upgradeable without a fork",
-          "description": "The marketplace pins CLIProxyAPI 7.2.147 and Gemini provider 1.0.5 by release URL and SHA-256. A plugin patch can move both locks after review, without a Desktop code change."
+          "description": "The marketplace pins CLIProxyAPI 7.3.8 and Gemini provider 1.0.5 by release URL and SHA-256. A plugin patch can move both locks after review, without a Desktop code change."
         },
         {
           "icon": "solar:login-3-bold",

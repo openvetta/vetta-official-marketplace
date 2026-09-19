@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "core": {
     "repository": "https://github.com/router-for-me/CLIProxyAPI",
-    "version": "7.2.147",
-    "revision": "17a65ee5470fbaf0e22fc219381e6a4ae9e07624"
+    "version": "7.3.8",
+    "revision": "c93978c4ea2e908255a2a06c37599fda3651554a"
   },
   "providerPlugins": {
     "gemini-cli": {
