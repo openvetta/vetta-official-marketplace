@@ -10,6 +10,15 @@ export function assertExistingRelease(item, bytes) {
   if (digest(bytes) !== item.release.artifact.sha256) throw new Error(`Published bytes differ for ${item.slug}; use a new version`);
 }
 
+function releaseByTag(gh, repository, tag) {
+  try { return JSON.parse(gh('api', `repos/${repository}/releases/tags/${tag}`)); }
+  catch (error) {
+    if (!String(error.stderr ?? error.message).includes('404')) throw error;
+    const recent = JSON.parse(gh('api', `repos/${repository}/releases?per_page=100`));
+    return recent.find(item => item.tag_name === tag);
+  }
+}
+
 // All writes are confined to immutable release assets and the generated distribution branch.
 export async function publishMarketplace({ root, directory, gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8' }).trim(), verify, readRemote, push }) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -32,12 +41,11 @@ export async function publishMarketplace({ root, directory, gh = (...args) => ex
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(item.slug) || item.tag !== `plugin-${item.slug}-${item.release.version}` || item.filename !== `${item.slug}-${item.release.version}.vettapkg`) throw new Error('Invalid publication package');
     const archive = inside(join(directory, 'artifacts'), item.filename);
     assertExistingRelease(item, readFileSync(archive));
-    let release;
-    try { release = JSON.parse(gh('api', `repos/${repository}/releases/tags/${item.tag}`)); }
-    catch (error) { if (!String(error.stderr ?? error.message).includes('404')) throw error; }
+    let release = releaseByTag(gh, repository, item.tag);
     if (!release) {
       gh('release', 'create', item.tag, archive, '--repo', repository, '--draft', '--target', publication.sourceSha, '--title', `${item.slug} ${item.release.version}`, '--notes', `Built from ${publication.sourceSha}.`);
-      release = JSON.parse(gh('api', `repos/${repository}/releases/tags/${item.tag}`));
+      release = releaseByTag(gh, repository, item.tag);
+      if (!release) throw new Error(`Created draft release is unavailable: ${item.tag}`);
     }
     const asset = release.assets.find(x => x.name === item.filename);
     if (!asset) {

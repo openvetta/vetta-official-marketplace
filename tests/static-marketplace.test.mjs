@@ -115,13 +115,14 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
   const gh = (...args) => {
     if (args[0] === 'api') {
       if (args[1] === 'repos/test/market') return JSON.stringify({ private: isPrivate });
-      if (!release) { const error = new Error('HTTP 404'); error.stderr = '404'; throw error; }
+      if (args[1] === 'repos/test/market/releases?per_page=100') return JSON.stringify(release ? [release] : []);
+      if (!release || release.draft) { const error = new Error('HTTP 404'); error.stderr = '404'; throw error; }
       return JSON.stringify(release);
     }
     if (args[1] === 'create') {
       assert.equal(release, undefined);
       uploaded = readFileSync(args[3]);
-      release = { draft: true, target_commitish: sha, assets: [{ name: first.packages[0].filename, url: 'https://api.github.com/repos/test/market/releases/assets/123' }] };
+      release = { tag_name: first.packages[0].tag, draft: true, target_commitish: sha, assets: [{ name: first.packages[0].filename, url: 'https://api.github.com/repos/test/market/releases/assets/123' }] };
       if (fail) throw new Error('upload response lost');
       return '';
     }
