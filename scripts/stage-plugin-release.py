@@ -19,6 +19,23 @@ SKIP_DIRS = {"node_modules", "src", "test", "tests", "release", ".git", ".vite"}
 MAX_BYTES = 50 * 1024 * 1024
 
 
+def packaged_bytes(path: Path, relative: str) -> bytes:
+    data = path.read_bytes()
+    if relative != "dist/mf-stats.json":
+        return data
+    stats = json.loads(data)
+    build_output = stats.get("buildOutput")
+    if isinstance(build_output, list):
+        stats["buildOutput"] = sorted(
+            build_output,
+            key=lambda item: (
+                item.get("fileName", "") if isinstance(item, dict) else "",
+                item.get("type", "") if isinstance(item, dict) else "",
+            ),
+        )
+    return json.dumps(stats, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
 def plugin_entry(catalog: dict, slug: str) -> dict:
     for ability in catalog["abilities"]:
         if ability["type"] == "plugin" and ability["slug"] == slug:
@@ -82,7 +99,7 @@ def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
                 info.compress_type = zipfile.ZIP_DEFLATED
                 info.create_system = 3
                 info.external_attr = 0o100644 << 16
-                archive.writestr(info, path.read_bytes(), compresslevel=9)
+                archive.writestr(info, packaged_bytes(path, relative), compresslevel=9)
         data = target.read_bytes()
         if len(data) > MAX_BYTES:
             raise ValueError(f"Plugin package exceeds the 50 MB Desktop limit: {slug}")

@@ -27,6 +27,7 @@ function fixture(t) {
   put('abilities/plugins/demo/ability.json', { schemaVersion: 1, type: 'plugin', slug: 'demo', version: '1.0.0' });
   put('abilities/plugins/demo/src/index.ts', 'development source');
   put('abilities/plugins/demo/dist/index.js', 'export default {}');
+  put('abilities/plugins/demo/dist/mf-stats.json', { buildOutput: [{ fileName: 'b.js' }, { fileName: 'a.js' }] });
   put('abilities/plugins/demo/detail.json', { schemaVersion: 1, blocks: [] });
   put('abilities/skills/guide/SKILL.md', '---\nname: guide\ndescription: Guide\nversion: 1.0.0\n---\nUse the guide.');
   put('README.md', 'source repository');
@@ -58,6 +59,7 @@ test('publish, browse distribution, edit source, publish next version and retain
   assert.equal(existsSync(join(first.site, 'abilities/plugins/demo/plugin.json')), false);
   assert.equal(existsSync(join(first.site, 'README.md')), false);
   assert.ok(existsSync(join(first.site, 'abilities/skills/guide/SKILL.md')));
+  f.put('abilities/plugins/demo/dist/mf-stats.json', { buildOutput: [{ fileName: 'a.js' }, { fileName: 'b.js' }] });
   const repeated = await f.run('repeated');
   assert.deepEqual(readFileSync(join(first.artifacts, 'demo-1.0.0.vettapkg')), readFileSync(join(repeated.artifacts, 'demo-1.0.0.vettapkg')));
   f.put('README.md', 'documentation changed');
