@@ -115,9 +115,17 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
   const gh = (...args) => {
     if (args[0] === 'api') {
       if (args[1] === 'repos/test/market') return JSON.stringify({ private: isPrivate });
-      if (args[1] === 'repos/test/market/releases?per_page=100') return JSON.stringify(release ? [release] : []);
       if (!release || release.draft) { const error = new Error('HTTP 404'); error.stderr = '404'; throw error; }
       return JSON.stringify(release);
+    }
+    if (args[1] === 'view') {
+      if (!release) { const error = new Error('HTTP 404'); error.stderr = '404'; throw error; }
+      return JSON.stringify({
+        tagName: release.tag_name,
+        isDraft: release.draft,
+        targetCommitish: release.target_commitish,
+        assets: release.assets.map(asset => ({ name: asset.name, apiUrl: asset.url })),
+      });
     }
     if (args[1] === 'create') {
       assert.equal(release, undefined);

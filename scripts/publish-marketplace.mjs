@@ -14,8 +14,18 @@ function releaseByTag(gh, repository, tag) {
   try { return JSON.parse(gh('api', `repos/${repository}/releases/tags/${tag}`)); }
   catch (error) {
     if (!String(error.stderr ?? error.message).includes('404')) throw error;
-    const recent = JSON.parse(gh('api', `repos/${repository}/releases?per_page=100`));
-    return recent.find(item => item.tag_name === tag);
+  }
+  try {
+    const release = JSON.parse(gh('release', 'view', tag, '--repo', repository, '--json', 'tagName,isDraft,targetCommitish,assets'));
+    return {
+      tag_name: release.tagName,
+      draft: release.isDraft,
+      target_commitish: release.targetCommitish,
+      assets: release.assets.map(asset => ({ name: asset.name, url: asset.apiUrl })),
+    };
+  } catch (error) {
+    if (!String(error.stderr ?? error.message).includes('404')) throw error;
+    return undefined;
   }
 }
 
