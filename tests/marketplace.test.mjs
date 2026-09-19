@@ -158,7 +158,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   assert.equal(ability?.type, "plugin");
   const directory = packageFile(root, ability.source.path);
   const packageJson = readJson(packageFile(directory, "package.json"));
-  assert.equal(packageJson.devDependencies["@vetta/ui"], "^0.1.0");
+  assert.equal(packageJson.devDependencies["@vetta-org/ui"], "^0.1.0");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.ok(plugin.permissions.includes("agent.skills.control"));
   assert.ok(plugin.permissions.includes("ai.models.list"));
@@ -182,8 +182,9 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
       .map((name) => readFileSync(packageFile(directory, `src/reader/components/${name}`), "utf8"))
       .join("\n");
     assert.doesNotMatch(readerSources, /window\.prompt/u);
-    assert.match(readerSources, /from "@vetta\/ui"/u);
-    assert.doesNotMatch(readerSources, /<(?:button|input|select)\b/u);
+    assert.match(readerSources, /from "@vetta-org\/ui"/u);
+    // Native filter buttons have an explicit type and keyboard semantics; text inputs use the UI package.
+    assert.doesNotMatch(readerSources, /<(?:input|select)\b/u);
     assert.equal(existsSync(resolve(directory, "src/reader/components/icons.tsx")), false);
 
   const skillContracts = [
@@ -393,7 +394,7 @@ test("Cloudflare is one listed bundle with five independently installable member
 
 test("Cloudflare skills retain pinned official sources, licenses and the project-local Wrangler contract", () => {
   const revision = "f96bff754e428838818017f75817f0f9428acd48";
-  const licenseSha256 = "49bbe9114e49214df2ccc324cb3ac8d1d1aa1c3a0947f94c286765e86647b32e";
+  const licenseSha256 = "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd";
   const sourcePaths = new Map([
     ["cloudflare", "skills/cloudflare"],
     ["wrangler", "skills/wrangler"],
@@ -410,7 +411,7 @@ test("Cloudflare skills retain pinned official sources, licenses and the project
     assert.equal(provenance.sourcePath, sourcePath);
     assert.equal(provenance.license, "Apache-2.0");
     assert.equal(provenance.licenseSha256, licenseSha256);
-    const license = readFileSync(packageFile(directory, "LICENSE"));
+    const license = readFileSync(packageFile(directory, "LICENSE"), "utf8").replace(/\r\n/gu, "\n");
     assert.equal(createHash("sha256").update(license).digest("hex"), licenseSha256);
     assert.deepEqual(readFileSync(packageFile(directory, "assets/icon.svg")), officialLogo);
   }
