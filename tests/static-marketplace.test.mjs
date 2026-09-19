@@ -121,7 +121,7 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
       return JSON.stringify(release);
     }
     if (args[1] === 'view') {
-      if (!release) { const error = new Error('HTTP 404'); error.stderr = '404'; throw error; }
+      if (!release) { const error = new Error('release not found'); error.stderr = 'release not found'; throw error; }
       return JSON.stringify({
         tagName: release.tag_name,
         isDraft: release.draft,

@@ -10,10 +10,15 @@ export function assertExistingRelease(item, bytes) {
   if (digest(bytes) !== item.release.artifact.sha256) throw new Error(`Published bytes differ for ${item.slug}; use a new version`);
 }
 
+function isMissingRelease(error) {
+  const message = String(error.stderr ?? error.message).toLowerCase();
+  return message.includes('404') || message.includes('release not found');
+}
+
 function releaseByTag(gh, repository, tag) {
   try { return JSON.parse(gh('api', `repos/${repository}/releases/tags/${tag}`)); }
   catch (error) {
-    if (!String(error.stderr ?? error.message).includes('404')) throw error;
+    if (!isMissingRelease(error)) throw error;
   }
   try {
     const release = JSON.parse(gh('release', 'view', tag, '--repo', repository, '--json', 'tagName,isDraft,targetCommitish,assets'));
@@ -24,7 +29,7 @@ function releaseByTag(gh, repository, tag) {
       assets: release.assets.map(asset => ({ name: asset.name, url: asset.apiUrl })),
     };
   } catch (error) {
-    if (!String(error.stderr ?? error.message).includes('404')) throw error;
+    if (!isMissingRelease(error)) throw error;
     return undefined;
   }
 }
