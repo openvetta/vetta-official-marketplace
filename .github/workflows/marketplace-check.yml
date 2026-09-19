@@ -39,7 +39,7 @@ jobs:
         if: steps.schema.outputs.version == '3'
         shell: bash
         run: |
-          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]:[]); console.log([...new Set(a.map(x=>x.source.path))].join('\n'))" > /tmp/marketplace-plugin-paths
+          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]); console.log([...new Set(a.map(x=>x.source.path))].join('\n'))" > /tmp/marketplace-plugin-paths
           while IFS= read -r path; do
             (cd "$path" && npm ci && npm run build)
           done < /tmp/marketplace-plugin-paths
@@ -48,7 +48,7 @@ jobs:
         if: steps.schema.outputs.version == '3'
         shell: bash
         run: |
-          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]:[]); for(const x of a) console.log(x.slug, x.releases.at(-1).minAppVersion)" > /tmp/marketplace-plugin-releases
+          node -e "const m=require('./.vetta/marketplace.json'); const a=m.abilities.flatMap(x=>x.type==='plugin'?[x]:x.type==='bundle'?x.config.members.filter(y=>y.type==='plugin'&&y.source):[]); for(const x of a) console.log(x.slug, x.releases.at(-1).minAppVersion)" > /tmp/marketplace-plugin-releases
           while read -r slug app_version; do
             python3 scripts/stage-plugin-release.py "$slug" --min-app-version "$app_version"
           done < /tmp/marketplace-plugin-releases

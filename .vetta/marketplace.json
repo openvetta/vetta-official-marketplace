@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "vetta-official-marketplace",
   "displayName": "Vetta Official Marketplace",
-  "marketplaceVersion": "2026.09.19-3",
+  "marketplaceVersion": "2026.09.19-4",
   "repository": "https://github.com/openvetta/vetta-official-marketplace",
   "minAppVersion": "0.5.59",
   "abilities": [

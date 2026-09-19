@@ -30,3 +30,8 @@ test("generated release PR commits can explicitly dispatch the marketplace gate"
   assert.match(marketplaceCheck, /base_ref:/u);
   assert.match(workflow, /gh workflow run marketplace-check\.yml/u);
 });
+
+test("marketplace checks use valid plugin list expressions", () => {
+  assert.doesNotMatch(marketplaceCheck, /:\[\]:\[\]/u);
+  assert.match(marketplaceCheck, /flatMap\(x=>x\.type==='plugin'\?\[x\]:x\.type==='bundle'\?/u);
+});
