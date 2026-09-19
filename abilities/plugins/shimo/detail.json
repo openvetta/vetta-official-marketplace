@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "A quiet reader for active learning",
+      "description": "Import a copy of a PDF, Markdown or TXT file, choose a configured Vetta model, and ask about selected passages without leaving the reader.",
+      "badges": [
+        "Private copy",
+        "Offline records",
+        "Your choice of AI model"
+      ]
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "title": "Library first",
+          "description": "Materials are copied into private plugin storage before reading."
+        },
+        {
+          "title": "Selection actions",
+          "description": "Ask, explain, translate, add pinyin or record a thought only after selecting text; AI answers go straight to reading records."
+        },
+        {
+          "title": "Notes that stay yours",
+          "description": "Highlights and AI answers are saved with their location and can be exported by material title."
+        }
+      ]
+    }
+  ]
+}

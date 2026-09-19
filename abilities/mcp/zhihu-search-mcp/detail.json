@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "ZHIHU CONTENT IN YOUR CONVERSATION",
+      "title": "Ask Vetta to find it on Zhihu",
+      "description": "Search discussions, request an answer or check current trending topics without leaving your Vetta conversation.",
+      "badges": [
+        "Search",
+        "Answers",
+        "Trending topics"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "What is trending on Zhihu today? Pick the technology topics and include links.",
+        "assistant_reply": "I’ll check the current list, pick relevant technology topics and include the available source links so you can explore them."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "One connection, several ways to explore",
+      "items": [
+        {
+          "title": "Find relevant discussions",
+          "description": "Describe a question or a topic in your own words and ask Vetta to search Zhihu.",
+          "icon": "solar:magnifer-linear"
+        },
+        {
+          "title": "Get an explanation",
+          "description": "Ask a focused question or follow up on something you found.",
+          "icon": "solar:chat-round-dots-linear"
+        },
+        {
+          "title": "Explore what is current",
+          "description": "View trending topics and narrow them to an area you care about.",
+          "icon": "solar:chart-linear"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "One-time preparation",
+      "content": "This connection requires your own Zhihu Access Secret and the local helper uv. Vetta does not currently install uv automatically. Follow the links below to prepare them, then restart Vetta. First use downloads supporting files and may take longer."
+    },
+    {
+      "type": "steps",
+      "title": "Connect and start asking",
+      "items": [
+        {
+          "title": "Install Zhihu Search",
+          "description": "Select this member inside Zhihu Research and choose Install. Add Zhihu Research Guide too if you want guidance on research and sources."
+        },
+        {
+          "title": "Enter your access key",
+          "description": "Paste the Access Secret into Vetta’s protected setup field and finish configuration. You do not need to edit configuration files."
+        },
+        {
+          "title": "Ask in chat",
+          "description": "Once connected, ask Vetta to find a discussion, explain a question or check trending topics. Manage the connection under My Abilities."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Your account and quota",
+      "content": "Requests use your Zhihu quota. Keep the access key out of chats and shared logs. The connection supports some account-related actions and content creation beyond search; use those only when you explicitly request them."
+    },
+    {
+      "type": "links",
+      "title": "Need help?",
+      "items": [
+        {
+          "label": "Get a Zhihu access key",
+          "href": "https://developer.zhihu.com/"
+        },
+        {
+          "label": "First-time setup: install uv",
+          "href": "https://docs.astral.sh/uv/getting-started/installation/"
+        },
+        {
+          "label": "Advanced setup and troubleshooting",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/zhihu-search-mcp/README.md"
+        }
+      ]
+    }
+  ]
+}

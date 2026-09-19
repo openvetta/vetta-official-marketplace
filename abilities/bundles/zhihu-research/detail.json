@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "ZHIHU RESEARCH IN VETTA",
+      "title": "Turn community experiences into useful evidence",
+      "description": "Tell Vetta what you want to understand. Find relevant Zhihu discussions, compare viewpoints and keep the links you need to check the answer.",
+      "badges": [
+        "Product experiences",
+        "Current discussions",
+        "Source links"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Find Zhihu discussions about standing desks for working from home. Summarize the benefits, common complaints and source links.",
+        "assistant_reply": "I’ll look for relevant experiences, separate recurring themes from individual opinions, and include links you can review. I’ll flag gaps in the evidence."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Start with the question you actually have",
+      "items": [
+        {
+          "title": "Understand real experiences",
+          "description": "Ask about a product or a way of working, and compare what different people report.",
+          "icon": "solar:chat-round-dots-linear"
+        },
+        {
+          "title": "Follow current discussions",
+          "description": "Find topics people are discussing on Zhihu and focus on those relevant to your interests.",
+          "icon": "solar:chart-linear"
+        },
+        {
+          "title": "Keep the evidence",
+          "description": "Request source links alongside the summary, then follow up on a particular point.",
+          "icon": "solar:link-linear"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Before you start: one-time preparation",
+      "content": "You need a Zhihu Access Secret and uv, a small local helper. Vetta does not currently install uv for you. Use the preparation links below, then restart Vetta after installing it. The first connection also needs internet access to download supporting files."
+    },
+    {
+      "type": "steps",
+      "title": "Three steps in Vetta",
+      "items": [
+        {
+          "title": "Install Zhihu Research",
+          "description": "Choose Install and select both Zhihu Research Guide and Zhihu Search. You can manage them separately later under My Abilities."
+        },
+        {
+          "title": "Connect your Zhihu access",
+          "description": "Paste your Access Secret into the protected field when prompted and complete setup. Do not send the key in chat."
+        },
+        {
+          "title": "Ask your question",
+          "description": "Once connected, describe your topic in chat. Ask for a summary, contrasting viewpoints and links; no commands or tool names to learn."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Stay in control",
+      "content": "Queries use your Zhihu quota. Check linked sources before relying on important conclusions. The connection also supports some account-related actions and content creation beyond search; use those only when you explicitly request them."
+    },
+    {
+      "type": "links",
+      "title": "Need help?",
+      "items": [
+        {
+          "label": "Get a Zhihu access key",
+          "href": "https://developer.zhihu.com/"
+        },
+        {
+          "label": "First-time setup: install uv",
+          "href": "https://docs.astral.sh/uv/getting-started/installation/"
+        },
+        {
+          "label": "Advanced setup and troubleshooting",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/zhihu-research/README.md"
+        }
+      ]
+    }
+  ]
+}

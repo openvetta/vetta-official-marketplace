@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "WRANGLER IN VETTA",
+      "title": "Run the official Cloudflare workflow from your project",
+      "description": "Help Vetta choose current Wrangler commands, configuration and safe deployment steps without relying on stale syntax.",
+      "badges": ["Local development", "Bindings", "Deployments", "Operations"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Add an R2 binding to this Worker, update its types, test locally and prepare a deployment.",
+        "assistant_reply": "I’ll inspect the project and its package manager, update the existing configuration, verify locally, and ask before any live deployment."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Project-aware command guidance",
+      "items": [
+        { "title": "Respect the project", "description": "Use the repository's package manager and project-local Wrangler version instead of forcing a global installation.", "icon": "solar:folder-with-files-linear" },
+        { "title": "Manage Cloudflare resources", "description": "Work with Workers, KV, R2, D1, Queues, Workflows and other supported developer services.", "icon": "solar:server-square-cloud-linear" },
+        { "title": "Keep secrets out of chat", "description": "Use Wrangler's protected secret flows and avoid logging or hardcoding credentials.", "icon": "solar:shield-keyhole-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Use it in Vetta",
+      "items": [
+        { "title": "Open a Cloudflare project", "description": "Work from the project root so Vetta can inspect package and Wrangler configuration." },
+        { "title": "Describe the operation", "description": "Ask to develop locally, configure a binding, inspect logs or prepare a deployment." },
+        { "title": "Approve live changes", "description": "Review commands and deployment targets before actions that affect your Cloudflare account." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Wrangler is installed per project",
+      "content": "This package does not install a global CLI. If Wrangler is missing, Vetta follows the project's package-manager conventions and Cloudflare's project-local installation guidance. Node.js and network access may be required."
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Wrangler documentation", "href": "https://developers.cloudflare.com/workers/wrangler/" },
+        { "label": "Install or update Wrangler", "href": "https://developers.cloudflare.com/workers/wrangler/install-and-update/" }
+      ]
+    }
+  ]
+}

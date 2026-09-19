@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "受管本地模型网关",
+      "title": "用一个本地入口调用订阅账号模型",
+      "description": "通过 CLIProxyAPI 连接受支持的服务商账号，动态发现可路由模型，并按协议加入 Vetta；不复制上游源码，也不维护长期 Fork。",
+      "badges": [
+        "固定版本制品",
+        "仅回环监听",
+        "OAuth 服务商"
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "这是第三方集成，仍需遵守各服务商条款、地区规则和账号政策。每次 OAuth 都必须由你主动发起；Vetta 不导入浏览器 Cookie，也不扫描其它 CLI 的凭据。"
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:shield-check-bold",
+          "title": "不 Fork 也能持续升级",
+          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 7.2.147 与 Gemini Provider 1.0.5。组合验证后只发布插件补丁即可推进版本，无需修改 Desktop。"
+        },
+        {
+          "icon": "solar:login-3-bold",
+          "title": "六条 OAuth 账号通道",
+          "description": "浏览器 OAuth：Gemini CLI、Codex、Claude Code、Antigravity；设备码 OAuth：Kimi、xAI。Gemini CLI 来自单独锁定的原生 Provider 插件。"
+        },
+        {
+          "icon": "solar:server-minimalistic-bold",
+          "title": "每个供应商只展示一份模型",
+          "description": "同供应商账号组成一个路由池；每个模型与协议路由只展示一次，所有已启用账号仍可参与负载均衡和故障切换。"
+        },
+        {
+          "icon": "solar:gallery-add-bold",
+          "title": "OpenAI 与 Google 图片模型",
+          "description": "支持图片的 OpenAI、Google 与 Antigravity 路由会分别显示为图片模型，并按模型使用 Images 或 generateContent 适配器处理文生图及受支持的图生图。"
+        },
+        {
+          "icon": "solar:chart-square-bold",
+          "title": "健康状况一目了然",
+          "description": "每张凭据卡片自带请求历史，账号出问题时能在影响对话之前就被看见。模型清单按需弹出查看，不占据页面。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "安装并启用",
+          "description": "插件为当前系统和架构下载两份锁定制品；Vetta 再次校验 SHA-256，并使用动态回环端口启动服务。"
+        },
+        {
+          "title": "连接账号",
+          "description": "从侧边栏打开「CPA 配置」页面并授权服务商。你可以随时添加账号；需要彻底更换时，先移除旧的本地凭据，再授权新账号。升级运行时不会覆盖已连接账号。"
+        },
+        {
+          "title": "同步模型",
+          "description": "读取实时 `/v1/models` 目录，按供应商选择路由，并把文本协议组发布到本插件拥有的 Vetta 命名空间；图片路由会出现在 Vetta 的图片模型设置中。"
+        },
+        {
+          "title": "在「CPA 配置」页面日常使用",
+          "description": "侧边栏的「CPA 配置」页面把每个凭据呈现为一张卡片：近期成功与失败次数、按窗口的健康状态条，以及停用、清除配额状态和移除的开关。"
+        }
+      ]
+    },
+    {
+      "type": "markdown",
+      "content": "### 其它受支持配置通道\n\nCLIProxyAPI 还支持 Gemini、Gemini Interactions、Claude、Codex、xAI、Vertex API Key，Vertex Service Account 导入，以及显式 OpenAI-compatible 上游。插件首个版本首先开放六条 OAuth 主路径；不会代理无限制的 management `/api-call`，也不会开放上游插件商店。API Key 表单需要逐服务商设计秘密处理交互，后续只升级市场插件即可加入，不需要修改 Desktop。\n\n### 运行时边界\n\nDesktop 只提供通用的受管服务生命周期和插件自有模型注册表。所有 CLIProxyAPI endpoint、服务商名称、OAuth 状态转换和协议映射都在本市场包中。"
+    }
+  ]
+}

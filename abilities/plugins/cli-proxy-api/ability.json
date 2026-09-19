@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "cli-proxy-api",
+  "version": "1.10.2",
+  "icon": "assets/icon.png",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/router-for-me/CLIProxyAPI" },
+      { "key": "docs", "value": "https://help.router-for.me/cn/management/api" }
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
+  }
+}

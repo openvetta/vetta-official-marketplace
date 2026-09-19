@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "在 Vetta 中使用 CLOUDFLARE",
+      "title": "依据最新官方资料，开发并运维 Cloudflare 项目",
+      "description": "一个可按需选择的组合包：让 Vetta 获得 Cloudflare 平台知识、项目级 Wrangler 实践、实时文档，以及可选的账号操作能力。",
+      "badges": ["Workers", "Wrangler", "实时文档", "可选账号授权"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "审查这个 Worker，添加合适的存储绑定，在本地验证，并准备一份安全的部署方案。",
+        "assistant_reply": "我会检查项目、核对最新 Cloudflare 文档、应用 Workers 最佳实践，并在执行部署或账号变更前请你确认。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "只选择当前需要的能力",
+      "items": [
+        {
+          "title": "带着平台全貌做设计",
+          "description": "依据官方资料处理 Workers、Pages、存储、AI、网络与安全场景，优先检索而不是依赖旧知识。",
+          "icon": "solar:cloud-linear"
+        },
+        {
+          "title": "开发并审查项目",
+          "description": "遵循项目本地的 Wrangler 约定，在部署前检查 Workers 代码中的生产风险。",
+          "icon": "solar:code-square-linear"
+        },
+        {
+          "title": "查文档或操作线上服务",
+          "description": "无需登录即可搜索公开文档；确有需要时，再单独授权账号操作。",
+          "icon": "solar:server-square-cloud-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "三步开始",
+      "items": [
+        {
+          "title": "选择组合成员",
+          "description": "按需安装平台指南、Wrangler 指南、Workers 审查、公开文档或账号连接，可以任意组合。"
+        },
+        {
+          "title": "只在需要时授权",
+          "description": "公开文档连接无需登录；账号连接会打开 Cloudflare 浏览器授权，应只授予完成任务所需的最小范围。"
+        },
+        {
+          "title": "说明目标和操作边界",
+          "description": "打开项目，告诉 Vetta 要开发、审查或查询什么；若允许修改线上资源，请在执行前明确说明。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "线上操作需要明确确认",
+      "content": "Wrangler 和已授权的账号连接可能部署或修改真实 Cloudflare 资源，部分服务还会产生费用。请核对账号、环境、权限和命令，优先使用测试资源与最小权限。"
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "没有隐藏的本地 MCP 运行时",
+      "content": "两个连接都使用 Cloudflare 托管服务。公开文档无需登录；账号操作通过浏览器授权，不需要把 Token 发到聊天中。Wrangler 仍是项目本地依赖，本组合包不会全局安装它。"
+    },
+    {
+      "type": "links",
+      "title": "官方资料",
+      "items": [
+        { "label": "Cloudflare 开发者文档", "href": "https://developers.cloudflare.com/" },
+        { "label": "Cloudflare 官方 Skills", "href": "https://github.com/cloudflare/skills" },
+        { "label": "接入与安全说明", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/bundles/cloudflare-developer-platform/README.zh.md" }
+      ]
+    }
+  ]
+}

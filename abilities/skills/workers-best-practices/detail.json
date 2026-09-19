@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "PRODUCTION WORKERS",
+      "title": "Catch Workers-specific mistakes before deployment",
+      "description": "Give Vetta focused review criteria for request handling, asynchronous work, global state, bindings, secrets and observability.",
+      "badges": ["Code review", "Reliability", "Performance", "Security"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Review this Worker for production risks before I deploy it.",
+        "assistant_reply": "I’ll inspect request lifecycles, floating promises, streaming, bindings, secret handling and observability, then prioritize concrete fixes."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Review what is unique to Workers",
+      "items": [
+        { "title": "Request lifecycle", "description": "Check streaming, background work and response handling against the Workers execution model.", "icon": "solar:bolt-linear" },
+        { "title": "State and bindings", "description": "Identify unsafe global state and validate bindings, generated types and runtime configuration.", "icon": "solar:database-linear" },
+        { "title": "Operations and security", "description": "Review secret handling, logging, error paths and useful observability before release.", "icon": "solar:shield-check-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Use it in Vetta",
+      "items": [
+        { "title": "Point to the Worker", "description": "Ask Vetta to write or review the Worker and its Wrangler configuration." },
+        { "title": "State the production context", "description": "Share expected traffic, data dependencies, latency and failure requirements." },
+        { "title": "Apply verified fixes", "description": "Review prioritized findings, update the code and run the project's relevant tests before deployment." }
+      ]
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Cloudflare Workers documentation", "href": "https://developers.cloudflare.com/workers/" },
+        { "label": "Cloudflare Skills repository", "href": "https://github.com/cloudflare/skills" }
+      ]
+    }
+  ]
+}

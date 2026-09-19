@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "zhihu-search",
+  "version": "2.0.0",
+  "icon": "assets/icon.png",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/klarkxy/zhihu-search"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/skills/zhihu-search/README.md"
+      },
+      {
+        "key": "license",
+        "value": "https://github.com/klarkxy/zhihu-search/blob/2246138b8c04a7d1647beaf23381468f63aa1bfe/LICENSE"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "知乎检索指南",
+        "description": "让 Vetta 围绕你的问题查找社区观点、整理依据，并说明资料的局限。",
+        "tags": [
+          "知乎",
+          "检索",
+          "口碑",
+          "来源",
+          "中文社区"
+        ]
+      }
+    }
+  },
+  "name": "Zhihu Research Guide",
+  "description": "Help Vetta focus your research, organize community viewpoints and explain the limits of the evidence.",
+  "configVersion": 1,
+  "license": "SATA-2.0",
+  "author": "Klarkxy",
+  "category": "Social",
+  "categoryI18n": {
+    "zh": "社交",
+    "en": "Social"
+  },
+  "tags": [
+    "zhihu",
+    "research",
+    "sources",
+    "chinese-community"
+  ]
+}

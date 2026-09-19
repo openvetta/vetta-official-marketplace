@@ -1,0 +1,14 @@
+{
+  "package": "@lobehub/icons-static-svg",
+  "version": "1.94.0",
+  "repository": "https://github.com/lobehub/lobe-icons",
+  "license": "MIT",
+  "icons": {
+    "gemini-cli.svg": "icons/geminicli-color.svg",
+    "codex.svg": "icons/openai.svg",
+    "claude.svg": "icons/claudecode-color.svg",
+    "antigravity.svg": "icons/antigravity.svg",
+    "kimi.svg": "icons/kimi.svg",
+    "xai.svg": "icons/grok.svg"
+  }
+}

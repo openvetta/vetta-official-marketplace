@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "Work with Notion from Vetta",
+      "items": [
+        {
+          "title": "Find workspace knowledge",
+          "description": "Search pages and databases, then bring the relevant context into your conversation.",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "Read and organize pages",
+          "description": "Summarize existing material, update content and keep project notes organized.",
+          "icon": "solar:notes-bold"
+        },
+        {
+          "title": "Create new content",
+          "description": "Turn a conversation into pages, action items or structured workspace content.",
+          "icon": "solar:document-add-bold"
+        },
+        {
+          "title": "Browser authorization",
+          "description": "Connect your own Notion workspace by signing in and approving access—no developer token or integration setup is required.",
+          "icon": "solar:shield-check-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Connect in three steps",
+      "items": [
+        {
+          "title": "Install Notion",
+          "description": "Add this Ability from the Vetta marketplace. There is no local server or runtime to install."
+        },
+        {
+          "title": "Authorize in your browser",
+          "description": "Sign in to Notion, choose the workspace and approve the access shown by Notion."
+        },
+        {
+          "title": "Ask Vetta to use Notion",
+          "description": "Request a search, summary, page update or new page in a conversation."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "You control access",
+      "content": "Notion shows the workspace and permissions before you approve them. You can disconnect the connector in Vetta and manage the connection from Notion."
+    },
+    {
+      "type": "markdown",
+      "content": "## Privacy\n\nVetta connects directly to Notion's hosted MCP endpoint over HTTPS. Authorization credentials stay on this device and are not uploaded to Vetta's servers. Notion data is accessed only when a conversation uses the connector."
+    }
+  ]
+}

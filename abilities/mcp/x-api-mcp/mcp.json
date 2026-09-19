@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "slug": "x-api-mcp",
+  "version": "1.0.0",
+  "server": {
+    "type": "http",
+    "url": "https://api.x.com/mcp"
+  },
+  "parameters": [
+    {
+      "key": "Authorization",
+      "label": "X App-only Bearer Token",
+      "required": true,
+      "secret": true,
+      "placeholder": "AAAA...",
+      "helpUrl": "https://developer.x.com/en/portal/dashboard",
+      "valueTemplate": "Bearer {value}"
+    }
+  ],
+  "browserAuth": false
+}

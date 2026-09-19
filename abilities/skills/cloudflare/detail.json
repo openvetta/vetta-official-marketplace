@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "CLOUDFLARE IN VETTA",
+      "title": "Design with the whole Cloudflare platform in view",
+      "description": "Give Vetta the platform map and decision rules it needs to choose suitable Cloudflare services, configuration and deployment paths.",
+      "badges": ["Workers", "Storage", "AI", "Networking", "Security"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Design a Cloudflare architecture for a global API with durable state, object storage and private origin access.",
+        "assistant_reply": "I’ll separate compute, state, storage and network access, verify current Cloudflare contracts, and explain the operational tradeoffs before changing any resources."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Use the right service for the job",
+      "items": [
+        {
+          "title": "Choose the architecture",
+          "description": "Compare Workers, Durable Objects, KV, D1, R2 and networking products using current platform constraints.",
+          "icon": "solar:diagram-up-linear"
+        },
+        {
+          "title": "Keep configuration coherent",
+          "description": "Connect bindings, secrets, compatibility settings and deployment environments without duplicating sources of truth.",
+          "icon": "solar:settings-linear"
+        },
+        {
+          "title": "Retrieve before relying",
+          "description": "Check live Cloudflare documentation for APIs, limits and pricing that can change over time.",
+          "icon": "solar:book-2-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Use it in Vetta",
+      "items": [
+        { "title": "Describe the outcome", "description": "Explain what you are building, your traffic, data and security needs, and any existing Cloudflare resources." },
+        { "title": "Review the proposal", "description": "Ask Vetta to compare alternatives and verify changing limits or API contracts before implementation." },
+        { "title": "Choose when to act", "description": "Use the separate documentation and account connections only when the task needs live information or resource changes." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Guidance, not account access",
+      "content": "This package supplies platform guidance only. Install the optional Cloudflare Documentation or Cloudflare API connection when you want live documentation or account operations."
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Cloudflare developer documentation", "href": "https://developers.cloudflare.com/" },
+        { "label": "Cloudflare Skills repository", "href": "https://github.com/cloudflare/skills" }
+      ]
+    }
+  ]
+}

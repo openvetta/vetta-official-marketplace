@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "vetta-tihu",
+  "version": "0.3.0",
+  "icon": "solar:bicycling-bold",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "README.md",
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

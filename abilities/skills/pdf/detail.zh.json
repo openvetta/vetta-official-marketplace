@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "PDF 读写能力",
+      "items": [
+        {
+          "title": "以渲染结果为准",
+          "description": "把页面渲染成图片来做视觉检查，而不是只看抽取出的文本流。",
+          "icon": "solar:eye-bold"
+        },
+        {
+          "title": "程序化生成",
+          "description": "用 reportlab 生成排版可控的 PDF。",
+          "icon": "solar:pen-new-square-bold"
+        },
+        {
+          "title": "文本与结构抽取",
+          "description": "用 pdfplumber / pypdf 做内容抽取与快速检查。",
+          "icon": "solar:magnifer-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "工作流",
+      "items": [
+        {
+          "title": "生成或读取",
+          "description": "按任务选择生成路径或抽取路径。"
+        },
+        {
+          "title": "渲染页面",
+          "description": "用 pdftoppm 把页面转成 PNG。"
+        },
+        {
+          "title": "逐页核对",
+          "description": "检查对齐、间距与可读性，有问题就改完再渲染一次。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "运行依赖",
+      "content": "视觉校验依赖 Poppler（pdftoppm）；未安装时该能力会退化为只做文本层检查，或请你在本地自行确认渲染效果。"
+    },
+    {
+      "type": "markdown",
+      "content": "## 适用场景\n\n版式与视觉效果重要的 PDF 任务：生成带格式的文档、审阅既有 PDF、交付前确认最终渲染。"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "notion",
+  "version": "1.0.0",
+  "icon": "https://www.notion.so/images/favicon.ico",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "README.md",
+    "meta": [
+      {
+        "key": "homepage",
+        "value": "https://developers.notion.com/guides/mcp/get-started-with-mcp"
+      }
+    ],
+    "i18n": {
+      "zh": { "path": "detail.zh.json" }
+    }
+  }
+}

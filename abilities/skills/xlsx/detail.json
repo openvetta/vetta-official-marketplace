@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "Spreadsheet capabilities",
+      "items": [
+        {
+          "title": "Zero format loss",
+          "description": "Editing an existing workbook preserves pivot tables, VBA macros, charts, sparklines, conditional formatting and named ranges.",
+          "icon": "solar:shield-check-bold"
+        },
+        {
+          "title": "CJK first-class",
+          "description": "Handles Chinese sheet names and headers, GB18030/GBK encodings, full-width characters, and Chinese number and date conventions.",
+          "icon": "solar:global-bold"
+        },
+        {
+          "title": "Create and analyze",
+          "description": "Builds workbooks from scratch or reads and analyzes existing files, including formula recalculation and validation.",
+          "icon": "solar:chart-square-bold"
+        },
+        {
+          "title": "Verified output",
+          "description": "Renders and checks the result before delivering, so formula and layout errors do not reach you.",
+          "icon": "solar:magnifer-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "How it works",
+      "items": [
+        {
+          "title": "Describe the spreadsheet you want",
+          "description": "For example: summarize this sales data by quarter and build a pivot table."
+        },
+        {
+          "title": "The agent writes the file directly",
+          "description": "No sub-agents are spawned; the .xlsx or .csv file is produced in place."
+        },
+        {
+          "title": "Self-check before delivery",
+          "description": "Formulas and formatting are validated before the result is returned."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Supported formats",
+      "content": ".xlsx, .xlsm, .xltx, .csv and .tsv. Existing files are written back in their original format without downgrade saves."
+    },
+    {
+      "type": "markdown",
+      "content": "## When to use\n\nReports, dashboards, budgets, financial models, pivot tables, and any task that produces or reads tabular data. Finance-specific conventions are isolated in their own section and do not affect general use."
+    }
+  ]
+}

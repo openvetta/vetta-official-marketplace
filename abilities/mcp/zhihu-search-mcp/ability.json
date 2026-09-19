@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "zhihu-search-mcp",
+  "version": "2.0.0",
+  "icon": "assets/icon.png",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/klarkxy/zhihu-search"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/zhihu-search-mcp/README.md"
+      },
+      {
+        "key": "license",
+        "value": "https://github.com/klarkxy/zhihu-search/blob/2246138b8c04a7d1647beaf23381468f63aa1bfe/LICENSE"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "知乎搜索",
+        "description": "在 Vetta 对话中搜索知乎内容、获取问题解答和查看当前热榜。",
+        "tags": [
+          "知乎",
+          "搜索",
+          "直答",
+          "热榜"
+        ]
+      }
+    }
+  },
+  "name": "Zhihu Search",
+  "description": "Search Zhihu, ask questions and explore current trending topics in your Vetta conversation.",
+  "configVersion": 1,
+  "license": "SATA-2.0",
+  "author": "Klarkxy",
+  "category": "Social",
+  "categoryI18n": {
+    "zh": "社交",
+    "en": "Social"
+  },
+  "tags": [
+    "zhihu",
+    "search",
+    "answers",
+    "trending"
+  ]
+}

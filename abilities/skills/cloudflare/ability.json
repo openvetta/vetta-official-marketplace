@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "type": "skill",
+  "slug": "cloudflare",
+  "name": "Cloudflare Platform",
+  "description": "Choose, configure and connect Cloudflare services with retrieval-first guidance across Workers, storage, AI, networking and security.",
+  "version": "1.0.0",
+  "configVersion": 1,
+  "license": "Apache-2.0",
+  "author": "Cloudflare",
+  "category": "Development",
+  "categoryI18n": { "zh": "开发", "en": "Development" },
+  "tags": ["cloudflare", "workers", "storage", "networking", "security"],
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/cloudflare/skills" },
+      { "key": "docs", "value": "https://developers.cloudflare.com/" },
+      { "key": "license", "value": "https://github.com/cloudflare/skills/blob/f96bff754e428838818017f75817f0f9428acd48/LICENSE" }
+    ],
+    "i18n": {
+      "zh": {
+        "name": "Cloudflare 平台",
+        "description": "以实时文档为准，为 Workers、存储、AI、网络和安全场景选择、配置并连接合适的 Cloudflare 服务。",
+        "tags": ["Cloudflare", "Workers", "存储", "网络", "安全"],
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

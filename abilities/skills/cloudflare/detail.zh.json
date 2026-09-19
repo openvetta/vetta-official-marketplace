@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "VETTA 中的 CLOUDFLARE",
+      "title": "从完整平台视角设计 Cloudflare 方案",
+      "description": "让 Vetta 掌握 Cloudflare 产品地图和选择规则，为你的需求匹配服务、配置和部署路径。",
+      "badges": ["Workers", "存储", "AI", "网络", "安全"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "为一个全球 API 设计 Cloudflare 架构，需要持久状态、对象存储和私有源站访问。",
+        "assistant_reply": "我会拆分计算、状态、存储和网络访问，核对当前 Cloudflare 合同，并在更改任何资源前说明运维取舍。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "为任务选择合适的服务",
+      "items": [
+        {
+          "title": "选择架构",
+          "description": "结合当前平台约束，比较 Workers、Durable Objects、KV、D1、R2 和网络产品。",
+          "icon": "solar:diagram-up-linear"
+        },
+        {
+          "title": "保持配置一致",
+          "description": "统一处理 Bindings、Secrets、兼容性设置和部署环境，避免重复事实源。",
+          "icon": "solar:settings-linear"
+        },
+        {
+          "title": "先检索再判断",
+          "description": "对可能变化的 API、限制和价格，优先核对 Cloudflare 实时文档。",
+          "icon": "solar:book-2-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中使用",
+      "items": [
+        { "title": "描述目标", "description": "说明要构建什么、流量与数据需求、安全边界，以及现有 Cloudflare 资源。" },
+        { "title": "审阅方案", "description": "让 Vetta 比较备选方案，并在实施前核对易变化的限制或 API 合同。" },
+        { "title": "决定何时执行", "description": "只有需要实时信息或账号操作时，再使用独立的文档或账号连接。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "提供指导，不自动访问账号",
+      "content": "这个包只提供平台知识。需要实时文档或账号操作时，再安装可选的 Cloudflare 文档或 Cloudflare API 连接。"
+    },
+    {
+      "type": "links",
+      "title": "官方资源",
+      "items": [
+        { "label": "Cloudflare 开发者文档", "href": "https://developers.cloudflare.com/" },
+        { "label": "Cloudflare Skills 仓库", "href": "https://github.com/cloudflare/skills" }
+      ]
+    }
+  ]
+}

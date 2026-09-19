@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "slug": "cloudflare-api",
+  "version": "1.0.0",
+  "server": {
+    "type": "http",
+    "url": "https://mcp.cloudflare.com/mcp"
+  },
+  "parameters": [],
+  "browserAuth": true
+}

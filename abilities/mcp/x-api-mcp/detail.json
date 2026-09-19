@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "X API through MCP",
+      "items": [
+        {
+          "title": "Search posts and users",
+          "description": "Search the X archive and look up users, posts, timelines and mentions.",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "Explore trends and news",
+          "description": "Fetch news stories and trends for a location using the hosted X MCP server.",
+          "icon": "solar:chart-bold"
+        },
+        {
+          "title": "Read-only app-only access",
+          "description": "Connect directly over HTTPS with an X App-only Bearer Token; no local runtime or bridge is required.",
+          "icon": "solar:shield-check-bold"
+        },
+        {
+          "title": "Vetta-managed secret input",
+          "description": "The token is collected as a secret parameter and stored in the MCP header configuration.",
+          "icon": "solar:key-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "How it works",
+      "items": [
+        {
+          "title": "Create an X app",
+          "description": "Create an app in the X Developer Portal and copy its App-only Bearer Token."
+        },
+        {
+          "title": "Install this Ability",
+          "description": "Vetta connects to the hosted X MCP endpoint and asks for the token through a protected input field."
+        },
+        {
+          "title": "Search and inspect X",
+          "description": "Use the available MCP tools for read operations such as post search, user lookup, trends and news."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Read-only scope",
+      "content": "The direct App-only route has no user context and cannot perform account actions. Writes such as bookmarks or Articles require the separate xurl OAuth bridge and are intentionally not hidden behind this Ability."
+    },
+    {
+      "type": "markdown",
+      "content": "## Security\n\nUse a dedicated X app and grant only the scopes you need. Vetta sends the Bearer Token only to `https://api.x.com/mcp` over HTTPS; never paste the token into prompts, source files or shared logs. X API usage remains subject to X rate limits and developer terms."
+    }
+  ]
+}

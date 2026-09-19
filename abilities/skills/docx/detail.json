@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "Word document capabilities",
+      "items": [
+        {
+          "title": "Unpack, edit XML, repack",
+          "description": "Edits happen at the OpenXML level, so styles, headers and footers, sections, numbering, tracked changes and images survive untouched.",
+          "icon": "solar:box-bold"
+        },
+        {
+          "title": "Chinese official layout",
+          "description": "First-class support for CJK documents and the GB/T 9704 official document layout.",
+          "icon": "solar:document-text-bold"
+        },
+        {
+          "title": "Templates and placeholders",
+          "description": "Fills placeholders in bulk, which suits contracts, reports and other repetitive documents.",
+          "icon": "solar:copy-bold"
+        },
+        {
+          "title": "Render and validate",
+          "description": "Ships validation and rendering scripts so layout regressions are caught before delivery.",
+          "icon": "solar:magnifer-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Workflow",
+      "items": [
+        {
+          "title": "Unpack",
+          "description": "Expand the .docx into its OpenXML parts."
+        },
+        {
+          "title": "Edit in place",
+          "description": "Change only the nodes that need to change instead of rebuilding the document."
+        },
+        {
+          "title": "Repack and validate",
+          "description": "Repack, then run validation and a rendering check."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Runtime requirements",
+      "content": "Requires a local Python 3 toolchain (lxml, python-docx). Format conversion and rendering checks additionally require LibreOffice."
+    },
+    {
+      "type": "markdown",
+      "content": "## When to use\n\nCreating, editing, filling, reformatting and converting Word documents: contracts, reports, proposals, official documents, theses, mail merges and template filling."
+    }
+  ]
+}

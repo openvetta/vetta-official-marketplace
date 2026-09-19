@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "feature-grid",
+      "title": "PDF capabilities",
+      "items": [
+        {
+          "title": "Judge by the rendering",
+          "description": "Pages are rendered to images for visual review instead of trusting the extracted text layer.",
+          "icon": "solar:eye-bold"
+        },
+        {
+          "title": "Programmatic generation",
+          "description": "Uses reportlab to produce PDFs with predictable layout.",
+          "icon": "solar:pen-new-square-bold"
+        },
+        {
+          "title": "Extraction and checks",
+          "description": "Uses pdfplumber and pypdf for content extraction and quick structural checks.",
+          "icon": "solar:magnifer-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Workflow",
+      "items": [
+        {
+          "title": "Generate or read",
+          "description": "Pick the generation or extraction path based on the task."
+        },
+        {
+          "title": "Render the pages",
+          "description": "Convert pages to PNG with pdftoppm."
+        },
+        {
+          "title": "Review page by page",
+          "description": "Check alignment, spacing and legibility, then fix and re-render."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Runtime requirements",
+      "content": "Visual verification depends on Poppler (pdftoppm). Without it the skill falls back to text-layer checks or asks you to review the output locally."
+    },
+    {
+      "type": "markdown",
+      "content": "## When to use\n\nPDF work where layout and visuals matter: generating formatted documents, reviewing existing PDFs, and confirming the final rendering before delivery."
+    }
+  ]
+}

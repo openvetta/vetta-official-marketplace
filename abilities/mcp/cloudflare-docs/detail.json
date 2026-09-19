@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "LIVE CLOUDFLARE REFERENCE",
+      "title": "Check current documentation without leaving the task",
+      "description": "Let Vetta search Cloudflare's hosted documentation service for current APIs, configuration, limits and migration guidance.",
+      "badges": ["Current reference", "Configuration", "Limits", "Migrations"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Check the current D1 backup and restore options before we design this migration.",
+        "assistant_reply": "I’ll search the current Cloudflare documentation, distinguish supported workflows from assumptions, and link the relevant reference."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Use live reference where freshness matters",
+      "items": [
+        { "title": "Verify changing contracts", "description": "Look up current configuration fields, APIs, compatibility guidance and product limits.", "icon": "solar:document-text-linear" },
+        { "title": "Support implementation", "description": "Bring relevant Cloudflare reference into architecture, coding, review and troubleshooting work.", "icon": "solar:code-square-linear" },
+        { "title": "Keep sources visible", "description": "Ask for documentation links so important conclusions can be checked against the official source.", "icon": "solar:link-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Start in Vetta",
+      "items": [
+        { "title": "Install the connection", "description": "Select Cloudflare Documentation in the Cloudflare Developer Platform package." },
+        { "title": "Ask a precise question", "description": "Name the product and the API, limit, configuration or migration detail you need checked." },
+        { "title": "Review the source", "description": "Use the returned official reference before relying on time-sensitive details." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Documentation only",
+      "content": "This public connection searches Cloudflare reference material and does not grant access to your Cloudflare account. Install the separate Cloudflare API connection for account resources."
+    },
+    {
+      "type": "links",
+      "title": "Official resources",
+      "items": [
+        { "label": "Cloudflare MCP server catalog", "href": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/" },
+        { "label": "Cloudflare developer documentation", "href": "https://developers.cloudflare.com/" },
+        { "label": "Technical setup", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/cloudflare-docs/README.md" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "生产级 WORKERS",
+      "title": "在部署前发现 Workers 特有问题",
+      "description": "让 Vetta 聚焦请求处理、异步任务、全局状态、Bindings、Secrets 和可观测性等审查要点。",
+      "badges": ["代码审查", "可靠性", "性能", "安全"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "部署前帮我审查这个 Worker 的生产风险。",
+        "assistant_reply": "我会检查请求生命周期、悬空 Promise、流式响应、Bindings、Secret 处理和可观测性，并按优先级给出具体修复。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "审查 Workers 特有约束",
+      "items": [
+        { "title": "请求生命周期", "description": "依据 Workers 执行模型检查流式响应、后台工作和响应处理。", "icon": "solar:bolt-linear" },
+        { "title": "状态与 Bindings", "description": "识别不安全的全局状态，并校验 Bindings、生成类型和运行时配置。", "icon": "solar:database-linear" },
+        { "title": "运维与安全", "description": "发布前检查 Secret、日志、错误路径和可观测性。", "icon": "solar:shield-check-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中使用",
+      "items": [
+        { "title": "指向 Worker", "description": "让 Vetta 编写或审查 Worker 及其 Wrangler 配置。" },
+        { "title": "说明生产上下文", "description": "提供预期流量、数据依赖、延迟和失败处理要求。" },
+        { "title": "应用并验证修复", "description": "审阅按优先级排列的问题，更新代码并在部署前运行项目相关测试。" }
+      ]
+    },
+    {
+      "type": "links",
+      "title": "官方资源",
+      "items": [
+        { "label": "Cloudflare Workers 文档", "href": "https://developers.cloudflare.com/workers/" },
+        { "label": "Cloudflare Skills 仓库", "href": "https://github.com/cloudflare/skills" }
+      ]
+    }
+  ]
+}
