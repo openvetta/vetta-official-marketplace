@@ -6,15 +6,15 @@
 
 ## 静态市场发布规则
 
-本仓库采用 Helm 静态包仓库模式。源码事实源是 `.vetta/marketplace.source.json`；CI 在 `gh-pages` 生成 `.vetta/marketplace.json`。源码不保存制品索引，也不手工维护 marketplaceVersion。
+本仓库采用 Helm 静态包仓库模式。`marketplace-source` 是新模型的源码分支，事实源是 `.vetta/marketplace.source.json`；CI 在 `gh-pages` 生成 `.vetta/marketplace.json`。`main` 固定保留旧客户端读取的 schema v2 市场，不接收新模型源码。源码不保存制品索引，也不手工维护 marketplaceVersion。
 
 - 修改前运行 git status，保留已有改动。没有用户授权不得提交或推送。
-- 通过普通源码 PR 审核代码及能力版本。合入 main 后 CI 发布新版本，不能自动合并源码 PR。
+- 通过以 `marketplace-source` 为基准分支的普通源码 PR 审核代码及能力版本。合入后 CI 发布新版本，不能自动合并源码 PR。
 - 插件源码条目（含仅 Bundle 引用的成员）声明 minAppVersion；API、权限、命令与摘要由构建结果派生。
 - 同版本运行内容继续使用已发布制品；准备发布时提升能力版本并同步相关身份文件。
 - CI 先校验、上传并复核制品，再推进 gh-pages。已有版本不可覆盖。
 - 文档和源码开发提交不增加市场版本。只有分发内容变化时 CI 分配新 marketplaceVersion。
-- 不执行向 main 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程。
+- 不执行向 `marketplace-source` 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程；不得用新模型提交改写兼容分支 `main`。
 - 完成时运行 node scripts/marketplace.mjs check 与 node --test tests/*.test.mjs。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。
 - 本地构建使用 node scripts/marketplace.mjs build；正式发布由 publish-marketplace.yml 执行。
 - 旧客户端使用的历史 ref 保留；gh-pages 验证成功后再显式切换来源。

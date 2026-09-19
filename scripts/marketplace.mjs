@@ -7,6 +7,16 @@ import { prepareMarketplace, readJson, sourceCatalog, writeJson, digest, inside 
 const root = process.cwd();
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
 const option = name => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
+const branchPattern = /^[A-Za-z0-9](?:[A-Za-z0-9._/-]*[A-Za-z0-9])?$/;
+
+export function publicationSettings(directory) {
+  const settings = readJson(join(directory, '.vetta/publish.json'));
+  const validBranch = value => typeof value === 'string' && branchPattern.test(value) && !value.includes('..') && !value.includes('//') && !value.includes('@{');
+  if (!validBranch(settings.sourceBranch)) throw new Error('Configure a valid sourceBranch for reviewed source changes');
+  if (settings.distributionBranch !== 'gh-pages' || settings.sourceBranch === settings.distributionBranch) throw new Error('Use gh-pages only for generated distribution content');
+  if (!/^[a-f0-9]{40}$/.test(settings.toolingCommit)) throw new Error('Pin the publication tool to a full commit');
+  return settings;
+}
 
 export async function verifyCandidate(directory, tooling) {
   const manifest = readJson(join(directory, 'site/.vetta/marketplace.json'));
@@ -32,8 +42,7 @@ async function main() {
   const command = process.argv[2];
   if (command === 'check') {
     const catalog = sourceCatalog(root);
-    const settings = readJson(join(root, '.vetta/publish.json'));
-    if (settings.distributionBranch !== 'gh-pages' || !/^[a-f0-9]{40}$/.test(settings.toolingCommit)) throw new Error('Pin the publication tool to a commit and use gh-pages for distribution');
+    publicationSettings(root);
     console.log(`Validated source entries for ${catalog.name}`);
     return;
   }
@@ -42,7 +51,7 @@ async function main() {
     return;
   }
   if (command !== 'build') throw new Error('Usage: node scripts/marketplace.mjs check|build|verify [--output DIR] [--previous DIR] [--tooling DIR]');
-  const settings = readJson(join(root, '.vetta/publish.json'));
+  const settings = publicationSettings(root);
   const previous = option('--previous');
   const output = resolve(option('--output') ?? '.marketplace-build');
   const result = await prepareMarketplace({
@@ -56,8 +65,9 @@ async function main() {
     },
   });
   const branch = settings.distributionBranch;
-  if (branch !== 'gh-pages') throw new Error('The distribution branch must be gh-pages');
-  result.previousCommit = previous ? git('rev-parse', 'refs/remotes/origin/gh-pages') : null;
+  result.sourceBranch = settings.sourceBranch;
+  result.distributionBranch = branch;
+  result.previousCommit = previous ? git('rev-parse', `refs/remotes/origin/${branch}`) : null;
   writeJson(join(output, 'publication.json'), result);
   console.log(`Prepared ${result.packages.length} new packages; distribution changed: ${result.changed}`);
 }

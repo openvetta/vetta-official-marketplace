@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { digest, files, inside, readJson, writeJson } from './static-marketplace.mjs';
+import { publicationSettings } from './marketplace.mjs';
 
 export function assertExistingRelease(item, bytes) {
   if (digest(bytes) !== item.release.artifact.sha256) throw new Error(`Published bytes differ for ${item.slug}; use a new version`);
@@ -12,17 +13,18 @@ export function assertExistingRelease(item, bytes) {
 // All writes are confined to immutable release assets and the generated distribution branch.
 export async function publishMarketplace({ root, directory, gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8' }).trim(), verify, readRemote, push }) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  const settings = publicationSettings(root);
   readRemote ??= branch => git('ls-remote', 'origin', `refs/heads/${branch}`).split(/\s/)[0] || null;
-  push ??= commit => git('push', 'origin', `${commit}:refs/heads/gh-pages`);
+  push ??= commit => git('push', 'origin', `${commit}:refs/heads/${settings.distributionBranch}`);
   const publication = readJson(join(directory, 'publication.json'));
   const source = readJson(join(root, '.vetta/marketplace.source.json'));
   const catalogPath = join(directory, 'site/.vetta/marketplace.json');
   const catalog = readJson(catalogPath);
-  if (source.repository !== catalog.repository || git('rev-parse', 'HEAD') !== publication.sourceSha) throw new Error('Candidate source identity differs');
+  if (source.repository !== catalog.repository || git('rev-parse', 'HEAD') !== publication.sourceSha || publication.sourceBranch !== settings.sourceBranch || publication.distributionBranch !== settings.distributionBranch) throw new Error('Candidate source identity differs');
   const repository = new URL(source.repository).pathname.slice(1);
-  const branch = process.env.GITHUB_REF_NAME ?? 'main';
-  if (readRemote(branch) !== publication.sourceSha) throw new Error('Source branch advanced; rerun the latest revision');
-  const remote = readRemote('gh-pages');
+  if (process.env.GITHUB_REF_NAME && process.env.GITHUB_REF_NAME !== settings.sourceBranch) throw new Error('Publication must run from the configured source branch');
+  if (readRemote(settings.sourceBranch) !== publication.sourceSha) throw new Error('Source branch advanced; rerun the latest revision');
+  const remote = readRemote(settings.distributionBranch);
   if (remote !== publication.previousCommit) throw new Error('Distribution advanced; rebuild against the latest gh-pages');
   if (!publication.changed) return { published: false };
   await verify(directory);

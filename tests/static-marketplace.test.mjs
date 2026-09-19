@@ -16,6 +16,7 @@ function fixture(t) {
     { type: 'skill', slug: 'guide', name: 'Guide', version: '1.0.0', source: { path: 'abilities/skills/guide' } },
   ] };
   put('.vetta/marketplace.source.json', catalog);
+  put('.vetta/publish.json', { sourceBranch: 'marketplace-source', distributionBranch: 'gh-pages', toolingCommit: 'a'.repeat(40) });
   put('abilities/plugins/demo/plugin.json', { id: 'demo', name: 'Demo', version: '1.0.0', entry: 'dist/index.js', pluginApiVersion: '^2.0.0', permissions: [] });
   put('abilities/plugins/demo/ability.json', { schemaVersion: 1, type: 'plugin', slug: 'demo', version: '1.0.0' });
   put('abilities/plugins/demo/src/index.ts', 'development source');
@@ -85,13 +86,14 @@ test('rejects path traversal and a changed release declaration for an existing v
 for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private' : 'public'} publication resumes without replacing bytes; only a verified index becomes visible`, async (t) => {
   const f = fixture(t);
   const git = (...args) => execFileSync('git', args, { cwd: f.root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-  git('init', '--initial-branch=main');
+  git('init', '--initial-branch=marketplace-source');
   git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.invalid');
   git('commit', '--allow-empty', '-m', 'fixture');
   const sha = git('rev-parse', 'HEAD');
   const first = await f.run('first');
-  f.put('first/publication.json', { ...first, sourceSha: sha, previousCommit: null });
+  f.put('first/publication.json', { ...first, sourceSha: sha, sourceBranch: 'marketplace-source', distributionBranch: 'gh-pages', previousCommit: null });
   let release, uploaded, visible, fail = true;
+  const remoteReads = [];
   const gh = (...args) => {
     if (args[0] === 'api') {
       if (args[1] === 'repos/test/market') return JSON.stringify({ private: isPrivate });
@@ -109,13 +111,15 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
     if (args[1] === 'edit') { release.draft = false; return ''; }
     throw new Error(`Unexpected GitHub operation: ${args}`);
   };
-  const options = { root: f.root, directory: join(f.root, 'first'), gh, readRemote: name => name === 'gh-pages' ? null : sha,
+  const options = { root: f.root, directory: join(f.root, 'first'), gh, readRemote: name => { remoteReads.push(name); return name === 'gh-pages' ? null : sha; },
     verify: async () => {}, push: commit => { visible = commit; } };
   await assert.rejects(publishMarketplace(options), /response lost/);
   assert.equal(visible, undefined);
   fail = false;
   await publishMarketplace(options);
   assert.equal(release.draft, false);
+  assert.ok(remoteReads.includes('marketplace-source'));
+  assert.equal(remoteReads.includes('main'), false);
   const manifest = JSON.parse(git('show', `${visible}:.vetta/marketplace.json`));
   assert.equal(manifest.abilities[0].releases[0].artifact.sha256, first.packages[0].release.artifact.sha256);
   if (isPrivate) assert.equal(manifest.abilities[0].releases[0].artifact.url, 'https://api.github.com/repos/test/market/releases/assets/123');

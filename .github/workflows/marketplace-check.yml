@@ -2,6 +2,7 @@ name: Marketplace checks
 
 on:
   pull_request:
+    branches: [marketplace-source]
   workflow_dispatch:
 
 permissions:

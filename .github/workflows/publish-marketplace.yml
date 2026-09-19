@@ -2,7 +2,7 @@ name: Publish ability marketplace
 
 on:
   push:
-    branches: [main]
+    branches: [marketplace-source]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/marketplace-source'
     runs-on: ubuntu-latest
     outputs:
       tooling: ${{ steps.tooling.outputs.commit }}
