@@ -31,6 +31,11 @@ test("generated release PR commits can explicitly dispatch the marketplace gate"
   assert.match(workflow, /gh workflow run marketplace-check\.yml/u);
 });
 
+test("candidate publication checks use the matching OpenVetta development branch", () => {
+  assert.match(workflow, /--branch refa\/plugin-marketplace-v3/u);
+  assert.match(marketplaceCheck, /ref: refa\/plugin-marketplace-v3/u);
+});
+
 test("marketplace checks use valid plugin list expressions", () => {
   assert.doesNotMatch(marketplaceCheck, /:\[\]:\[\]/u);
   assert.match(marketplaceCheck, /flatMap\(x=>x\.type==='plugin'\?\[x\]:x\.type==='bundle'\?/u);

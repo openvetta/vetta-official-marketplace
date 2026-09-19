@@ -155,7 +155,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 https://github.com/openvetta/open-vetta.git "$RUNNER_TEMP/open-vetta"
+          git clone --depth 1 --branch refa/plugin-marketplace-v3 \
+            https://github.com/openvetta/open-vetta.git "$RUNNER_TEMP/open-vetta"
           node "$RUNNER_TEMP/open-vetta/scripts/release/check-plugin-marketplace-publication.mjs" \
             .vetta/marketplace.json
 

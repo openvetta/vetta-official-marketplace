@@ -82,7 +82,7 @@ jobs:
         if: steps.schema.outputs.version == '3'
         with:
           repository: openvetta/open-vetta
-          ref: main
+          ref: refa/plugin-marketplace-v3
           path: tooling/open-vetta
 
       - name: Block unpublished App versions and changed plugin artifacts
