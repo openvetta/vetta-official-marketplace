@@ -18,6 +18,13 @@ test("plugin publication builds immutable packages and always ends in a reviewed
   assert.doesNotMatch(workflow, /git push origin (?:"|')?(?:main|marketplace-v3)/u);
 });
 
+test("plugin publication can build from the latest target marketplace commit", () => {
+  assert.match(workflow, /if \[\[ "\$SOURCE_REF" == "\$BASE_BRANCH" \]\]/u);
+  assert.match(workflow, /"\$source_sha" == "\$base_sha"/u);
+  assert.doesNotMatch(workflow, /source_ref must be a review branch/u);
+  assert.match(workflow, /default: refa\/marketplace-v3/u);
+});
+
 test("generated release PR commits can explicitly dispatch the marketplace gate", () => {
   assert.match(marketplaceCheck, /workflow_dispatch:/u);
   assert.match(marketplaceCheck, /base_ref:/u);

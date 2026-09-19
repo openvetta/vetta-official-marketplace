@@ -37,7 +37,7 @@ abilities/<type>/<slug>/README.md
 abilities/<type>/<slug>/assets/
 ```
 
-Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. The legacy `main` ref stays on schema v2 for older Desktop builds. The separate `marketplace-v3` ref requires Desktop 0.5.59 or newer and installs plugins from versioned GitHub Release ZIPs verified by SHA-256. Source and presentation files remain in Git; `dist/` and ZIP files are not tracked on that ref. See [the v3 release runbook](docs/marketplace-v3.md).
+Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. The legacy `main` ref stays on schema v2 for older Desktop builds. The current `refa/marketplace-v3` test ref requires Desktop 0.5.59 or newer and installs plugins from versioned GitHub Release packages verified by SHA-256. Source and presentation files remain in Git; `dist/` and `.vettapkg` files are not tracked on that ref. See [the v3 release runbook](docs/marketplace-v3.md).
 
 With manifest schema v2, bundle
 members may reference `skill`, `mcp`, or `plugin` packages via `source.path`, relative to the marketplace
@@ -90,7 +90,7 @@ If you are an AI agent working in this repository, `AGENTS.md` is your instructi
 The short version:
 
 1. Pick a type: `skill`, `mcp`, `plugin`, or `bundle`.
-2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, push plugin source changes to a repository branch and run the **Publish plugin release candidate** workflow.
+2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, commit plugin source changes to the marketplace branch, or to a branch containing its latest commit, and run the **Publish plugin release candidate** workflow.
 3. Add presentation files: `ability.json`, optionally `detail.json` and `assets/`.
 4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package in a bundle's members. On v3, CI builds and uploads the immutable `.vettapkg`, records it in `releases[]`, and opens a Draft marketplace PR.
 5. Bump the top-level `marketplaceVersion`.

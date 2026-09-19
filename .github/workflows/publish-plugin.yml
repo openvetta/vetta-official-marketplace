@@ -8,13 +8,13 @@ on:
         required: true
         type: string
       source_ref:
-        description: Repository branch containing the plugin source changes
+        description: Repository branch containing the plugin source commit
         required: true
         type: string
       base_branch:
         description: Protected marketplace branch that will review the generated PR
         required: true
-        default: marketplace-v3
+        default: refa/marketplace-v3
         type: string
       min_app_version:
         description: Optional stable Desktop version; defaults to the marketplace minimum
@@ -49,7 +49,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Verify the reviewed source branch
+      - name: Verify the source commit
         id: source
         shell: bash
         run: |
@@ -57,16 +57,21 @@ jobs:
           [[ "$PLUGIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || { echo "Invalid plugin slug" >&2; exit 1; }
           git check-ref-format --branch "$SOURCE_REF" >/dev/null
           git check-ref-format --branch "$BASE_BRANCH" >/dev/null
-          [[ "$SOURCE_REF" != "$BASE_BRANCH" ]] || { echo "source_ref must be a review branch, not the protected marketplace branch" >&2; exit 1; }
           git fetch origin "refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH"
           base_sha="$(git rev-parse "origin/$BASE_BRANCH")"
           source_sha="$(git rev-parse HEAD)"
-          [[ "$source_sha" != "$base_sha" ]] || { echo "source_ref has no changes to review" >&2; exit 1; }
-          git merge-base --is-ancestor "$base_sha" "$source_sha" || {
-            echo "source_ref must include the latest $BASE_BRANCH before publishing" >&2
-            exit 1
-          }
-          node scripts/check-marketplace-version.mjs --range "$base_sha" "$source_sha"
+          if [[ "$SOURCE_REF" == "$BASE_BRANCH" ]]; then
+            [[ "$source_sha" == "$base_sha" ]] || {
+              echo "source_ref must resolve to the latest $BASE_BRANCH commit" >&2
+              exit 1
+            }
+          else
+            git merge-base --is-ancestor "$base_sha" "$source_sha" || {
+              echo "source_ref must include the latest $BASE_BRANCH before publishing" >&2
+              exit 1
+            }
+            node scripts/check-marketplace-version.mjs --range "$base_sha" "$source_sha"
+          fi
           expected_repository="$(node -p "require('./.vetta/marketplace.json').repository.replace(/\\/$/, '')")"
           [[ "$expected_repository" == "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" ]] || {
             echo "Marketplace repository does not match $GITHUB_REPOSITORY" >&2
@@ -125,7 +130,7 @@ jobs:
           if gh release view "$tag" >/dev/null 2>&1; then
             target="$(gh release view "$tag" --json targetCommitish --jq .targetCommitish)"
             [[ "$target" == "${{ steps.source.outputs.sha }}" ]] || {
-              echo "Existing release $tag targets $target instead of the reviewed source commit" >&2
+              echo "Existing release $tag targets $target instead of the selected source commit" >&2
               exit 1
             }
             mkdir -p "$RUNNER_TEMP/existing-release"
@@ -171,7 +176,7 @@ jobs:
           node scripts/check-marketplace-version.mjs --staged
           git commit \
             -m "chore(marketplace): 登记 $PLUGIN_SLUG ${{ steps.release.outputs.version }}" \
-            -m "登记由 CI 从已审查源码构建的不可变 .vettapkg，并推进市场快照版本。"
+            -m "登记由 CI 从指定源码提交构建的不可变 .vettapkg，并推进市场快照版本。"
           git push origin "HEAD:$branch"
           cat > "$RUNNER_TEMP/pull-request.md" <<EOF
           ## Plugin release

@@ -2,15 +2,15 @@ name: Marketplace checks
 
 on:
   push:
-    branches: [main, marketplace-v3]
+    branches: [main, marketplace-v3, refa/marketplace-v3]
   pull_request:
-    branches: [main, marketplace-v3]
+    branches: [main, marketplace-v3, refa/marketplace-v3]
   workflow_dispatch:
     inputs:
       base_ref:
         description: Base branch used for a manually dispatched release-candidate check
         required: true
-        default: marketplace-v3
+        default: refa/marketplace-v3
         type: string
 
 permissions:

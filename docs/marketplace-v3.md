@@ -1,7 +1,8 @@
 # Schema v3 市场发布流程
 
-`main` 继续提供 schema v2 目录包，供旧 Desktop 使用。`marketplace-v3` 是独立来源：
-只跟踪插件源码、`plugin.json`、展示资源和目录索引，安装 ZIP 放在 GitHub Release asset。
+`main` 继续提供 schema v2 目录包，供旧 Desktop 使用。当前测试来源使用
+`refa/marketplace-v3`：
+只跟踪插件源码、`plugin.json`、展示资源和目录索引，安装 `.vettapkg` 放在 GitHub Release asset。
 Desktop 0.5.59 及以后才能读取这个来源。已发布的 0.5.58 只支持 schema v1/v2。
 两个来源不能共用同一个 ref。
 
@@ -30,12 +31,13 @@ Desktop 0.5.59 及以后才能读取这个来源。已发布的 0.5.58 只支持
 
 ## 上传、验证与晋级
 
-正式发布不使用开发者本机生成的包。先把插件源码和版本变更推送到基于最新市场分支的
-仓库内分支，然后从 GitHub Actions 手动运行 **Publish plugin release candidate**，填写
-插件 slug、源码分支、目标市场分支和可选的最低 Desktop 版本。工作流会在 CI 中安装依赖、
+正式发布不使用开发者本机生成的包。先把插件源码和版本变更提交到目标市场分支；也可以
+使用包含目标分支最新提交的仓库内分支。然后从 GitHub Actions 手动运行
+**Publish plugin release candidate**，填写插件 slug、源码分支、目标市场分支和可选的最低
+Desktop 版本。工作流会在 CI 中安装依赖、
 运行插件检查和测试、构建 `.vettapkg`，并把原始字节上传到固定 GitHub Release。
 
-工作流随后基于源码分支创建 `automation/plugin-<slug>-<version>` 分支，把 Release URL、
+工作流随后基于所选源码提交创建 `automation/plugin-<slug>-<version>` 分支，把 Release URL、
 SHA-256 和合同字段登记到目录，并创建一个 Draft PR。它不会直接写入或自动合并目标市场
 分支；维护者必须审查 PR、等待市场与 Desktop 发布门禁通过，再手动标记 ready 和合并。
 建议为目标市场分支启用必需审查、必需状态检查和 Immutable releases。
@@ -46,12 +48,12 @@ SHA-256 和合同字段登记到目录，并创建一个 Draft PR。它不会直
 市场 PR 的 `marketplace-check` 会重新构建插件、核对包摘要，并调用 Desktop 仓库的
 `check-plugin-marketplace-publication.mjs`：所声明的最低 App 版本必须已有正式稳定
 GitHub Release、该版本的 Plugin API 必须满足要求、远端包必须可下载且摘要一致。
-门禁不通过时不得将目录发布到 `marketplace-v3`。
+门禁不通过时不得将目录发布到 `refa/marketplace-v3`。
 
-首次迁移时，先从 `main` 创建 `marketplace-v3` ref，让它暂时提供原有 schema v2
+首次迁移时，先从 `main` 创建独立的 schema v3 ref，让它暂时提供原有 schema v2
 目录；将 Desktop 0.5.59 的发行配置 `VETTA_OPEN_MARKETPLACE_REF` 设为
-`marketplace-v3`，再发布包含 v3 解析能力的 Desktop 0.5.59。这样新客户端在目录晋级前
-仍可使用旧目录。接着上传固定 ZIP，通过发布门禁后把候选 v3 目录晋级到该 ref。
+该 ref，再发布包含 v3 解析能力的 Desktop 0.5.59。这样新客户端在目录晋级前
+仍可使用旧目录。接着上传固定 `.vettapkg`，通过发布门禁后把候选 v3 目录晋级到该 ref。
 已发布的 0.5.58 继续指向 `main`。切换前要用正式发行构建分别验证旧来源和 v3
 来源的列出、下载、安装与更新。
 
