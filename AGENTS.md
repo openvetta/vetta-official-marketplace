@@ -15,7 +15,7 @@
 - CI 先校验、上传并复核制品，再推进 gh-pages。已有版本不可覆盖。
 - 文档和源码开发提交不增加市场版本。只有分发内容变化时 CI 分配新 marketplaceVersion。
 - 不执行向 `marketplace-source` 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程；不得用新模型提交改写兼容分支 `main`。
-- 完成时运行 node scripts/marketplace.mjs check 与 node --test tests/*.test.mjs。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。
+- 完成时依次运行 node scripts/marketplace.mjs check、node scripts/marketplace.mjs build 与 node --test tests/*.test.mjs；内容测试同时检查生成后的插件资源，不能放在构建前。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。
 - 本地构建使用 node scripts/marketplace.mjs build；正式发布由 publish-marketplace.yml 执行。
 - 旧客户端使用的历史 ref 保留；gh-pages 验证成功后再显式切换来源。
 

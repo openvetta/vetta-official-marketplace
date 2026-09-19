@@ -27,12 +27,12 @@ Desktop 添加仓库时使用分支 gh-pages。无需开启 GitHub Pages；包�
 
 ```bash
 node scripts/marketplace.mjs check
-node --test tests/*.test.mjs
 node scripts/marketplace.mjs build
+node --test tests/*.test.mjs
 ```
 
 Node.js 22.21.1+、Python 3、Git 为前置依赖。Windows Python shim 环境设置 VETTA_PYTHON 为实际解释器路径。
-每次构建使用空输出目录（--output DIR），增量构建传入 --previous 指向 gh-pages 的检出目录。
+每次构建使用空输出目录（--output DIR），增量构建传入 --previous 指向 gh-pages 的检出目录。内容测试会检查生成后的插件资源，因此在候选构建完成后运行。
 本地构建不上传，不访问用户 Desktop 数据。
 
 构建任务无写凭证，发布任务具有 contents: write，不执行插件构建脚本。

@@ -20,7 +20,6 @@ jobs:
         with:
           node-version: 22.21.1
       - run: node scripts/marketplace.mjs check
-      - run: node --test tests/*.test.mjs
       - name: Build candidate against the current distribution
         run: |
           if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
@@ -29,6 +28,8 @@ jobs:
           else
             node scripts/marketplace.mjs build
           fi
+      - name: Check source and built package contracts
+        run: node --test tests/*.test.mjs
       - name: Resolve publication tool revision
         id: tooling
         run: echo "commit=$(node -p 'require("./.vetta/publish.json").toolingCommit')" >> "$GITHUB_OUTPUT"

@@ -112,8 +112,8 @@ Run with Node.js 22.21.1+ and Python 3:
 
 ```bash
 node scripts/marketplace.mjs check
-node --test tests/*.test.mjs
 node scripts/marketplace.mjs build
+node --test tests/*.test.mjs
 ```
 
 Use a fresh output directory for each build (`--output DIR`). For incremental builds pass `--previous <gh-pages-checkout>`. On Windows with a Python shim, set VETTA_PYTHON to the actual python.exe. Local build never uploads anything.
