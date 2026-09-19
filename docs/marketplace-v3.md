@@ -1,65 +1,50 @@
-# Schema v3 市场发布流程
+# 静态能力市场发布
 
-`main` 继续提供 schema v2 目录包，供旧 Desktop 使用。当前测试来源使用
-`refa/marketplace-v3`：
-只跟踪插件源码、`plugin.json`、展示资源和目录索引，安装 `.vettapkg` 放在 GitHub Release asset。
-Desktop 0.5.59 及以后才能读取这个来源。已发布的 0.5.58 只支持 schema v1/v2。
-两个来源不能共用同一个 ref。
+采用 Helm chart-releaser 模式：普通源码 PR → 人工审核合并 → CI 构建新版本 → GitHub Releases → gh-pages 静态索引。
 
-## 准备一个插件版本
+## 三个位置
 
-1. 在插件目录安装依赖、运行测试并构建。确认 `plugin.json` 的 `id`、`version`、
-   `pluginApiVersion`、权限和命令与实际使用的能力一致。构建输出留在本地 `dist/`。
-2. 日常开发时可以在市场根目录生成固定 `.vettapkg` 和相应的目录记录，用于提交前验证：
+- main：能力源码与 `.vetta/marketplace.source.json`，不存构建包或发布索引。
+- Releases：不可变 `.vettapkg`；历史 `.zip` 可以继续被目录引用。
+- gh-pages：CI 生成 `.vetta/marketplace.json`、展示资源和非插件安装文件。
 
-   ```bash
-   python3 scripts/stage-plugin-release.py feishu --min-app-version 0.5.59
-   ```
+Desktop 添加仓库时使用分支 gh-pages。无需开启 GitHub Pages；包括私有仓库在内，都可以沿用 GitHub 分支读取和鉴权。
+客户端下载的精简快照只包含分发内容，不包含源码仓库；插件安装时单独下载 Release 包。
 
-   `.vettapkg` 与 JSON 写入被 Git 忽略的 `.release-artifacts/`。包本身使用 ZIP 容器；
-   脚本只收集运行所需的
-   `plugin.json`、`dist/`、资源、语言包和 Agent 文件，拒绝缺少入口、样式或包含符号
-   链接的包。相同输入生成相同 `.vettapkg`。不能用新字节覆盖已发布版本；要修改就提升插件版本。
-3. 本地验证需要登记版本记录时，递增市场快照号：
+## 发布一个版本
 
-   ```bash
-   node scripts/stage-v3-catalog.mjs --marketplace-version 2026.09.18-3 --min-app-version 0.5.59 --all
-   ```
+1. 修改源码；准备发布时提高能力版本，保持源码条目、ability.json 和类型身份文件版本一致。
+2. Plugin 在源码条目上声明 minAppVersion，包括仅 Bundle 引用的成员。
+3. 普通 PR 检查源码、构建候选内容并核实宿主兼容性。保护 main，要求人工审核和 marketplace-source 检查。
+4. 合并后 Publish ability marketplace 自动发布。版本没变的插件不重建、不覆盖；非插件运行文件也保留至版本提高。
+5. CI 上传并核对包之后才更新 gh-pages。文档开发提交不增加市场版本；分发内容变化时 CI 自动分配版本。
 
-   后续只更新一个插件时使用 `--slug <id>` 代替 `--all`。脚本检查本地包摘要、
-   `plugin.json` 合同和旧版本记录；拒绝改写已有版本。组合包专属插件的记录写在成员上。
+插件 API、权限、命令和 SHA-256 从包派生，不手工维护 releases。展示资源变化可以单独更新目录。
+无需发布计划文件、机器人目录 PR 或每个源码提交的市场版本递增。
 
-## 上传、验证与晋级
+## 检查与恢复
 
-正式发布不使用开发者本机生成的包。先把插件源码和版本变更提交到目标市场分支；也可以
-使用包含目标分支最新提交的仓库内分支。然后从 GitHub Actions 手动运行
-**Publish plugin release candidate**，填写插件 slug、源码分支、目标市场分支和可选的最低
-Desktop 版本。工作流会在 CI 中安装依赖、
-运行插件检查和测试、构建 `.vettapkg`，并把原始字节上传到固定 GitHub Release。
+```bash
+node scripts/marketplace.mjs check
+node --test tests/*.test.mjs
+node scripts/marketplace.mjs build
+```
 
-工作流随后基于所选源码提交创建 `automation/plugin-<slug>-<version>` 分支，把 Release URL、
-SHA-256 和合同字段登记到目录，并创建一个 Draft PR。它不会直接写入或自动合并目标市场
-分支；维护者必须审查 PR、等待市场与 Desktop 发布门禁通过，再手动标记 ready 和合并。
-建议为目标市场分支启用必需审查、必需状态检查和 Immutable releases。
-仓库的 Actions 设置必须允许工作流读写 Contents、创建 Pull Request 和调度检查；权限仍由
-工作流中的最小 `permissions` 声明约束。
+Node.js 22.21.1+、Python 3、Git 为前置依赖。Windows Python shim 环境设置 VETTA_PYTHON 为实际解释器路径。
+每次构建使用空输出目录（--output DIR），增量构建传入 --previous 指向 gh-pages 的检出目录。
+本地构建不上传，不访问用户 Desktop 数据。
 
-本地生成的包只用于预检，不能替代 CI 发布，也不能在上传时重新打包或改名。
-市场 PR 的 `marketplace-check` 会重新构建插件、核对包摘要，并调用 Desktop 仓库的
-`check-plugin-marketplace-publication.mjs`：所声明的最低 App 版本必须已有正式稳定
-GitHub Release、该版本的 Plugin API 必须满足要求、远端包必须可下载且摘要一致。
-门禁不通过时不得将目录发布到 `refa/marketplace-v3`。
+构建任务无写凭证，发布任务具有 contents: write，不执行插件构建脚本。
+.vetta/publish.json 固定 Desktop 校验工具提交；调整它也需源码 PR 审核。
+稳定发布仍要求最低 Desktop 已正式发布且提供所需 API。不能以本地开发版通过为由跳过该门禁。
 
-首次迁移时，先从 `main` 创建独立的 schema v3 ref，让它暂时提供原有 schema v2
-目录；将 Desktop 0.5.59 的发行配置 `VETTA_OPEN_MARKETPLACE_REF` 设为
-该 ref，再发布包含 v3 解析能力的 Desktop 0.5.59。这样新客户端在目录晋级前
-仍可使用旧目录。接着上传固定 `.vettapkg`，通过发布门禁后把候选 v3 目录晋级到该 ref。
-已发布的 0.5.58 继续指向 `main`。切换前要用正式发行构建分别验证旧来源和 v3
-来源的列出、下载、安装与更新。
+同一版本存在时核对字节，禁止覆盖。上传部分失败时重新运行最新源码的工作流；源码或 gh-pages 已前进时，旧运行拒绝写入。
+GitHub Release 和索引不是跨服务事务：索引失败时包可能已经公开，但市场仍保持上一份有效目录。
 
-每次市场归档内容变化都要使用严格递增的 `marketplaceVersion`，并新增同版本发布说明。
-回滚时恢复先前已验证的制品引用，再创建一个更高的市场版本；不要替换旧包或复用
-旧市场版本。
+## 迁移
 
-当前候选目录中的包仅在本地 `.release-artifacts/`，且 Desktop 0.5.59 尚未发布。
-候选清单用于审查和本地合同测试，不能直接晋级到公开来源。
+旧客户端正在使用的历史 ref 保持原样。验证首次 gh-pages 发布成功后，再显式切换新版 Desktop 来源。
+如果线上旧客户端仍固定读取 main，不能直接把源码分离变更合入该 main；应先发布客户端来源迁移，或把新源码与流水线放在独立仓库完成过渡。
+有有效历史 v3 分发时，将经过验证的目录和资源导入 gh-pages 再接入发布工具；不可导入 404 或摘要不符的制品记录。
+本次官方旧 v3 测试目录存在不可下载的 Release 地址，因此新分发首次运行从源码生成真实制品。
+新建市场不需要任何历史引导配置。

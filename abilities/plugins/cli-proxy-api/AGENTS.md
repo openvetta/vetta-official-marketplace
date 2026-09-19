@@ -56,19 +56,11 @@ Desktop 校验、授权、安装。它**不会**直接写 `~/.vetta/plugins`。
 开发期建议开热更新（`watch`）：之后改源码即时生效，不用每次重新打包安装。改 `plugin.json`
 的权限或命令声明时仍需重新安装一次，让宿主把授权落盘。`watch --stop` 关闭。
 
-## 如果这个目录之上有能力市场索引
+## 能力市场发布
 
-`vetta-plugin-cli docs` 会告诉你有没有（它会打印 `Marketplace index:`）。有的话，**改完
-`version` / `permissions` / `pluginApiVersion` 之后要回仓库根跑一次**：
-
-```bash
-npx @vetta-org/plugin-cli sync          # 仅用于 schema v2 main 来源
-npx @vetta-org/plugin-cli sync --check  # 只报不写，CI 用
-```
-
-索引里的 `version` 与 `plugin.json` 的 `version` 必须**完全相等**，否则宿主同步直接失败；
-而内容变了却不换 `marketplaceVersion` 时，客户端既不报错也不更新——用户只是永远收不到。
-`add .` 装完若检测到索引还停在旧版本，会当场提醒你。
+本仓库采用静态分发模式。修改插件版本时同步仓库根 .vetta/marketplace.source.json 与包内身份文件，回仓库根运行 node scripts/marketplace.mjs check。
+源码 PR 审核合入 main 后，CI 构建新版本并生成 gh-pages 索引。不要手工维护 marketplaceVersion 或 releases，也不要对源码目录运行旧的 Plugin CLI sync。
+生成目录由 CI 使用固定版本的 OpenVetta 校验器对账；详见根目录 AGENTS.md 与 docs/marketplace-v3.md。
 
 ## 不可违反的几条
 
@@ -82,8 +74,7 @@ npx @vetta-org/plugin-cli sync --check  # 只报不写，CI 用
   替代做法」写进该工具 description 的反向触发段。
 - **顶层不要出现依赖共享 React 的 JSX**，放进组件或 `activate` 内（Module Federation 的加载时序）。
 - 依赖用 registry 上已发布的 semver，不要 `workspace:*`。
-- **schema v2 目录分发时 `dist/` 要进版本库**。宿主直接读 `plugin.json` 指向的 `entry`
-  与 `styles`，它不会替你构建——目录里没有构建产物就装不上。schema v3 来源改用固定 ZIP 发布，`dist/` 留在本地并由 `scripts/stage-plugin-release.py` 打包，不提交到该来源。
+- 本源码分支不提交 dist/、release/ 或安装包；正式 .vettapkg 由 CI 构建并发布至 Release。
 ## 信息不足时
 
 插件 id、展示名、要用哪些权限、功能边界、是否立刻安装——**问用户**，不要自己假定。

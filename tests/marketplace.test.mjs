@@ -8,7 +8,7 @@ import test from "node:test";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
-const catalog = readJson(resolve(root, ".vetta/marketplace.json"));
+const catalog = readJson(resolve(root, ".vetta/marketplace.source.json"));
 const bySlug = new Map(catalog.abilities.map((ability) => [ability.slug, ability]));
 const trackedFiles = new Set(execFileSync("git", ["ls-files", "-z"], { cwd: root }).toString("utf8").split("\0"));
 
@@ -30,7 +30,7 @@ for (const bundle of catalog.abilities.filter((ability) => ability.type === "bun
     } else {
       assert.equal("config" in descriptor, false);
       assert.equal("source" in descriptor, false);
-      bySlug.set(member.slug, { ...descriptor, source: member.source, releases: member.releases });
+      bySlug.set(member.slug, { ...descriptor, source: member.source, minAppVersion: member.minAppVersion });
     }
   }
 }
@@ -45,7 +45,7 @@ function packageFile(directory, path) {
   return target;
 }
 
-test("schema v3 keeps plugin releases in the catalog and their build output out of Git", () => {
+test("plugin sources declare compatibility without tracking releases or build output", () => {
   assert.equal(catalog.schemaVersion, 3);
   assert.equal(catalog.minAppVersion, "0.5.59");
   for (const ability of bySlug.values()) {
@@ -53,18 +53,8 @@ test("schema v3 keeps plugin releases in the catalog and their build output out 
     const source = packageFile(root, ability.source.path);
     const plugin = readJson(packageFile(source, "plugin.json"));
     assert.equal(ability.version, plugin.version);
-    assert.ok(ability.releases?.length, ability.slug);
-    const release = ability.releases.find((item) => item.version === plugin.version);
-    assert.ok(release, ability.slug);
-    assert.equal(release.minAppVersion, "0.5.59");
-    assert.equal(release.pluginApiVersion, plugin.pluginApiVersion);
-    assert.deepEqual(release.permissions, plugin.permissions ?? []);
-    assert.deepEqual(release.commands, plugin.commands ?? []);
-    assert.match(release.artifact.url, /^https:\/\/github\.com\/openvetta\/vetta-official-marketplace\/releases\/download\/plugin-/u);
-    assert.match(release.artifact.sha256, /^[a-f0-9]{64}$/u);
-    assert.match(release.artifact.url, /\.(?:vettapkg|zip)$/u);
-    const stagedArchive = packageFile(root, `.release-artifacts/${ability.slug}-${plugin.version}.vettapkg`);
-    assert.ok(readFileSync(stagedArchive).length > 0, ability.slug);
+    assert.match(ability.minAppVersion, /^\d+\.\d+\.\d+$/u);
+    assert.equal(ability.releases, undefined);
     const tracked = execFileSync("git", ["ls-files", "--", `${ability.source.path}/dist`, `${ability.source.path}/release`], {
       cwd: root, encoding: "utf8",
     }).trim();

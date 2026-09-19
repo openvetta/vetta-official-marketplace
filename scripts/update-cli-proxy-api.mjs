@@ -89,13 +89,6 @@ function bumpPatch(version) {
   return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
 }
 
-function nextMarketplaceVersion(current) {
-  const now = new Date();
-  const prefix = `${now.getUTCFullYear()}.${String(now.getUTCMonth() + 1).padStart(2, "0")}.${String(now.getUTCDate()).padStart(2, "0")}`;
-  const match = new RegExp(`^${prefix.replaceAll(".", "\\.")}-(\\d+)$`, "u").exec(current);
-  return `${prefix}-${match ? Number(match[1]) + 1 : 1}`;
-}
-
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -206,12 +199,11 @@ for (const name of ["detail.json", "detail.zh.json"]) {
   await writeFile(path, original.replaceAll(previousCoreVersion, coreVersion).replaceAll(previousGeminiVersion, geminiVersion));
 }
 
-const marketplacePath = resolve(root, ".vetta/marketplace.json");
+const marketplacePath = resolve(root, ".vetta/marketplace.source.json");
 const marketplace = await readJson(marketplacePath);
 const catalogEntry = marketplace.abilities.find((candidate) => candidate.slug === "cli-proxy-api");
 if (!catalogEntry) throw new Error("CLIProxyAPI marketplace entry is missing");
 catalogEntry.version = nextPluginVersion;
-marketplace.marketplaceVersion = nextMarketplaceVersion(marketplace.marketplaceVersion);
 await writeJson(marketplacePath, marketplace);
 
 console.log(`Updated plugin ${nextPluginVersion}; rebuild dist and run marketplace tests before opening a PR.`);

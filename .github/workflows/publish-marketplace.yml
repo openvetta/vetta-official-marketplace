@@ -1,0 +1,88 @@
+name: Publish ability marketplace
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: marketplace-publication
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      tooling: ${{ steps.tooling.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+      - run: node scripts/marketplace.mjs check
+      - run: node --test tests/*.test.mjs
+      - name: Build unpublished versions
+        run: |
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add --detach "$RUNNER_TEMP/marketplace-previous" origin/gh-pages
+            node scripts/marketplace.mjs build --previous "$RUNNER_TEMP/marketplace-previous"
+          else
+            node scripts/marketplace.mjs build
+          fi
+      - name: Resolve publication tool revision
+        id: tooling
+        run: echo "commit=$(node -p 'require("./.vetta/publish.json").toolingCommit')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: openvetta/open-vetta
+          ref: ${{ steps.tooling.outputs.commit }}
+          path: .tooling/open-vetta
+          persist-credentials: false
+      - name: Check compatibility before uploading
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/marketplace.mjs verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marketplace-candidate
+          path: .marketplace-build
+          include-hidden-files: true
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+      - uses: actions/download-artifact@v4
+        with:
+          name: marketplace-candidate
+          path: .marketplace-build
+      - uses: actions/checkout@v4
+        with:
+          repository: openvetta/open-vetta
+          ref: ${{ needs.build.outputs.tooling }}
+          path: .tooling/open-vetta
+          persist-credentials: false
+      - name: Publish immutable packages, then advance the generated index
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/publish-marketplace.mjs .marketplace-build

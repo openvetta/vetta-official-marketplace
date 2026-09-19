@@ -1,27 +1,23 @@
 # 能力编写手册
 
-本仓库是 Vetta 桌面端「开放能力市场」的官方源。旧 Desktop 继续读取 `main` 的 schema v2 目录包；新版 Desktop 从独立的 `marketplace-v3` ref 读取 schema v3。该 ref 的插件构建 `.vettapkg` 发布为固定 GitHub Release asset，仓库只跟踪源码、索引与展示资源。
+本仓库是 Vetta 桌面端「开放能力市场」的官方源。新模型在源码分支开发能力，由 CI 向 gh-pages 发布 schema v3 索引、向 GitHub Releases 发布固定 .vettapkg。旧客户端仍引用的历史分支需要单独保留，不能在客户端迁移前删除其目录合同。
 
-这份手册面向在本仓库中添加/修改能力的人与 AI。**所有规则都对应桌面端的硬校验**：任何一条不满足，整个市场源都会同步失败——界面通常只显示 `sync-failed`，具体原因需查看主进程日志中的 `open-marketplace` 记录。所以宁可对着本手册逐条核对，也不要靠试。
+这份手册面向在本仓库中添加/修改能力的人与 AI。源码检查、发布检查与客户端校验分别保护不同边界；来源同步失败时查看主进程中的 open-marketplace 日志。
 
-## 每次修改任务的版本检查（强制，必须早于提交）
+## 静态市场发布规则
 
-版本检查是开发任务的完成条件，即使用户没有要求 commit 或 push，也必须执行；不能等 Git hook 报错才处理。
+本仓库采用 Helm 静态包仓库模式。源码事实源是 `.vetta/marketplace.source.json`；CI 在 `gh-pages` 生成 `.vetta/marketplace.json`。源码不保存制品索引，也不手工维护 marketplaceVersion。
 
-1. **开始修改前**：运行 `git status --short`，保留已有改动；运行 `git fetch origin` 更新远端基线，
-   读取 `git show HEAD:.vetta/marketplace.json`、`git show origin/main:.vetta/marketplace.json` 和工作区
-   `.vetta/marketplace.json`，记录版本及对应提交。远端获取失败时必须明确说明，不能把旧的远端跟踪引用当作最新状态。
-2. **修改过程中**：只要本次任务改变归档内容（包括文档、测试、脚本、配置和构建产物），就把市场版本递增纳入本次修改，
-   不得留作“提交时再改”。已有未发布版本若高于所有基线，同一批未提交改动可以继续沿用；已发布或已被其他提交使用的版本不能复用。
-3. **完成修改和构建后、向用户报告完成前**：再次 `git fetch origin`，重新检查暂存、未暂存和拟纳入提交的新增文件，
-   确认工作区 `marketplaceVersion` 严格高于 HEAD、最新 `origin/main`，以及适用的上游分支和待合并提交版本。
-   不能仅凭“本次曾经 bump 过”或插件自身版本已递增判断通过；自动化或其他 Agent 可能已占用同一市场版本。
-   有冲突时先修正版本，再交付；发现检查基线不可用时明确报告未验证，不能宣称可发布。
-4. **交付时**：说明本次市场版本、所比较的远端提交和检查结果。没有提交授权时检查工作区即可，不为运行
-   `--staged` 擅自暂存文件。之后若新增改动、重新构建、合并或远端前进，必须重新执行交付前检查。
-
-Git hooks、自动提交检查和 CI 是上述主动检查的兜底，不能替代它。用户另行要求提交时，再对实际暂存区运行
-`node scripts/check-marketplace-version.mjs --staged`。
+- 修改前运行 git status，保留已有改动。没有用户授权不得提交或推送。
+- 通过普通源码 PR 审核代码及能力版本。合入 main 后 CI 发布新版本，不能自动合并源码 PR。
+- 插件源码条目（含仅 Bundle 引用的成员）声明 minAppVersion；API、权限、命令与摘要由构建结果派生。
+- 同版本运行内容继续使用已发布制品；准备发布时提升能力版本并同步相关身份文件。
+- CI 先校验、上传并复核制品，再推进 gh-pages。已有版本不可覆盖。
+- 文档和源码开发提交不增加市场版本。只有分发内容变化时 CI 分配新 marketplaceVersion。
+- 不执行向 main 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程。
+- 完成时运行 node scripts/marketplace.mjs check 与 node --test tests/*.test.mjs。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。
+- 本地构建使用 node scripts/marketplace.mjs build；正式发布由 publish-marketplace.yml 执行。
+- 旧客户端使用的历史 ref 保留；gh-pages 验证成功后再显式切换来源。
 
 ## 添加一个能力的流程
 
@@ -29,9 +25,9 @@ Git hooks、自动提交检查和 CI 是上述主动检查的兜底，不能替�
 2. 建包目录：`abilities/skills/<slug>/`、`abilities/mcp/<slug>/`、`abilities/plugins/<slug>/`、`abilities/bundles/<slug>/`（注意 mcp 目录没有复数 s）
 3. 写包内文件（见「各类型包规范」）
 4. 写展示层 `ability.json`（可选 `detail.json`、`assets/`）
-5. 需要独立展示时在 `.vetta/marketplace.json` 的 `abilities[]` 注册；仅 bundle 成员则在 bundle 中写包路径引用
-6. **bump 顶层 `marketplaceVersion`**
-7. 按「每次修改任务的版本检查」完成交付前检查；用户要求提交时再按「提交前检查清单」自检
+5. 需要独立展示时在 `.vetta/marketplace.source.json` 的 `abilities[]` 注册；仅 bundle 成员则在 bundle 中写包路径引用
+6. 准备发布运行内容时提升能力版本，普通源码 PR 审核通过后由 CI 自动发布
+7. 执行源码与发布工具测试；用户要求提交时再核对暂存内容
 
 插件项目的目录、职责拆分、Tailwind 接入和用户流程测试遵循
 [`docs/plugin-project-structure.md`](docs/plugin-project-structure.md)。文件名必须表达职责；不要使用 `ui.ts`、`ui.tsx`、`utils.ts` 或 `primitives.tsx` 作为多个职责的容器。所有 UI `.tsx` 生产文件放在 feature/shared 的 `components/` 下（根目录 `index.tsx` 仅作为插件装配入口），基础组件原则上一个文件只放一个组件；`tools/` 仅用于 `ctx.agent.registerTool()` 的 Agent 工具。
@@ -61,21 +57,14 @@ npx @vetta-org/plugin-cli init --id <slug> --name "<Display Name>" abilities/plu
 
 它只创建目录，**不动索引**——什么时候上架是人的决定，按上面「添加一个能力的流程」登记。
 
-### 索引对账
+### 索引生成与验证
 
-条目的 `version` 必须与包里的版本完全相等，否则宿主同步直接失败。v3 插件版本还必须有对应的固定制品记录；操作步骤见 [`docs/marketplace-v3.md`](docs/marketplace-v3.md)。v2 目录包改完能力后在仓库根：
-
-```bash
-npx @vetta-org/plugin-cli sync          # 回填 version 并推进 marketplaceVersion
-npx @vetta-org/plugin-cli sync --check  # 只报不写、非零退出（CI 已接入）
-```
-
-v3 的 `sync` 需要包含 schema v3 支持的 CLI 版本；发布前以 `marketplace-check` 的校验和 Desktop 解析器为准。旧版 `sync` **不写** `config.api_version` / `config.permissions`：宿主建目录时用 `plugin.json` 推导的值覆盖整个 `config`，索引里留副本只会变成会漂移的第二份真相。
+源码声明不包含 marketplaceVersion 或 releases。通过 node scripts/marketplace.mjs check 校验；完整构建后的 .marketplace-build/site 由 CI 使用固定提交中的 Plugin CLI 源码对账（公开的 0.1.6 尚不支持此分发目录）。不要用旧 sync 改写源码配置。详见 [静态发布说明](docs/marketplace-v3.md)。
 
 ## 目录结构
 
 ```text
-.vetta/marketplace.json
+.vetta/marketplace.source.json
 abilities/skills/<slug>/SKILL.md
 abilities/mcp/<slug>/mcp.json
 abilities/plugins/<slug>/plugin.json
@@ -86,50 +75,11 @@ abilities/<type>/<slug>/README.md
 abilities/<type>/<slug>/assets/
 ```
 
-## `.vetta/marketplace.json`
+## 源码配置
 
-顶层：
-
-| 字段 | 约束 |
-| --- | --- |
-| `schemaVersion` | `main` 使用 `2`；独立的 `marketplace-v3` ref 使用 `3`，插件必须声明版本制品 |
-| `name` | slug 格式，市场标识 |
-| `displayName` | 可选 |
-| `marketplaceVersion` | 已发布仓库快照的唯一版本；**任何归档内容变化都必须同步递增** |
-| `repository` | 合法 URL |
-| `minAppVersion` | 语义版本；低于该版本的桌面端整源拒绝加载 |
-| `abilities` | 独立上架条目数组，可以为空 |
-
-- slug 格式：`^[a-z0-9][a-z0-9-]{0,63}$`
-- 版本格式：`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`
-
-### `marketplaceVersion` 发布规则（强制）
-
-首次进入克隆仓库后运行 `node scripts/install-git-hooks.mjs`，启用本仓库的提交、合并和推送检查。
-先完成上文要求的开发阶段及交付前版本检查，提交前再运行 `node scripts/check-marketplace-version.mjs --staged`；检查读取暂存区，并比较 HEAD、
-已获取的 `origin/main`、上游分支和待合并提交，不能以工作区中未暂存的版本变更代替。
-检查失败必须递增版本并重新暂存；禁止跳过 hook。自动化提交也必须在 `git add` 后、`git commit` 前调用同一检查。
-推送检查使用远端实际 SHA；对象缺失时先 `git fetch origin`，不得省略比较。PR 使用同一脚本逐提交验证。
-空提交及合并也需要新版本，因为 GitHub 归档可能包含提交标识，不能仅凭文件树相同复用版本。
-
-Desktop 会保存 `marketplaceVersion` 与整个 GitHub 归档的 SHA-256。只要版本号相同而归档任一字节不同，
-就会拒绝同步并记录 `Marketplace content changed without a marketplaceVersion update`。因此：
-
-- 发布分支上的**任何受 Git 跟踪文件变化**都视为新的市场快照，包括能力源码、构建产物、详情、测试、README、
-  `AGENTS.md` 和市场自身配置；不能只在新增能力时 bump。
-- 内容修改与版本递增必须在同一批发布变更中完成。禁止先推送版本号、再以同一版本追加内容；
-  如果含该版本的提交已经推送或可能被客户端见过，后续任何归档变化都必须使用下一个新版本。
-- 官方源使用 `YYYY.MM.DD-N`。同一天从当前最大 `N` 继续递增，不得复用、回退或覆盖已经被客户端见过的版本。
-- `marketplaceVersion` 标识整仓快照，能力自身的 `version` / `configVersion` 标识单个包合同，三者不能互相替代。
-- 提交前必须比较当前发布分支：只要归档内容有差异，就确认 `.vetta/marketplace.json` 也有一个尚未发布过的新版本。
-
-### 能力包版本规则（强制）
-
-- plugin、skill、MCP 的运行内容或用户可观察行为发生变化时，必须提升该包的 `version`；兼容修复和功能增量至少提升 patch。
-- 同一包身份出现于 manifest、`ability.json`、`plugin.json`、`mcp.json`、`SKILL.md` 或包管理文件时，所有版本字段必须同步一致。
-- v3 plugin 改动版本后必须通过 `Publish plugin release candidate` 工作流重新构建、生成固定 `.vettapkg` 与 SHA-256、登记新的 `releases[]`，并在 App 正式发布、制品上传和 Draft PR 审查及发布门禁通过后才晋级市场索引；工作流不得直接合并目标市场分支，`dist/` 与 `.vettapkg` 不提交到 v3 ref。旧版 `main` 仍按目录包合同维护。
-- 仅修改说明文档、测试或市场展示且不改变包运行内容时，可以不提升包 `version`，但仍必须提升整仓 `marketplaceVersion`。
-- `configVersion` 只在安装配置或持久化配置合同变化时递增，不能替代包 `version` 或 `marketplaceVersion`。
+.vetta/marketplace.source.json 包含 schemaVersion: 3、name、displayName、repository、minAppVersion 与 abilities。
+每个插件条目额外声明 minAppVersion，不填写 releases。普通条目字段和各类型身份合同如下。
+源码版本可领先于 gh-pages 中已发布版本；每个能力版本独立发布。configVersion 只标识配置结构。
 
 `abilities[]` 每一项：
 
@@ -304,7 +254,7 @@ version: 1.0.0           # 必须 === 条目的 version
 - `id` 必须 === 条目的 `slug`，`version` 必须 === 条目的 `version`
 - `name`、`pluginApiVersion`、`entry` 必填非空
 - `entry` 以及 `styles[]` 里的每个路径都必须是包内**真实存在的文件**，否则报 missing or outside the package
-- v3 构建产物只进入 CI 发布的固定 Release `.vettapkg`，`dist/` 与 `release/` 不进入 Git；Desktop 下载并校验包。已有 `.zip` 记录仅作兼容，旧版 `main` 仍需目录内构建产物。
+- 插件构建产物由 CI 发布为不可变 .vettapkg；dist/、release/ 不进入源码 Git。历史 .zip 制品保留兼容。
 - 插件需要成熟的通用能力时应把依赖显式安装进自己的 `package.json`，不要依赖宿主或开发机偶然存在的包，
   也不要手写低质量替代实现。UI 样式优先使用 `tailwindcss` + `@tailwindcss/vite`；外部输入、
   持久化数据和协议响应的运行时校验按插件现有技术栈选择 `zod` 或 `@sinclair/typebox`；React 交互测试使用
@@ -340,7 +290,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - 成员不能重复
 - bundle 自身的 `source` 可选（通常指向一个只放展示资源的目录），与成员的 source 相互独立
 - 不增设 `hidden` / `listed` 作者字段，不内联成员制品、运行配置或安装脚本
-- 改变上架位置时保留成员 slug、version、configVersion，只有实际制品或配置契约变化才提升对应版本；始终 bump marketplaceVersion
+- 改变上架位置时保留成员 slug、version、configVersion，只有实际制品或配置契约变化才提升对应版本；CI 自动更新分发索引
 - 本源 v2 需要包含该解析功能的 Desktop 构建（目标 `0.5.49`），先更新客户端再切换格式；
   旧构建刷新不能获得新解析器，会拒绝 v2 整源并沿用可用旧缓存。包文件自身的 schemaVersion 不因此改变
 
@@ -414,7 +364,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 卡片、分组和正文都要写：
 
-1. **目录卡片**（名称 / 简介 / 标签）—— 独立条目在 `.vetta/marketplace.json` 中，仅 bundle 成员在包内 `ability.json` 中：
+1. **目录卡片**（名称 / 简介 / 标签）—— 独立条目在 `.vetta/marketplace.source.json` 中，仅 bundle 成员在包内 `ability.json` 中：
 
    ```json
    {
@@ -460,7 +410,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 | 仓库归档下载 | ≤ 25 MB |
 | 解压后总大小 | ≤ 100 MB |
 | 归档条目数 | ≤ 10000 |
-| `.vetta/marketplace.json` | ≤ 2 MB |
+| `.vetta/marketplace.source.json` | ≤ 2 MB |
 | 单个 `ability.json` | ≤ 64 KB |
 | 单个 detail 文件 | ≤ 512 KB |
 | 单个图片资源 | ≤ 8 MB |
@@ -469,8 +419,8 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 
 ## 提交前检查清单
 
-- [ ] 已安装 Git hooks，且 `node scripts/check-marketplace-version.mjs --staged` 对本次暂存内容检查通过
-- [ ] 本次所有内容修改完成后，`marketplaceVersion` 已递增为从未发布过的新值；bump 之后没有再追加沿用该版本的提交
+- [ ] 已运行 node scripts/marketplace.mjs check 与发布工具测试
+- [ ] 需要发布的运行内容已提升能力版本
 - [ ] 新能力的 `slug` 在 manifest 内唯一
 - [ ] 默认名称与多语言名称不包含能力类型后缀，现有 slug 未因展示改名而变化
 - [ ] 包内 `SKILL.md` / `mcp.json` / `plugin.json` 的 slug、version 与 manifest 条目逐字一致
@@ -480,7 +430,7 @@ bundle 只是一个可勾选安装的集合，自己没有可执行内容：
 - [ ] mcp 条目在 manifest 里没有 `config` 键
 - [ ] `schemaVersion: 3` 的受管 MCP 为每个已支持平台填写真实 Release URL、SHA-256 和可执行文件路径，并确认没有安装脚本
 - [ ] 声明了 `setup` 的 MCP 确认 status/qrcode/logout 三个上游 REST 路径正确，且状态响应提供 `data.is_logged_in`
-- [ ] v3 plugin 的 `entry`（及 `styles`）已进入固定 ZIP，`releases[]` 的 App/API 门槛、权限、命令和摘要与 ZIP 一致；制品与 `dist/` 未被 Git 跟踪
+- [ ] 插件 minAppVersion 与实际宿主要求一致；生成制品通过摘要与包内容检查，构建结果未跟踪
 - [ ] 卡片 `icon` 不是随手挑的：有官方品牌/应用图标则用包内官方位图，否则才用贴切的 Solar 名
 - [ ] detail 里所有 `href` 是 http/https，所有图片路径在包内且格式受支持
 - [ ] 默认语言（manifest 的 `name`/`description`/`tags` 与 `detail.json`）是英文，中文放在 `zh` 覆盖里

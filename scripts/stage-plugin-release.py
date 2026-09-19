@@ -58,7 +58,7 @@ def regular_files(directory: Path) -> list[Path]:
 def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
     if not __import__("re").fullmatch(r"\d+\.\d+\.\d+", min_app_version):
         raise ValueError("--min-app-version must be a stable x.y.z version")
-    catalog = json.loads((ROOT / ".vetta/marketplace.json").read_text(encoding="utf-8"))
+    catalog = json.loads((ROOT / ".vetta/marketplace.source.json").read_text(encoding="utf-8"))
     entry = plugin_entry(catalog, slug)
     directory = (ROOT / entry["source"]["path"]).resolve()
     if not directory.is_relative_to(ROOT.resolve()) or not directory.is_dir():
@@ -110,9 +110,11 @@ def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("slug")
+    parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--min-app-version", required=True)
     parser.add_argument("--output-dir", type=Path, default=ROOT / ".release-artifacts")
     args = parser.parse_args()
+    ROOT = args.root.resolve()
     try:
         print(json.dumps(build(args.slug, args.output_dir, args.min_app_version), indent=2))
     except (KeyError, OSError, ValueError, zipfile.BadZipFile) as error:

@@ -26,7 +26,7 @@ not globally install Wrangler; account operations should use least privilege and
 ## Repository layout
 
 ```text
-.vetta/marketplace.json
+.vetta/marketplace.source.json
 abilities/skills/<slug>/SKILL.md
 abilities/mcp/<slug>/mcp.json
 abilities/plugins/<slug>/plugin.json
@@ -37,17 +37,9 @@ abilities/<type>/<slug>/README.md
 abilities/<type>/<slug>/assets/
 ```
 
-Supported ability types are `skill`, `mcp`, `plugin`, and `bundle`. The legacy `main` ref stays on schema v2 for older Desktop builds. The current `refa/marketplace-v3` test ref requires Desktop 0.5.59 or newer and installs plugins from versioned GitHub Release packages verified by SHA-256. Source and presentation files remain in Git; `dist/` and `.vettapkg` files are not tracked on that ref. See [the v3 release runbook](docs/marketplace-v3.md).
+Source branches contain ability declarations and source code. CI publishes immutable plugin packages to GitHub Releases and generates a schema v3 distribution on **gh-pages**. Desktop uses this repository with branch **gh-pages** after its first successful publication. The distribution contains presentation and installable Skill/MCP/Bundle content, without plugin source or build output.
 
-With manifest schema v2, bundle
-members may reference `skill`, `mcp`, or `plugin` packages via `source.path`, relative to the marketplace
-root. Only top-level `abilities[]` entries are independently listed. Bundle-only members remain
-viewable and selectable inside their bundle, and manageable under My Abilities once installed.
-The Zhihu catalog lists only Zhihu Research; its two member packages are not separately promoted.
-
-This format needs the Desktop build implementing schema v2 (target version `0.5.49`). Updating an
-old build's catalog alone does not update its parser: old clients reject this source and retain
-available old cached content. Update the client before switching the source to v2.
+This follows the [Helm chart-releaser model](https://github.com/helm/chart-releaser-action). See [the publication guide](docs/marketplace-v3.md). Legacy client refs must remain available until those clients are migrated.
 
 ## Create your own marketplace with an Agent
 
@@ -69,11 +61,11 @@ Then give your Agent this Prompt, replacing the values in angle brackets:
 Use $create-vetta-marketplace to create my Vetta ability marketplace.
 
 Create a <public-or-private> GitHub repository named <repository> under <owner>. Use marketplace
-schema v3, the main branch, and minimum Vetta Desktop version <x.y.z>. Set up the standard ability
+schema v3, main for source and gh-pages for distribution, and minimum Vetta Desktop version <x.y.z>. Set up the standard ability
 layout for Skills, MCP servers, plugins, and Bundles; repository-level Agent instructions; and
 GitHub Actions validation. Publish plugin runtime output as immutable .vettapkg GitHub Release
 assets with SHA-256 metadata, and do not commit generated plugin archives or build output to the
-marketplace source tree.
+marketplace source tree. Generate the index on gh-pages; do not create a second catalog PR or require manual marketplaceVersion updates.
 
 Validate the generated repository with the Vetta Plugin CLI and the Desktop publication check,
 push it to GitHub, then report the repository URL and the exact repository and branch values I
@@ -87,18 +79,15 @@ unless I ask.
 
 If you are an AI agent working in this repository, `AGENTS.md` is your instruction file: follow it end to end rather than inferring the format from existing packages.
 
-The short version:
+1. Add source and presentation files under abilities/.
+2. Register the ability in .vetta/marketplace.source.json. Plugins declare minAppVersion; CI generates releases metadata.
+3. Increase the ability version when ready to publish runtime changes.
+4. Submit a normal PR. Checks validate the source and build a candidate; a maintainer reviews it.
+5. After merge into main, CI builds unpublished versions, uploads verified Release assets, then updates gh-pages.
 
-1. Pick a type: `skill`, `mcp`, `plugin`, or `bundle`.
-2. Create the package directory (`abilities/skills/<slug>/`, `abilities/mcp/<slug>/`, `abilities/plugins/<slug>/`, `abilities/bundles/<slug>/`) and add the package file that type requires (`SKILL.md`, `mcp.json`, or `plugin.json`). On v3, commit plugin source changes to the marketplace branch, or to a branch containing its latest commit, and run the **Publish plugin release candidate** workflow.
-3. Add presentation files: `ability.json`, optionally `detail.json` and `assets/`.
-4. Register in top-level `abilities[]` for independent discovery, or reference a bundle-only package in a bundle's members. On v3, CI builds and uploads the immutable `.vettapkg`, records it in `releases[]`, and opens a Draft marketplace PR.
-5. Bump the top-level `marketplaceVersion`.
-6. Work through the checklist at the end of `AGENTS.md`, then add this repository as a marketplace source in the desktop app and verify the ability installs.
+Merging a version change permits publication. Configure main with required reviews and the marketplace-source check. The publisher has Contents: Write for Releases and gh-pages; it never writes generated changes to main. It does not need permission to create PRs.
 
-The release workflow never writes to or merges the protected marketplace branch. A maintainer must
-review the generated Draft PR and its marketplace and Desktop publication checks before merging.
-Existing `.zip` release records remain valid for compatibility; new plugin releases use `.vettapkg`.
+Existing package versions are immutable. Repeated runs verify uploaded bytes, and a failed upload/check leaves the previous index available.
 
 For bundle-only members, `ability.json` also owns catalog metadata: name, description, version,
 configVersion, category, categoryI18n and tags. Translated names/descriptions/tags may share
@@ -110,61 +99,24 @@ Member type/slug must match the reference; version must match the package file. 
 can share one member, but the same slug cannot refer to different types or paths. Invalid content
 fails the whole source; the client reports `sync-failed` and retains a usable previous snapshot.
 
-## Update rules
+## Validation and versions
 
-- Increment `marketplaceVersion` whenever repository marketplace content changes. The desktop client rejects a synced archive whose content changed without a version bump.
-- Keep each catalog `slug` and `version` equal to its `SKILL.md` frontmatter.
-- Increment `configVersion` when an ability's configuration contract changes.
-- Slugs are unique across the resolved catalog, not per type. Listing or unlisting a member does not change its identity, version or configuration version; bump marketplaceVersion for the catalog change.
-- Display names describe the capability, not its technical type: do not append MCP, Skill,
-  Plugin or Bundle (or their Chinese equivalents). Keep existing slugs stable when renaming.
-- Keep `category` as the stable grouping identity and provide matching `categoryI18n.zh` / `categoryI18n.en`
-  labels on every categorized entry. Desktop switches group labels with the app language; older clients simply
-  keep displaying `category`. This optional metadata does not require an ability version or `minAppVersion` bump,
-  but the catalog change still requires a new `marketplaceVersion`.
-- Keep installation configuration in `mcp.json` / `plugin.json` and presentation resources in the same package's `ability.json`, detail file, and assets. On v3, the installable `plugin.json` and built files are inside the CI-published `.vettapkg`.
-- Managed binary MCP packages may declare a `schemaVersion: 2` runtime with HTTPS release assets and SHA-256 checksums; they must not execute install scripts.
-- Compose detail pages from the host-rendered block whitelist; never add executable HTML, JavaScript, CSS, iframe content, or custom actions.
-- `minAppVersion` gates the whole marketplace: clients older than that version refuse to load this source.
+- Keep slugs and package versions consistent. Raise configVersion only for configuration contract changes.
+- Source development and root documentation edits do not publish runtime changes. Increase an ability version to publish them.
+- Plugin history is retained in the generated distribution for older compatible Desktop versions.
+- CI assigns marketplaceVersion only when distributed content changes. Never manually edit gh-pages or overwrite a Release asset.
+- Presentation changes may update the generated index without rebuilding an unchanged plugin version.
+- Existing sources are not silently redirected; switch Desktop to gh-pages explicitly after validating the first publication.
 
-## Local validation
-
-After cloning, enable the repository's Git hooks (Node.js 20+ and Git are required):
+Run with Node.js 22.21.1+ and Python 3:
 
 ```bash
-node scripts/install-git-hooks.mjs
+node scripts/marketplace.mjs check
+node --test tests/*.test.mjs
+node scripts/marketplace.mjs build
 ```
 
-The pre-commit and pre-merge-commit hooks require a new `marketplaceVersion` in the **staged**
-manifest, greater than HEAD, the fetched `origin/main`, the tracking branch and pending merge parents.
-Documentation, generated files, empty commits and merges all require a new version. The check never
-edits or stages files for you. Updating the working copy without staging the manifest still fails.
-The installer is local to this clone and refuses to replace existing custom hooks; new clones need installation.
-
-```bash
-git add .vetta/marketplace.json
-node scripts/check-marketplace-version.mjs --staged
-node --test tests/marketplace-version.test.mjs
-```
-
-The pre-push hook checks committed snapshots against the remote SHA, so fetch first if that object
-is missing locally. CI runs the same guard across every introduced commit, and both automated update
-workflows run it immediately before committing (including commits marked `[skip ci]`). Configure
-`marketplace-version` as a required GitHub branch-protection check and require PRs to enforce it for
-other clones and web edits; local hooks alone cannot prevent deliberate bypasses or direct remote writes.
-CI compares real PR head/base commits, not GitHub's temporary merge commit. If the base advances,
-refresh the branch, choose a newer version and rerun the check.
-
-Run the dependency-free catalog regression tests with Node.js 20 or later:
-
-```bash
-node --test tests/marketplace.test.mjs
-```
-
-These tests cover package identities, referenced presentation files, bilingual categories,
-display names, bundle membership, Cloudflare source/authentication contracts and the Zhihu
-command/credential contract. They do not replace
-the Desktop's full schema and archive validation or make real upstream API calls.
+Use a fresh output directory for each build (`--output DIR`). For incremental builds pass `--previous <gh-pages-checkout>`. On Windows with a Python shim, set VETTA_PYTHON to the actual python.exe. Local build never uploads anything.
 
 ## Writing for Vetta users
 
