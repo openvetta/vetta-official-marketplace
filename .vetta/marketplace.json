@@ -57,7 +57,7 @@
           ],
           "commands": [],
           "artifact": {
-            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-feishu-1.0.4/feishu-1.0.4.vettapkg",
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-feishu/feishu-1.0.4.vettapkg",
             "sha256": "07f3bc5cd16a082c0204566e7cecfed50c950cc6562ba0c5a99a45450a56b8b9"
           }
         }
@@ -121,7 +121,7 @@
           ],
           "commands": [],
           "artifact": {
-            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-cli-proxy-api-1.10.2/cli-proxy-api-1.10.2.vettapkg",
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-cli-proxy-api/cli-proxy-api-1.10.2.vettapkg",
             "sha256": "6ef5e87ea03920378ce7d55c491156d8da83d9ce89bd452f9f81bc21fe0dc160"
           }
         }
@@ -235,7 +235,7 @@
                 ],
                 "commands": [],
                 "artifact": {
-                  "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-shimo-reader-1.0.23/shimo-reader-1.0.23.vettapkg",
+                  "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-shimo-reader/shimo-reader-1.0.23.vettapkg",
                   "sha256": "ea68aa12a89aac3a24f5f17a09392414d6b24ee1c1a846e289991dee7dffcede"
                 }
               }
@@ -501,7 +501,7 @@
           ],
           "commands": [],
           "artifact": {
-            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-xiaohongshu-1.1.22/xiaohongshu-1.1.22.vettapkg",
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-xiaohongshu/xiaohongshu-1.1.22.vettapkg",
             "sha256": "9758779aef71ab84d04277e98dfb8ce06410e2a73b042604785730d0e365695c"
           }
         }
@@ -644,12 +644,12 @@
           ],
           "commands": [],
           "artifact": {
-            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-vetta-tihu-0.3.0/vetta-tihu-0.3.0.vettapkg",
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-vetta-tihu/vetta-tihu-0.3.0.vettapkg",
             "sha256": "c644aaa57cd3b22b0a71050fefa12862218b9462bdcadd21d7332a2c4f87e5ab"
           }
         }
       ]
     }
   ],
-  "marketplaceVersion": "2026.09.19-1"
+  "marketplaceVersion": "2026.09.22-1"
 }
