@@ -114,7 +114,7 @@ def build(slug: str, output_dir: Path, min_app_version: str) -> dict:
         "permissions": plugin.get("permissions", []),
         "commands": plugin.get("commands", []),
         "artifact": {
-            "url": f"{repository}/releases/download/plugin-{slug}-{plugin['version']}/{filename}",
+            "url": f"{repository}/releases/download/plugin-{slug}/{filename}",
             "sha256": hashlib.sha256(data).hexdigest(),
         },
     }

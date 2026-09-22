@@ -6,7 +6,7 @@
 
 - marketplace-source：能力源码与 `.vetta/marketplace.source.json`，不存构建包或发布索引。
 - main：冻结的 schema v2 兼容市场，供尚未迁移的旧 Desktop 继续读取。
-- Releases：不可变 `.vettapkg`；历史 `.zip` 可以继续被目录引用。
+- Releases：每个插件使用一个 `plugin-<slug>` Release，里面按版本追加不可变 `.vettapkg`；历史 `.zip` 可以继续被目录引用。
 - gh-pages：CI 生成 `.vetta/marketplace.json`、展示资源和非插件安装文件。
 
 Desktop 添加仓库时使用分支 gh-pages。无需开启 GitHub Pages；包括私有仓库在内，都可以沿用 GitHub 分支读取和鉴权。
@@ -17,8 +17,8 @@ Desktop 添加仓库时使用分支 gh-pages。无需开启 GitHub Pages；包�
 1. 修改源码；准备发布时提高能力版本，保持源码条目、ability.json 和类型身份文件版本一致。
 2. Plugin 在源码条目上声明 minAppVersion，包括仅 Bundle 引用的成员。
 3. 普通 PR 以 marketplace-source 为基准分支，检查源码、构建候选内容并核实宿主兼容性。保护 marketplace-source，要求人工审核和 marketplace-source 检查。
-4. 合并后 Publish ability marketplace 自动发布。版本没变的插件不重建、不覆盖；非插件运行文件也保留至版本提高。
-5. CI 上传并核对包之后才更新 gh-pages。文档开发提交不增加市场版本；分发内容变化时 CI 自动分配版本。
+4. 合并后 Publish ability marketplace 自动发布。版本没变的插件不重建、不覆盖；新版本以 `<slug>-<version>.vettapkg` 追加到该插件固定的 `plugin-<slug>` Release。非插件运行文件也保留至版本提高。
+5. CI 上传并核对包之后才更新 gh-pages。已存在的同名资产只能校验、不能删除或替换。文档开发提交不增加市场版本；分发内容变化时 CI 自动分配版本。
 
 插件 API、权限、命令和 SHA-256 从包派生，不手工维护 releases。展示资源变化可以单独更新目录。
 无需发布计划文件、机器人目录 PR 或每个源码提交的市场版本递增。
@@ -42,7 +42,7 @@ Node.js 22.21.1+、Python 3、Git 为前置依赖。Windows Python shim 环境�
 核对 Desktop 版本、Plugin API 和 schema v3。候选只在稳定 Release 返回 404 时生效，正式
 Release 一旦存在便优先检查 Release，不能用候选配置绕过不完整发布或本地未提交代码。
 
-同一版本存在时核对字节，禁止覆盖。上传部分失败时重新运行最新源码的工作流；源码或 gh-pages 已前进时，旧运行拒绝写入。
+同一版本存在时核对字节，禁止覆盖。每个插件的 Release 是追加式容器，不把 Release tag 当作单个版本标识；具体版本、兼容性和摘要以 gh-pages 索引为准。上传部分失败时重新运行最新源码的工作流；源码或 gh-pages 已前进时，旧运行拒绝写入。
 GitHub Release 和索引不是跨服务事务：索引失败时包可能已经公开，但市场仍保持上一份有效目录。
 
 ## 迁移

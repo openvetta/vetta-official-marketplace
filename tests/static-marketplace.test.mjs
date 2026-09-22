@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve, sep } from 'node:path';
+import { basename, join, resolve, sep } from 'node:path';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
 import { prepareMarketplace } from '../scripts/static-marketplace.mjs';
@@ -52,9 +52,11 @@ test('publish, browse distribution, edit source, publish next version and retain
   const f = fixture(t);
   const first = await f.run('first');
   assert.equal(first.packages.length, 1);
+  assert.equal(first.packages[0].tag, 'plugin-demo');
   assert.equal(f.builds(), 1);
   const manifest = JSON.parse(readFileSync(join(first.site, '.vetta/marketplace.json')));
   assert.equal(manifest.abilities[0].releases[0].version, '1.0.0');
+  assert.equal(manifest.abilities[0].releases[0].artifact.url, 'https://github.com/test/market/releases/download/plugin-demo/demo-1.0.0.vettapkg');
   assert.equal(existsSync(join(first.site, 'abilities/plugins/demo/src')), false);
   assert.equal(existsSync(join(first.site, 'abilities/plugins/demo/plugin.json')), false);
   assert.equal(existsSync(join(first.site, 'README.md')), false);
@@ -76,8 +78,27 @@ test('publish, browse distribution, edit source, publish next version and retain
   const next = await f.run('next', first.site);
   const updated = JSON.parse(readFileSync(join(next.site, '.vetta/marketplace.json')));
   assert.deepEqual(updated.abilities[0].releases.map(x => x.version), ['1.0.0', '1.1.0']);
+  assert.equal(next.packages[0].tag, 'plugin-demo');
+  assert.ok(updated.abilities[0].releases.every(x => x.artifact.url.includes('/releases/download/plugin-demo/')));
   assert.notEqual(updated.marketplaceVersion, manifest.marketplaceVersion);
   assert.equal(f.builds(), 3);
+});
+
+test('migrates a current plugin package from a per-version release without changing its bytes', async (t) => {
+  const f = fixture(t);
+  const first = await f.run('first');
+  const manifestPath = join(first.site, '.vetta/marketplace.json');
+  const previous = JSON.parse(readFileSync(manifestPath));
+  const oldRelease = previous.abilities[0].releases[0];
+  oldRelease.artifact.url = 'https://github.com/test/market/releases/download/plugin-demo-1.0.0/demo-1.0.0.vettapkg';
+  writeFileSync(manifestPath, `${JSON.stringify(previous, null, 2)}\n`);
+  const migrated = await f.run('migrated', first.site);
+  const updated = JSON.parse(readFileSync(join(migrated.site, '.vetta/marketplace.json')));
+  assert.equal(migrated.packages.length, 1);
+  assert.equal(migrated.packages[0].tag, 'plugin-demo');
+  assert.equal(updated.abilities[0].releases[0].artifact.url, 'https://github.com/test/market/releases/download/plugin-demo/demo-1.0.0.vettapkg');
+  assert.equal(updated.abilities[0].releases[0].artifact.sha256, oldRelease.artifact.sha256);
+  assert.notEqual(updated.marketplaceVersion, previous.marketplaceVersion);
 });
 
 test('same-version Skill edits remain unpublished until its version advances', async (t) => {
@@ -112,7 +133,8 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
   const sha = git('rev-parse', 'HEAD');
   const first = await f.run('first');
   f.put('first/publication.json', { ...first, sourceSha: sha, sourceBranch: 'marketplace-source', distributionBranch: 'gh-pages', previousCommit: null });
-  let release, uploaded, visible, fail = true;
+  let release, visible, fail = true, distributionRemote = null;
+  const uploaded = new Map();
   const remoteReads = [];
   const gh = (...args) => {
     if (args[0] === 'api') {
@@ -131,30 +153,54 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
     }
     if (args[1] === 'create') {
       assert.equal(release, undefined);
-      uploaded = readFileSync(args[3]);
+      uploaded.set(basename(args[3]), readFileSync(args[3]));
       release = { tag_name: first.packages[0].tag, draft: true, target_commitish: sha, assets: [{ name: first.packages[0].filename, url: 'https://api.github.com/repos/test/market/releases/assets/123' }] };
       if (fail) throw new Error('upload response lost');
       return '';
     }
-    if (args[1] === 'download') { writeFileSync(join(args.at(-1), first.packages[0].filename), uploaded); return ''; }
+    if (args[1] === 'upload') {
+      const filename = basename(args[3]);
+      uploaded.set(filename, readFileSync(args[3]));
+      release.assets.push({ name: filename, url: `https://api.github.com/repos/test/market/releases/assets/${123 + release.assets.length}` });
+      return '';
+    }
+    if (args[1] === 'download') {
+      const filename = args[args.indexOf('--pattern') + 1];
+      writeFileSync(join(args.at(-1), filename), uploaded.get(filename));
+      return '';
+    }
     if (args[1] === 'edit') { release.draft = false; return ''; }
     throw new Error(`Unexpected GitHub operation: ${args}`);
   };
-  const options = { root: f.root, directory: join(f.root, 'first'), gh, readRemote: name => { remoteReads.push(name); return name === 'gh-pages' ? null : sha; },
-    verify: async () => {}, push: commit => { visible = commit; } };
+  const options = { root: f.root, directory: join(f.root, 'first'), gh, readRemote: name => { remoteReads.push(name); return name === 'gh-pages' ? distributionRemote : sha; },
+    verify: async () => {}, push: commit => { visible = commit; distributionRemote = commit; } };
   await assert.rejects(publishMarketplace(options), /response lost/);
   assert.equal(visible, undefined);
   fail = false;
   await publishMarketplace(options);
   assert.equal(release.draft, false);
+  assert.equal(release.tag_name, 'plugin-demo');
   assert.ok(remoteReads.includes('marketplace-source'));
   assert.equal(remoteReads.includes('main'), false);
   const manifest = JSON.parse(git('show', `${visible}:.vetta/marketplace.json`));
   assert.equal(manifest.abilities[0].releases[0].artifact.sha256, first.packages[0].release.artifact.sha256);
   if (isPrivate) assert.equal(manifest.abilities[0].releases[0].artifact.url, 'https://api.github.com/repos/test/market/releases/assets/123');
   assert.doesNotMatch(git('ls-tree', '-r', '--name-only', visible), /src\/|scripts\/|\.vettapkg/);
-  uploaded = Buffer.from('replaced package'); visible = undefined;
-  await assert.rejects(publishMarketplace(options), /Published bytes differ/);
+  const firstVisible = visible;
+  f.catalog.abilities[0].version = '1.1.0';
+  f.put('.vetta/marketplace.source.json', f.catalog);
+  f.put('abilities/plugins/demo/plugin.json', { id: 'demo', name: 'Demo', version: '1.1.0', entry: 'dist/index.js', pluginApiVersion: '^2.0.0', permissions: [] });
+  f.put('abilities/plugins/demo/ability.json', { schemaVersion: 1, type: 'plugin', slug: 'demo', version: '1.1.0' });
+  const next = await f.run('next', join(f.root, 'first/site'));
+  f.put('next/publication.json', { ...next, sourceSha: sha, sourceBranch: 'marketplace-source', distributionBranch: 'gh-pages', previousCommit: firstVisible });
+  const nextOptions = { ...options, directory: join(f.root, 'next') };
+  await publishMarketplace(nextOptions);
+  assert.deepEqual(release.assets.map(asset => asset.name), ['demo-1.0.0.vettapkg', 'demo-1.1.0.vettapkg']);
+  const nextManifest = JSON.parse(git('show', `${visible}:.vetta/marketplace.json`));
+  assert.equal(nextManifest.abilities[0].releases.length, 2);
+  assert.ok(nextManifest.abilities[0].releases.every(item => isPrivate ? item.artifact.url.startsWith('https://api.github.com/') : item.artifact.url.includes('/releases/download/plugin-demo/')));
+  uploaded.set('demo-1.1.0.vettapkg', Buffer.from('replaced package')); visible = undefined;
+  await assert.rejects(publishMarketplace({ ...nextOptions, readRemote: name => name === 'gh-pages' ? firstVisible : sha }), /Published bytes differ/);
   assert.equal(visible, undefined);
   await assert.rejects(publishMarketplace({ ...options, readRemote: () => 'f'.repeat(40) }), /advanced/);
 });

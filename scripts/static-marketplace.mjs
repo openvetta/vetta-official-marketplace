@@ -106,6 +106,19 @@ function compareVersion(a, b) {
   return left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
 }
 
+function publishedPluginArtifact(repository, slug, version) {
+  const filename = `${slug}-${version}.vettapkg`;
+  const tag = `plugin-${slug}`;
+  return { filename, tag, url: `${repository}/releases/download/${tag}/${filename}` };
+}
+
+function needsPluginReleaseMigration(existing, expectedUrl) {
+  if (!existing) return false;
+  // Private marketplaces publish authenticated asset API URLs, which do not
+  // expose their owning release tag. Preserve those opaque URLs here.
+  return !existing.artifact.url.startsWith('https://api.github.com/repos/') && existing.artifact.url !== expectedUrl;
+}
+
 function treeDigest(root, manifest) {
   const { marketplaceVersion, ...content } = manifest;
   const hash = createHash('sha256').update(JSON.stringify(content));
@@ -141,16 +154,20 @@ export async function prepareMarketplace({ root, output, previous, sourceSha, bu
       const descriptor = readJson(join(source, 'plugin.json'));
       const releases = structuredClone(oldEntry?.releases ?? []);
       const existing = releases.find(x => x.version === descriptor.version);
-      if (existing) {
-        if (existing.minAppVersion !== entry.minAppVersion || existing.pluginApiVersion !== descriptor.pluginApiVersion || JSON.stringify(existing.permissions) !== JSON.stringify(descriptor.permissions ?? []) || JSON.stringify(existing.commands) !== JSON.stringify(descriptor.commands ?? [])) throw new Error(`Changed release declaration for ${entry.slug}; publish a new version`);
-      } else {
-        if (releases.some(x => compareVersion(x.version, descriptor.version) >= 0)) throw new Error(`New version must advance: ${entry.slug}`);
+      const artifact = publishedPluginArtifact(catalog.repository, entry.slug, descriptor.version);
+      if (existing && (existing.minAppVersion !== entry.minAppVersion || existing.pluginApiVersion !== descriptor.pluginApiVersion || JSON.stringify(existing.permissions) !== JSON.stringify(descriptor.permissions ?? []) || JSON.stringify(existing.commands) !== JSON.stringify(descriptor.commands ?? []))) throw new Error(`Changed release declaration for ${entry.slug}; publish a new version`);
+      const migrate = needsPluginReleaseMigration(existing, artifact.url);
+      if (!existing || migrate) {
+        if (!existing && releases.some(x => compareVersion(x.version, descriptor.version) >= 0)) throw new Error(`New version must advance: ${entry.slug}`);
+        if (migrate) releases.splice(releases.indexOf(existing), 1);
         await buildPlugin(source);
         const python = process.env.VETTA_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
         const packager = fileURLToPath(new URL('./stage-plugin-release.py', import.meta.url));
         const release = JSON.parse(execFileSync(python, [packager, entry.slug, '--root', root, '--min-app-version', entry.minAppVersion, '--output-dir', artifacts], { encoding: 'utf8' }));
+        if (release.artifact.url !== artifact.url) throw new Error(`Unexpected artifact URL for ${entry.slug}`);
+        if (migrate && release.artifact.sha256 !== existing.artifact.sha256) throw new Error(`Published bytes differ for ${entry.slug}; use a new version`);
         releases.push(release);
-        packages.push({ slug: entry.slug, release, filename: `${entry.slug}-${descriptor.version}.vettapkg`, tag: `plugin-${entry.slug}-${descriptor.version}` });
+        packages.push({ slug: entry.slug, release, filename: artifact.filename, tag: artifact.tag });
       }
       entry.releases = releases.sort((a, b) => compareVersion(a.version, b.version));
       if (entry.version) entry.version = entry.releases.at(-1).version;

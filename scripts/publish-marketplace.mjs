@@ -34,7 +34,7 @@ function releaseByTag(gh, repository, tag) {
   }
 }
 
-// All writes are confined to immutable release assets and the generated distribution branch.
+// All writes are confined to append-only release assets and the generated distribution branch.
 export async function publishMarketplace({ root, directory, gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8' }).trim(), verify, readRemote, push }) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
   const settings = publicationSettings(root);
@@ -53,18 +53,18 @@ export async function publishMarketplace({ root, directory, gh = (...args) => ex
   if (!publication.changed) return { published: false };
   await verify(directory);
   for (const item of publication.packages) {
-    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(item.slug) || item.tag !== `plugin-${item.slug}-${item.release.version}` || item.filename !== `${item.slug}-${item.release.version}.vettapkg`) throw new Error('Invalid publication package');
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(item.slug) || item.tag !== `plugin-${item.slug}` || item.filename !== `${item.slug}-${item.release.version}.vettapkg`) throw new Error('Invalid publication package');
     const archive = inside(join(directory, 'artifacts'), item.filename);
     assertExistingRelease(item, readFileSync(archive));
     let release = releaseByTag(gh, repository, item.tag);
     if (!release) {
-      gh('release', 'create', item.tag, archive, '--repo', repository, '--draft', '--target', publication.sourceSha, '--title', `${item.slug} ${item.release.version}`, '--notes', `Built from ${publication.sourceSha}.`);
+      gh('release', 'create', item.tag, archive, '--repo', repository, '--draft', '--target', publication.sourceSha, '--title', `${item.slug} plugin packages`, '--notes', `Append-only Vetta plugin packages for ${item.slug}. The first package was built from ${publication.sourceSha}; version metadata and SHA-256 digests are recorded in the gh-pages marketplace index.`);
       release = releaseByTag(gh, repository, item.tag);
       if (!release) throw new Error(`Created draft release is unavailable: ${item.tag}`);
     }
     const asset = release.assets.find(x => x.name === item.filename);
     if (!asset) {
-      if (!release.draft || release.target_commitish !== publication.sourceSha) throw new Error(`Incomplete existing release: ${item.tag}`);
+      if (release.draft && release.target_commitish !== publication.sourceSha) throw new Error(`Incomplete existing release: ${item.tag}`);
       gh('release', 'upload', item.tag, archive, '--repo', repository);
     }
     const download = mkdtempSync(join(tmpdir(), 'vetta-release-verify-'));
