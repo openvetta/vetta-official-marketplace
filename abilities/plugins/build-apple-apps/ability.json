@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "build-apple-apps",
+  "version": "0.2.0",
+  "icon": "icon.png",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "README.md",
+    "meta": [
+      { "key": "repository", "value": "https://github.com/openvetta/vetta-official-marketplace" }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}
