@@ -1,8 +1,8 @@
 {
 	"id": "build-apple-apps",
 	"name": "%plugin.name%",
-	"version": "0.2.0",
-	"icon": "icon.png",
+	"version": "0.2.1",
+	"icon": "assets/icon.png",
 	"defaultLocale": "zh",
 	"pluginApiVersion": "^2.0.0",
 	"entry": "dist/mf-manifest.json",

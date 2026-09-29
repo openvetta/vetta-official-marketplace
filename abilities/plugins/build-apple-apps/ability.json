@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "build-apple-apps",
-  "version": "0.2.0",
-  "icon": "icon.png",
+  "version": "0.2.1",
+  "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
     "path": "detail.json",
