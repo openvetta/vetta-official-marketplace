@@ -649,7 +649,73 @@
           }
         }
       ]
+    },
+    {
+      "type": "plugin",
+      "slug": "build-apple-apps",
+      "name": "Build Apple Apps",
+      "description": "Bring a live iOS Simulator into the activity panel so the AI can build, install, launch and operate your app, with a built-in SwiftUI development guide.",
+      "version": "0.2.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Development",
+      "categoryI18n": {
+        "zh": "开发",
+        "en": "Development"
+      },
+      "tags": [
+        "ios",
+        "swiftui",
+        "xcode",
+        "simulator",
+        "apple"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "构建 Apple App",
+            "description": "把实时的 iOS 模拟器放进活动面板，让 AI 构建、安装、启动并操作你的 App，内置 SwiftUI 开发指南。",
+            "tags": [
+              "iOS",
+              "SwiftUI",
+              "Xcode",
+              "模拟器",
+              "Apple"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/build-apple-apps"
+      },
+      "releases": [
+        {
+          "version": "0.2.0",
+          "minAppVersion": "0.5.60",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.activity-tab",
+            "ui.slot.workspace-view",
+            "agent.command.run",
+            "agent.command.spawn",
+            "agent.skills.control",
+            "agent.session.read",
+            "fs.read",
+            "storage.read",
+            "storage.write",
+            "shell.openExternal"
+          ],
+          "commands": [
+            "baguette"
+          ],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-build-apple-apps/build-apple-apps-0.2.0.vettapkg",
+            "sha256": "f158035b44728fb2ff246e413505691a92bf7b7bc16725873bc7fe2ed69f899f"
+          }
+        }
+      ]
     }
   ],
-  "marketplaceVersion": "2026.09.22-1"
+  "marketplaceVersion": "2026.09.29-1"
 }
