@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { basename, join, resolve, sep } from 'node:path';
 import test from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { prepareMarketplace } from '../scripts/static-marketplace.mjs';
+import { missingPackagedResources, prepareMarketplace } from '../scripts/static-marketplace.mjs';
 import { publishMarketplace } from '../scripts/publish-marketplace.mjs';
 import { publicationSettings } from '../scripts/marketplace.mjs';
 
@@ -203,4 +203,16 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
   await assert.rejects(publishMarketplace({ ...nextOptions, readRemote: name => name === 'gh-pages' ? firstVisible : sha }), /Published bytes differ/);
   assert.equal(visible, undefined);
   await assert.rejects(publishMarketplace({ ...options, readRemote: () => 'f'.repeat(40) }), /advanced/);
+});
+
+test('packaged resource check reports manifest files the archive left out', () => {
+  const names = ['plugin.json', 'dist/index.js', 'agent/skills/guide/SKILL.md', 'assets/icon.png'];
+  const resources = [
+    { field: 'entry', path: 'dist/index.js', kind: 'file' },
+    { field: 'icon', path: 'icon.png', kind: 'file' },
+    { field: 'agent.skillPaths', path: 'agent/skills/guide', kind: 'file-or-directory' },
+    { field: 'agent.skillPaths', path: './agent/skills/missing/', kind: 'file-or-directory' },
+    { field: 'styles', path: 'dist', kind: 'file' },
+  ];
+  assert.deepEqual(missingPackagedResources(names, resources).map(x => x.path), ['icon.png', './agent/skills/missing/', 'dist']);
 });

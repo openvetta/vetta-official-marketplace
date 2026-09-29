@@ -39,6 +39,17 @@ export function entries(catalog) {
   return catalog.abilities.flatMap(ability => [ability, ...(ability.type === 'bundle' ? ability.config.members.filter(x => x.source) : [])]);
 }
 
+// Desktop rejects a package whose plugin.json names a file the archive does not contain.
+// Resources come from the plugin SDK's own listing so the check follows the host contract.
+export function missingPackagedResources(names, resources) {
+  const packaged = new Set(names);
+  return resources.filter(({ path, kind }) => {
+    const normalized = path.replace(/^\.\//u, '').replace(/\/+$/u, '');
+    if (packaged.has(normalized)) return false;
+    return kind !== 'file-or-directory' || !names.some(name => name.startsWith(`${normalized}/`));
+  });
+}
+
 export function sourceCatalog(root) {
   const catalog = readJson(join(root, '.vetta/marketplace.source.json'));
   if (catalog.schemaVersion !== 3 || !slugPattern.test(catalog.name) || !versionPattern.test(catalog.minAppVersion) || !Array.isArray(catalog.abilities) || !/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(catalog.repository)) throw new Error('Invalid marketplace source configuration');

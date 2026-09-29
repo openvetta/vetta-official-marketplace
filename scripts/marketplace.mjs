@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { prepareMarketplace, readJson, sourceCatalog, writeJson, digest, inside } from './static-marketplace.mjs';
+import { prepareMarketplace, readJson, sourceCatalog, writeJson, digest, inside, entries, missingPackagedResources } from './static-marketplace.mjs';
 
 const root = process.cwd();
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
@@ -45,6 +45,20 @@ export async function verifyCandidate(directory, tooling) {
   });
 }
 
+async function verifyPackagedResources(result) {
+  const sources = new Map(entries(sourceCatalog(root)).filter(entry => entry.type === 'plugin').map(entry => [entry.slug, inside(root, entry.source.path)]));
+  const python = process.env.VETTA_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+  for (const item of result.packages) {
+    const archive = join(result.artifacts, item.filename);
+    const names = JSON.parse(execFileSync(python, ['-c', 'import json, sys, zipfile; print(json.dumps(zipfile.ZipFile(sys.argv[1]).namelist()))', archive], { encoding: 'utf8' }));
+    const manifestModule = join(sources.get(item.slug), 'node_modules/@vetta-org/plugin-sdk/dist/manifest.js');
+    const { listPluginManifestResources, parsePluginManifest } = await import(pathToFileURL(manifestModule).href);
+    const manifest = parsePluginManifest(readJson(join(sources.get(item.slug), 'plugin.json')));
+    const missing = missingPackagedResources(names, listPluginManifestResources(manifest));
+    if (missing.length) throw new Error(`${item.filename} is missing plugin.json resources: ${missing.map(x => `${x.field} (${x.path})`).join(', ')}`);
+  }
+}
+
 async function main() {
   const command = process.argv[2];
   if (command === 'check') {
@@ -71,6 +85,7 @@ async function main() {
       }
     },
   });
+  await verifyPackagedResources(result);
   const branch = settings.distributionBranch;
   result.sourceBranch = settings.sourceBranch;
   result.distributionBranch = branch;
