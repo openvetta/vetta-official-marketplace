@@ -35,6 +35,14 @@ for (const bundle of catalog.abilities.filter((ability) => ability.type === "bun
   }
 }
 
+// CI 只构建尚未发布的插件版本；已发布版本的制品在它发布那次已经检查过，本次没有 dist/ 可查。
+// 找不到构建记录（例如本地用 --output 指到别处）时按全部已构建处理，保持原有的严格检查。
+const publicationPath = resolve(root, ".marketplace-build/publication.json");
+const builtSlugs = existsSync(publicationPath)
+  ? new Set(readJson(publicationPath).packages.map((item) => item.slug))
+  : null;
+const builtThisRun = (slug) => builtSlugs === null || builtSlugs.has(slug);
+
 function packageFile(directory, path) {
   assert.equal(typeof path, "string");
   const target = resolve(directory, path);
@@ -191,7 +199,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   assert.equal(plugin.permissions.includes("agent.session.read"), false);
   assert.equal(plugin.permissions.includes("agent.session.write"), false);
   assert.deepEqual(plugin.styles, ["dist/style.css"]);
-  packageFile(directory, "dist/style.css");
+  if (builtThisRun("shimo-reader")) packageFile(directory, "dist/style.css");
   assert.equal(readJson(packageFile(directory, "locales/en.json")).name, "Shimo");
   assert.equal(readJson(packageFile(directory, "locales/zh.json")).name, "拾墨");
     assert.deepEqual(plugin.agent?.skillPaths, [
@@ -277,34 +285,36 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(service.health.credentialId, "api-key");
 
   const template = readFileSync(packageFile(directory, "assets/config.yaml.tpl"), "utf8");
-  assert.equal(readFileSync(packageFile(directory, service.templates[0].source), "utf8"), template);
-  const federation = readJson(packageFile(directory, plugin.entry));
-  assert.equal(federation.name, plugin.moduleFederation.remoteName);
-  assert.deepEqual(plugin.styles, ["dist/style.css"]);
-  packageFile(directory, "dist/style.css");
-  const productionModules = federation.metaData.remoteEntry.path
-    ? [packageFile(directory, `${federation.metaData.remoteEntry.path}/${federation.metaData.remoteEntry.name}`)]
-    : [];
-  for (const asset of federation.exposes.flatMap((entry) => entry.assets.js.sync)) {
-    productionModules.push(packageFile(directory, `dist/${asset}`));
-  }
-  const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
-  assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
-  // plugin-vite 0.2.0 起小体积资源在生产构建内联成 data URL，六个 provider 图标因此不再
-  // 落成独立 .svg 文件。这条断言要保的是「图标不经过任何 URL 解析、不会落到宿主 origin」，
-  // 内联比原先的 new URL(..., import.meta.url) 更彻底地满足它。
-  const inlinedProviderIcons = Array.from(
-    productionCode.matchAll(/data:image\/svg\+xml,%3csvg[^"`]*?viewBox='0%200%2024%2024'/gu),
-    (match) => match[0],
-  );
-  assert.ok(inlinedProviderIcons.length >= 6, `expected the provider icons to be inlined, got ${inlinedProviderIcons.length}`);
-  const iconProvenance = readJson(packageFile(directory, "dist/assets/providers/lobe-icons.json"));
-  assert.equal(iconProvenance.package, "@lobehub/icons-static-svg");
-  assert.equal(iconProvenance.version, "1.94.0");
-  assert.equal(Object.keys(iconProvenance.icons).length, 6);
-  assert.match(readFileSync(packageFile(directory, "dist/assets/providers/LOBE-ICONS-LICENSE"), "utf8"), /MIT License/u);
-  for (const detail of ["detail.json", "detail.zh.json"]) {
-    assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
+  if (builtThisRun("cli-proxy-api")) {
+    assert.equal(readFileSync(packageFile(directory, service.templates[0].source), "utf8"), template);
+    const federation = readJson(packageFile(directory, plugin.entry));
+    assert.equal(federation.name, plugin.moduleFederation.remoteName);
+    assert.deepEqual(plugin.styles, ["dist/style.css"]);
+    packageFile(directory, "dist/style.css");
+    const productionModules = federation.metaData.remoteEntry.path
+      ? [packageFile(directory, `${federation.metaData.remoteEntry.path}/${federation.metaData.remoteEntry.name}`)]
+      : [];
+    for (const asset of federation.exposes.flatMap((entry) => entry.assets.js.sync)) {
+      productionModules.push(packageFile(directory, `dist/${asset}`));
+    }
+    const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
+    assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
+    // plugin-vite 0.2.0 起小体积资源在生产构建内联成 data URL，六个 provider 图标因此不再
+    // 落成独立 .svg 文件。这条断言要保的是「图标不经过任何 URL 解析、不会落到宿主 origin」，
+    // 内联比原先的 new URL(..., import.meta.url) 更彻底地满足它。
+    const inlinedProviderIcons = Array.from(
+      productionCode.matchAll(/data:image\/svg\+xml,%3csvg[^"`]*?viewBox='0%200%2024%2024'/gu),
+      (match) => match[0],
+    );
+    assert.ok(inlinedProviderIcons.length >= 6, `expected the provider icons to be inlined, got ${inlinedProviderIcons.length}`);
+    const iconProvenance = readJson(packageFile(directory, "dist/assets/providers/lobe-icons.json"));
+    assert.equal(iconProvenance.package, "@lobehub/icons-static-svg");
+    assert.equal(iconProvenance.version, "1.94.0");
+    assert.equal(Object.keys(iconProvenance.icons).length, 6);
+    assert.match(readFileSync(packageFile(directory, "dist/assets/providers/LOBE-ICONS-LICENSE"), "utf8"), /MIT License/u);
+    for (const detail of ["detail.json", "detail.zh.json"]) {
+      assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
+    }
   }
   assert.match(template, /host: "127\.0\.0\.1"/u);
   assert.match(template, /allow-remote: false/u);
@@ -365,7 +375,7 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(integration, /:generateContent/u);
   assert.match(integration, /readInput/u);
 
-  packageFile(directory, plugin.entry);
+  if (builtThisRun("cli-proxy-api")) packageFile(directory, plugin.entry);
   packageFile(directory, "upstream.json");
   packageFile(directory, "LICENSE");
 });
