@@ -37,9 +37,9 @@ abilities/<type>/<slug>/README.md
 abilities/<type>/<slug>/assets/
 ```
 
-The protected **marketplace-source** branch contains ability declarations and source code. The existing **main** branch remains an immutable schema v2 compatibility source for older Desktop builds. CI publishes immutable plugin packages to GitHub Releases and generates a schema v3 distribution on **gh-pages**. Desktop uses this repository with branch **gh-pages** after its first successful publication. The distribution contains presentation and installable Skill/MCP/Bundle content, without plugin source or build output.
+The protected **main** branch contains ability declarations and source code. CI publishes immutable plugin packages to GitHub Releases and generates a schema v3 distribution on **gh-pages**. Desktop uses this repository with branch **gh-pages**. The distribution contains presentation and installable Skill/MCP/Bundle content, without plugin source or build output.
 
-This follows the [Helm chart-releaser model](https://github.com/helm/chart-releaser-action). See [the publication guide](docs/marketplace-v3.md). Legacy client refs must remain available until those clients are migrated.
+This follows the [Helm chart-releaser model](https://github.com/helm/chart-releaser-action). See [the publication guide](docs/marketplace-v3.md).
 
 ## Create your own marketplace with an Agent
 
@@ -83,9 +83,9 @@ If you are an AI agent working in this repository, `AGENTS.md` is your instructi
 2. Register the ability in .vetta/marketplace.source.json. Plugins declare minAppVersion; CI generates releases metadata.
 3. Increase the ability version when ready to publish runtime changes.
 4. Submit a normal PR. Checks validate the source and build a candidate; a maintainer reviews it.
-5. After merge into marketplace-source, CI builds unpublished versions, uploads verified Release assets, then updates gh-pages.
+5. After merge into main, CI builds unpublished versions, uploads verified Release assets, then updates gh-pages.
 
-Merging a version change permits publication. Configure marketplace-source with required reviews and the marketplace-source check. The publisher has Contents: Write for Releases and gh-pages; it never writes generated changes to marketplace-source or main. It does not need permission to create PRs. Keep main on the legacy schema v2 snapshot while supported Desktop versions still reference it.
+Merging a version change permits publication. Configure main with required reviews and the marketplace check. The publisher has Contents: Write for Releases and gh-pages; it never writes generated changes to main. It does not need permission to create PRs.
 
 Existing package versions are immutable. Repeated runs verify uploaded bytes, and a failed upload/check leaves the previous index available.
 
@@ -106,7 +106,7 @@ fails the whole source; the client reports `sync-failed` and retains a usable pr
 - Plugin history is retained in the generated distribution for older compatible Desktop versions.
 - CI assigns marketplaceVersion only when distributed content changes. Never manually edit gh-pages or overwrite a Release asset.
 - Presentation changes may update the generated index without rebuilding an unchanged plugin version.
-- Existing sources are not silently redirected; switch Desktop to gh-pages explicitly after validating the first publication.
+- Desktop reads the gh-pages branch. The generated index stays on that branch.
 
 Run with Node.js 22.21.1+ and Python 3:
 

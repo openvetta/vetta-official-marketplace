@@ -2,14 +2,14 @@ name: Marketplace checks
 
 on:
   pull_request:
-    branches: [main, marketplace-source]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  marketplace-source:
+  marketplace:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

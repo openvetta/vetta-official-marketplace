@@ -1,24 +1,24 @@
 # 能力编写手册
 
-本仓库是 Vetta 桌面端「开放能力市场」的官方源。新模型在源码分支开发能力，由 CI 向 gh-pages 发布 schema v3 索引、向 GitHub Releases 发布固定 .vettapkg。旧客户端仍引用的历史分支需要单独保留，不能在客户端迁移前删除其目录合同。
+本仓库是 Vetta 桌面端「开放能力市场」的官方源。源码在 `main` 开发，由 CI 向 gh-pages 发布 schema v3 索引、向 GitHub Releases 发布固定 .vettapkg。Desktop 读取 `gh-pages`。
 
 这份手册面向在本仓库中添加/修改能力的人与 AI。源码检查、发布检查与客户端校验分别保护不同边界；来源同步失败时查看主进程中的 open-marketplace 日志。
 
 ## 静态市场发布规则
 
-本仓库采用 Helm 静态包仓库模式。`marketplace-source` 是新模型的源码分支，事实源是 `.vetta/marketplace.source.json`；CI 在 `gh-pages` 生成 `.vetta/marketplace.json`。`main` 固定保留旧客户端读取的 schema v2 市场，不接收新模型源码。源码不保存制品索引，也不手工维护 marketplaceVersion。
+本仓库采用 Helm 静态包仓库模式。`main` 是源码分支，事实源是 `.vetta/marketplace.source.json`；CI 在 `gh-pages` 生成 `.vetta/marketplace.json`。源码不保存制品索引，也不手工维护 marketplaceVersion。
 
 - 修改前运行 git status，保留已有改动。没有用户授权不得提交或推送。
-- 通过以 `marketplace-source` 为基准分支的普通源码 PR 审核代码及能力版本。合入后 CI 发布新版本，不能自动合并源码 PR。
+- 通过以 `main` 为基准分支的普通源码 PR 审核代码及能力版本。合入后 CI 发布新版本，不能自动合并源码 PR。
 - 插件源码条目（含仅 Bundle 引用的成员）声明 minAppVersion；API、权限、命令与摘要由构建结果派生。
 - 同版本运行内容继续使用已发布制品；准备发布时提升能力版本并同步相关身份文件。
 - CI 先校验、上传并复核制品，再推进 gh-pages。每个插件使用固定的 `plugin-<slug>` Release，版本包只追加；已有版本不可覆盖。
 - 首次联调尚未正式发布的 Desktop 版本时，`candidateAppCommits` 只能把该版本钉到 OpenVetta 的 40 位不可变 commit；稳定 Release 存在后门禁自动优先校验 Release。
 - 文档和源码开发提交不增加市场版本。只有分发内容变化时 CI 分配新 marketplaceVersion。
-- 不执行向 `marketplace-source` 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程；不得用新模型提交改写兼容分支 `main`。
+- 不执行向 `main` 回写生成索引、先发包后提目录 PR 或逐提交版本递增的旧流程。
 - 完成时依次运行 node scripts/marketplace.mjs check、node scripts/marketplace.mjs build 与 node --test tests/*.test.mjs；内容测试同时检查生成后的插件资源，不能放在构建前。Windows Python shim 环境可将 VETTA_PYTHON 指向真实解释器。
 - 本地构建使用 node scripts/marketplace.mjs build；正式发布由 publish-marketplace.yml 执行。
-- 旧客户端使用的历史 ref 保留；gh-pages 验证成功后再显式切换来源。
+- Desktop 使用分支 `gh-pages`。生成索引只写在 `gh-pages`。
 
 ## 添加一个能力的流程
 
