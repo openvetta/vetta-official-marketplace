@@ -172,7 +172,7 @@ for (const isPrivate of [false, true]) test(`interrupted ${isPrivate ? 'private'
     if (args[1] === 'edit') { release.draft = false; return ''; }
     throw new Error(`Unexpected GitHub operation: ${args}`);
   };
-  const options = { root: f.root, directory: join(f.root, 'first'), gh, readRemote: name => { remoteReads.push(name); return name === 'gh-pages' ? distributionRemote : sha; },
+  const options = { root: f.root, directory: join(f.root, 'first'), gh, refName: 'marketplace-source', readRemote: name => { remoteReads.push(name); return name === 'gh-pages' ? distributionRemote : sha; },
     verify: async () => {}, push: commit => { visible = commit; distributionRemote = commit; } };
   await assert.rejects(publishMarketplace(options), /response lost/);
   assert.equal(visible, undefined);

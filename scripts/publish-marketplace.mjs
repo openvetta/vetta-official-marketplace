@@ -35,7 +35,7 @@ function releaseByTag(gh, repository, tag) {
 }
 
 // All writes are confined to append-only release assets and the generated distribution branch.
-export async function publishMarketplace({ root, directory, gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8' }).trim(), verify, readRemote, push }) {
+export async function publishMarketplace({ root, directory, gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8' }).trim(), verify, readRemote, push, refName = process.env.GITHUB_REF_NAME }) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
   const settings = publicationSettings(root);
   readRemote ??= branch => git('ls-remote', 'origin', `refs/heads/${branch}`).split(/\s/)[0] || null;
@@ -46,7 +46,7 @@ export async function publishMarketplace({ root, directory, gh = (...args) => ex
   const catalog = readJson(catalogPath);
   if (source.repository !== catalog.repository || git('rev-parse', 'HEAD') !== publication.sourceSha || publication.sourceBranch !== settings.sourceBranch || publication.distributionBranch !== settings.distributionBranch) throw new Error('Candidate source identity differs');
   const repository = new URL(source.repository).pathname.slice(1);
-  if (process.env.GITHUB_REF_NAME && process.env.GITHUB_REF_NAME !== settings.sourceBranch) throw new Error('Publication must run from the configured source branch');
+  if (refName && refName !== settings.sourceBranch) throw new Error('Publication must run from the configured source branch');
   if (readRemote(settings.sourceBranch) !== publication.sourceSha) throw new Error('Source branch advanced; rerun the latest revision');
   const remote = readRemote(settings.distributionBranch);
   if (remote !== publication.previousCommit) throw new Error('Distribution advanced; rebuild against the latest gh-pages');
