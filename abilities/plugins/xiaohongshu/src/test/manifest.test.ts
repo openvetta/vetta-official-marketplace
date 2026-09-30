@@ -23,7 +23,7 @@ describe("packaged service contract", () => {
 	it("keeps catalog and package versions aligned and packaged details resolvable", () => {
 		const catalog = JSON.parse(
 			readFileSync(
-				new URL("../../../../../.vetta/marketplace.json", import.meta.url),
+				new URL("../../../../../.vetta/marketplace.source.json", import.meta.url),
 				"utf8",
 			),
 		);

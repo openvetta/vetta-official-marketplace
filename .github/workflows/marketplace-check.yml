@@ -1,54 +1,45 @@
 name: Marketplace checks
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, marketplace-source]
   workflow_dispatch:
-    inputs:
-      base_ref:
-        description: Base branch used for a manually dispatched release-candidate check
-        required: true
-        default: refa/marketplace-v3
-        type: string
 
 permissions:
   contents: read
 
 jobs:
-  marketplace-version:
+  marketplace-source:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Check every proposed marketplace snapshot
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          DISPATCH_BASE_REF: ${{ inputs.base_ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        shell: bash
+          node-version: 22.21.1
+      - run: node scripts/marketplace.mjs check
+      - name: Build candidate against the current distribution
         run: |
-          set -euo pipefail
-          base_sha="$BASE_SHA"
-          if [[ -n "$DISPATCH_BASE_REF" ]]; then
-            git check-ref-format --branch "$DISPATCH_BASE_REF" >/dev/null
-            git fetch origin "refs/heads/$DISPATCH_BASE_REF:refs/remotes/origin/$DISPATCH_BASE_REF"
-            base_sha="$(git rev-parse "origin/$DISPATCH_BASE_REF")"
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add --detach "$RUNNER_TEMP/marketplace-previous" origin/gh-pages
+            node scripts/marketplace.mjs build --previous "$RUNNER_TEMP/marketplace-previous"
+          else
+            node scripts/marketplace.mjs build
           fi
-          node scripts/check-marketplace-version.mjs --range "$base_sha" "$HEAD_SHA"
-
-      - name: Test version guard and marketplace contracts
-        run: node --test tests/marketplace-version.test.mjs tests/marketplace.test.mjs tests/update-cli-proxy-api.test.mjs
-
-      # 通用身份对账：条目 version 必须等于包里的版本，plugin 的 entry/styles 必须真实存在。
-      # 现有 tests/marketplace.test.mjs 是逐个能力手写断言，新增能力不会自动被覆盖。
-      - name: Reconcile the marketplace index against the ability packages
-        run: npx --yes @vetta-org/plugin-cli@^0.1.1 sync --check
+      - name: Check source and built package contracts
+        run: node --test tests/*.test.mjs
+      - name: Resolve publication tool revision
+        id: tooling
+        run: echo "commit=$(node -p 'require("./.vetta/publish.json").toolingCommit')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: openvetta/open-vetta
+          ref: ${{ steps.tooling.outputs.commit }}
+          path: .tooling/open-vetta
+          persist-credentials: false
+      - name: Check stable Desktop compatibility and package digests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/marketplace.mjs verify

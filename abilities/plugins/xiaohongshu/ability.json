@@ -6,8 +6,8 @@
   "icon": "assets/icon.png",
   "detail": {
     "format": "blocks",
-    "path": "dist/assets/detail.json",
-    "i18n": { "zh": { "path": "dist/assets/detail.zh.json" } },
+    "path": "detail.json",
+    "i18n": { "zh": { "path": "detail.zh.json" } },
     "meta": [
       {
         "key": "repository",

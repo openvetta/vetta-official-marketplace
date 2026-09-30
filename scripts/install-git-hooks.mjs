@@ -18,7 +18,7 @@ try {
   }
   for (const hook of hooks) chmodSync(`.githooks/${hook}`, 0o755);
   git("config", "--local", "core.hooksPath", ".githooks");
-  console.log("已为当前仓库启用 marketplaceVersion 提交、合并及推送检查。");
+  console.log("已为当前仓库启用能力源码检查；分发版本由 CI 生成。");
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

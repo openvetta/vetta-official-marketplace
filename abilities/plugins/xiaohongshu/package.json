@@ -6,7 +6,8 @@
   "scripts": {
     "build": "vite build",
     "check": "tsc --noEmit",
-    "test": "node node_modules/vitest/vitest.mjs run"
+    "test": "node node_modules/vitest/vitest.mjs run",
+    "pretest": "npm --prefix service ci --ignore-scripts"
   },
   "dependencies": {
     "qrcode": "^1.5.4"
