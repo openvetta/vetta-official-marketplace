@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "baizhi-agent-toolkit",
+  "version": "1.0.0",
+  "icon": "assets/icon.png",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "homepage",
+        "value": "https://baizhi.cloud/landing/agent-toolkit"
+      },
+      {
+        "key": "repository",
+        "value": "https://github.com/chaitin/baizhi-agent-toolkit"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json"
+      }
+    }
+  }
+}

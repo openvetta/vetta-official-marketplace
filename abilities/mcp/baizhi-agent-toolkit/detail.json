@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "Use Baizhi Cloud tools in Vetta",
+      "description": "Connect the hosted Agent Toolkit with your own API key. Available tools depend on your account and key permissions."
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "Research recent guidance on securing remote MCP connections. Summarize the key points and include links to the original sources.",
+        "assistant_reply": "I’ll search with the tools available to your key, compare the sources I can access, and include links so you can check the claims."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "What you can ask Vetta to do",
+      "items": [
+        {
+          "title": "Research a topic",
+          "description": "Ask Vetta to search the web when the search tool is available to your key.",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "Read and extract pages",
+          "description": "Ask for page content or structured fields when those tools are available.",
+          "icon": "solar:document-text-bold"
+        },
+        {
+          "title": "Discover your available tools",
+          "description": "Review the tools this connection exposes before allowing sensitive or costly actions.",
+          "icon": "solar:list-check-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Get started",
+      "items": [
+        {
+          "title": "Create a scoped API key",
+          "description": "In the Baizhi Cloud console, check the key permissions and current service credits or fees."
+        },
+        {
+          "title": "Install this Ability in Vetta",
+          "description": "Enter the API key itself when prompted; Vetta adds the Bearer prefix to the connection."
+        },
+        {
+          "title": "Ask for a source-backed answer",
+          "description": "For example, ask Vetta to research a topic and provide source links using the tools available to your key."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "Hosted service and possible charges",
+      "content": "Tool inputs go to Baizhi Cloud over HTTPS. Some available tools may have side effects or consume credits. This connection does not restrict your account to web research; review available tools and permissions before use."
+    },
+    {
+      "type": "markdown",
+      "content": "The open-source [integration repository](https://github.com/chaitin/baizhi-agent-toolkit) provides client configuration and documentation, not the hosted backend. Avoid sending private documents, personal data or confidential links unless your organization permits it. Never paste an API key into a chat prompt or shared log."
+    }
+  ]
+}
