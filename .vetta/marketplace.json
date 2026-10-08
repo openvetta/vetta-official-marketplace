@@ -694,8 +694,8 @@
       "type": "plugin",
       "slug": "build-apple-apps",
       "name": "Build Apple Apps",
-      "description": "Bring a live iOS Simulator into the activity panel so the AI can build, install, launch and operate your app, with a built-in SwiftUI development guide.",
-      "version": "0.2.1",
+      "description": "Bring a live iOS Simulator into the activity panel so the AI can build, install and launch your app while you watch and use it, with a built-in SwiftUI development guide.",
+      "version": "0.3.0",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
@@ -715,7 +715,7 @@
         "i18n": {
           "zh": {
             "name": "构建 Apple App",
-            "description": "把实时的 iOS 模拟器放进活动面板，让 AI 构建、安装、启动并操作你的 App，内置 SwiftUI 开发指南。",
+            "description": "把实时的 iOS 模拟器放进活动面板，AI 构建、安装、启动你的 App，你可以实时查看和操作，内置 SwiftUI 开发指南。",
             "tags": [
               "iOS",
               "SwiftUI",
@@ -777,9 +777,32 @@
             "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-build-apple-apps/build-apple-apps-0.2.1.vettapkg",
             "sha256": "9eba955658f05f4ab156cf2297b88a3bbd53f973e0b8406354ceefa07377a9a8"
           }
+        },
+        {
+          "version": "0.3.0",
+          "minAppVersion": "0.5.60",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.activity-tab",
+            "ui.slot.workspace-view",
+            "agent.command.spawn",
+            "agent.skills.control",
+            "agent.session.read",
+            "fs.read",
+            "storage.read",
+            "storage.write",
+            "shell.openExternal"
+          ],
+          "commands": [
+            "npx"
+          ],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-build-apple-apps/build-apple-apps-0.3.0.vettapkg",
+            "sha256": "08bfc8485616c25b3853b91bf20a4b2bd1026a5e04cae87afd94916a5bc877a5"
+          }
         }
       ]
     }
   ],
-  "marketplaceVersion": "2026.10.08-2"
+  "marketplaceVersion": "2026.10.08-3"
 }

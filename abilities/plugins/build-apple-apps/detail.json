@@ -5,8 +5,12 @@
       "type": "hero",
       "eyebrow": "iOS development",
       "title": "See and drive the iOS Simulator without leaving the conversation",
-      "description": "Build Apple Apps puts a live iOS Simulator in the activity panel. The AI builds, installs and launches your app, then taps through it by accessibility label while you watch or take over on the same device.",
-      "badges": ["macOS only", "Xcode and SwiftPM projects", "Built-in SwiftUI guide"]
+      "description": "Build Apple Apps puts a live iOS Simulator in the activity panel. The AI builds, installs and launches your app and checks the result with screenshots and logs, while you watch and tap through it on the same device.",
+      "badges": [
+        "macOS on Apple Silicon",
+        "Xcode and SwiftPM projects",
+        "Built-in SwiftUI guide"
+      ]
     },
     {
       "type": "showcase",
@@ -14,7 +18,7 @@
         "template": "chat-over-canvas",
         "canvas": "code",
         "user_prompt": "Run the app and check whether the Settings screen looks right in dark mode.",
-        "assistant_reply": "Built and installed on iPhone 17 Pro, switched to dark mode and opened Settings. The live screen is in the panel on the right, and you can tap it directly too."
+        "assistant_reply": "Built and installed on iPhone 17 Pro, switched to dark mode and deep-linked to Settings. The live screen is in the panel on the right; tap through it to try the flow yourself."
       }
     },
     {
@@ -27,13 +31,13 @@
         },
         {
           "title": "One device, shared",
-          "description": "Tap and swipe in the panel while the AI works on the same simulator.",
+          "description": "Tap, swipe and type in the panel while the AI builds and runs on the same simulator.",
           "icon": "solar:hand-shake-linear"
         },
         {
-          "title": "Operates by element",
-          "description": "The AI finds controls through the accessibility tree, not by guessing coordinates from screenshots.",
-          "icon": "solar:accessibility-linear"
+          "title": "Checks its own work",
+          "description": "After each change the AI rebuilds, relaunches and looks at a screenshot and the logs before reporting back.",
+          "icon": "solar:checklist-minimalistic-linear"
         },
         {
           "title": "Built-in development guide",
@@ -63,24 +67,32 @@
         "tone": "accent",
         "items": [
           "You see the screen right after each change",
-          "The AI can read the screen, operate it and check its own work",
-          "You can take over the same device at any time"
+          "The AI checks its work with screenshots and logs",
+          "You can try the app on the same device at any time"
         ]
       }
     },
     {
       "type": "steps",
       "items": [
-        { "title": "Install Xcode and the simulator runtime", "description": "The plugin runs on macOS only and uses the simulators you already have in Xcode." },
-        { "title": "Install baguette", "description": "Screen mirroring and gesture injection come from the open-source baguette tool. The panel shows the Homebrew command and re-checks after you run it." },
-        { "title": "Install and enable Build Apple Apps", "description": "Approve the requested permissions. The plugin starts a local simulator service bound to 127.0.0.1 only." },
-        { "title": "Open an Xcode or SwiftPM project", "description": "The Simulator tab appears in the activity panel. Ask the AI to build and run your app." }
+        {
+          "title": "Install Xcode and a simulator runtime",
+          "description": "The plugin needs a Mac with Apple Silicon and uses the simulators you already have in Xcode."
+        },
+        {
+          "title": "Install and enable Build Apple Apps",
+          "description": "Approve the requested permissions. The plugin runs the open-source serve-sim preview through Vetta's built-in Node runtime, on a local port only — nothing else to install."
+        },
+        {
+          "title": "Open an Xcode or SwiftPM project",
+          "description": "The Simulator tab appears in the activity panel. The first start downloads serve-sim and can take a minute. Then ask the AI to build and run your app."
+        }
       ]
     },
     {
       "type": "callout",
       "tone": "info",
-      "content": "Earlier Vetta versions shipped this as a built-in plugin. From Vetta 0.5.60 it is installed from the marketplace; your panel settings are kept when you install it again."
+      "content": "With Xcode 27, typing into the simulator from the panel needs the simulator window visible in Device Hub, and Vetta allowed under System Settings → Privacy & Security → Accessibility. Taps and swipes work without it."
     }
   ]
 }
