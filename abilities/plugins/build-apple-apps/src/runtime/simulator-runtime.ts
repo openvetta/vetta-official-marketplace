@@ -1,5 +1,5 @@
 import type { PluginCommandApi, PluginCommandSpawnHandle } from "@vetta-org/plugin-sdk";
-import { buildServeArgs, parseServePort } from "./serve-sim-command.js";
+import { buildServeArgs, type KeyboardIssue, parseKeyboardIssue, parseServePort, SERVE_SIM_ENV } from "./serve-sim-command.js";
 
 /**
  * 面板的运行时状态机：托管 serve-sim 预览服务。
@@ -25,18 +25,27 @@ export interface RuntimeState {
 	 * 上一版已授权的命令），这是装完后最常见的失败，面板要直接告诉用户去哪里打开。
 	 */
 	readonly commandDisabled?: boolean;
+	/**
+	 * 运行中 serve-sim 报告的键盘问题（Xcode 27 下按键送不进模拟器的原因）。只在 running
+	 * 时存在；serve-sim 恢复正常时不打印任何东西，所以它会一直保留到服务重启。
+	 */
+	readonly keyboardIssue?: KeyboardIssue;
 }
 
 export interface RuntimePorts {
 	readonly command: PluginCommandApi;
 	readonly platform: string;
-	/** 测试注入；缺省为真实计时器。 */
+	/** 测试注入：等待服务就绪时的轮询间隔；缺省为真实计时器。 */
 	readonly sleep?: (ms: number) => Promise<void>;
+	/** 测试注入：运行期间读取诊断输出的间隔；缺省为真实计时器。 */
+	readonly diagnosticsSleep?: (ms: number) => Promise<void>;
 }
 
 /** 首次运行要从 npm 下载 serve-sim（约 5 MB），并可能顺带启动一台模拟器，给足时间。 */
 const READY_TIMEOUT_MS = 180_000;
 const READY_POLL_MS = 400;
+/** 运行中读取输出的间隔：只为发现键盘问题，慢一点无妨。 */
+const DIAGNOSTICS_POLL_MS = 2_000;
 
 /** 宿主拒绝未授权命令时的报错：`Plugin <id> command disabled by user: npx`。 */
 export function isCommandDisabledError(message: string): boolean {
@@ -90,7 +99,10 @@ export class SimulatorRuntimeController {
 		this.emit({ phase: "starting" });
 		let handle: PluginCommandSpawnHandle;
 		try {
-			handle = await this.ports.command.spawn(RUNTIME_COMMAND, buildServeArgs(), { allocatePort: true });
+			handle = await this.ports.command.spawn(RUNTIME_COMMAND, buildServeArgs(), {
+				allocatePort: true,
+				env: { ...SERVE_SIM_ENV },
+			});
 		} catch (error) {
 			// npx 未授权、被用户关掉、或宿主没有可用的 Node 运行时。
 			const failure = errorMessage(error);
@@ -116,6 +128,7 @@ export class SimulatorRuntimeController {
 			const port = parseServePort(status.recentOutput);
 			if (port !== null) {
 				this.emit({ phase: "running", port });
+				void this.watchDiagnostics(handle, port);
 				return;
 			}
 			if (!status.running) {
@@ -130,6 +143,21 @@ export class SimulatorRuntimeController {
 				return;
 			}
 			await sleep(READY_POLL_MS);
+		}
+	}
+
+	/** 运行期间定期读输出，把键盘问题带到面板上；进程换了或退出就停。 */
+	private async watchDiagnostics(handle: PluginCommandSpawnHandle, port: number): Promise<void> {
+		const sleep = this.ports.diagnosticsSleep ?? defaultSleep;
+		while (!this.disposed && this.handle === handle && this.state.phase === "running") {
+			await sleep(DIAGNOSTICS_POLL_MS);
+			if (this.disposed || this.handle !== handle || this.state.phase !== "running") return;
+			const status = await handle.status().catch(() => null);
+			if (!status?.running) return;
+			const issue = parseKeyboardIssue(status.recentOutput) ?? undefined;
+			if (issue?.reason !== this.state.keyboardIssue?.reason) {
+				this.emit({ phase: "running", port, keyboardIssue: issue });
+			}
 		}
 	}
 

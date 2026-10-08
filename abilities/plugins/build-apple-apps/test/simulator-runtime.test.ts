@@ -56,6 +56,7 @@ describe("SimulatorRuntimeController", () => {
 		expect(controller.current()).toEqual({ phase: "running", port: 3201 });
 		expect(command.spawn).toHaveBeenCalledWith("npx", expect.arrayContaining(["-p", "{{PORT}}"]), {
 			allocatePort: true,
+			env: { NSUnbufferedIO: "YES" },
 		});
 	});
 
@@ -105,6 +106,29 @@ describe("SimulatorRuntimeController", () => {
 		const controller = new SimulatorRuntimeController({ command, platform: "darwin" });
 		await Promise.all([controller.ensureServer(), controller.ensureServer()]);
 		expect(command.spawn).toHaveBeenCalledTimes(1);
+	});
+
+	it("surfaces a keyboard issue serve-sim reports while running", async () => {
+		const process: FakeProcess = { output: "Local:   http://localhost:3200\n", running: true };
+		const { command } = fakeCommand(process);
+		let ticks = 0;
+		let controller: SimulatorRuntimeController | null = null;
+		controller = new SimulatorRuntimeController({
+			command,
+			platform: "darwin",
+			diagnosticsSleep: async () => {
+				ticks += 1;
+				if (ticks === 1) {
+					process.output +=
+						"[hid] Device Hub keyboard unavailable for iPhone 17 Pro (EE592E58): Device Hub has no visible simulator window; using legacy HID\n";
+				}
+				// 第二次读完就让进程退出，结束诊断循环。
+				if (ticks === 3) process.running = false;
+			},
+		});
+		await controller.ensureServer();
+		await vi.waitFor(() => expect(controller?.current().keyboardIssue?.kind).toBe("window"));
+		expect(controller.current().phase).toBe("running");
 	});
 
 	it("falls back to idle when a running server exits", async () => {

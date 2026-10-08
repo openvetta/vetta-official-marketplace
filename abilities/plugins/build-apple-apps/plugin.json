@@ -1,7 +1,7 @@
 {
 	"id": "build-apple-apps",
 	"name": "%plugin.name%",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"icon": "assets/icon.png",
 	"defaultLocale": "zh",
 	"pluginApiVersion": "^2.0.0",
