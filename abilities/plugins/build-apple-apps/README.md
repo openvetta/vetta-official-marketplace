@@ -23,6 +23,11 @@ Node 运行时，用户无需另装任何东西。不注册 Agent 工具，Skill
 - Xcode 27 上键盘输入需要 Device Hub 中的模拟器窗口可见，并在「隐私与安全性 → 辅助功能」中允许 Vetta
 - 服务端口由宿主分配，插件停用或退出 App 时回收
 
+键盘诊断：serve-sim 以 `NSUnbufferedIO=YES` 启动，插件运行期间读取它的输出；出现
+`[hid] Device Hub keyboard unavailable … ; using legacy HID` 时在面板顶部提示原因（见 `parseKeyboardIssue`）。
+macOS 27.0.1 + Xcode 27.0 上 serve-sim 0.1.47 拿不到 Device Hub 进程号，键盘输入不可用，修复见
+[EvanBacon/serve-sim#164](https://github.com/EvanBacon/serve-sim/pull/164)，发布后提升版本即可。
+
 升级 serve-sim：修改 `SERVE_SIM_PACKAGE` 的版本，在窄面板里核对预览页布局与 `Local:` 输出格式后再发布。
 
 ## 开发

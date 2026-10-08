@@ -695,7 +695,7 @@
       "slug": "build-apple-apps",
       "name": "Build Apple Apps",
       "description": "Bring a live iOS Simulator into the activity panel so the AI can build, install and launch your app while you watch and use it, with a built-in SwiftUI development guide.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
@@ -800,9 +800,32 @@
             "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-build-apple-apps/build-apple-apps-0.3.0.vettapkg",
             "sha256": "08bfc8485616c25b3853b91bf20a4b2bd1026a5e04cae87afd94916a5bc877a5"
           }
+        },
+        {
+          "version": "0.3.1",
+          "minAppVersion": "0.5.60",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.activity-tab",
+            "ui.slot.workspace-view",
+            "agent.command.spawn",
+            "agent.skills.control",
+            "agent.session.read",
+            "fs.read",
+            "storage.read",
+            "storage.write",
+            "shell.openExternal"
+          ],
+          "commands": [
+            "npx"
+          ],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-build-apple-apps/build-apple-apps-0.3.1.vettapkg",
+            "sha256": "20d52c363ab3ad78d1afca98ff861b12dcfd15915277b7f38535d522b034c8ea"
+          }
         }
       ]
     }
   ],
-  "marketplaceVersion": "2026.10.08-3"
+  "marketplaceVersion": "2026.10.08-4"
 }
