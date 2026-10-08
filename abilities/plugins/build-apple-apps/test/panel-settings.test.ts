@@ -8,13 +8,13 @@ import {
 describe("normalizePanelSettings", () => {
 	it("keeps valid values", () => {
 		expect(
-			normalizePanelSettings({ alwaysShowTab: true, autoStartServer: false, defaultDeviceUdid: "ABC" }),
-		).toEqual({ alwaysShowTab: true, autoStartServer: false, defaultDeviceUdid: "ABC" });
+			normalizePanelSettings({ alwaysShowTab: true, autoStartServer: false }),
+		).toEqual({ alwaysShowTab: true, autoStartServer: false });
 	});
 
-	it("treats an empty pinned udid as automatic selection", () => {
-		expect(normalizePanelSettings({ defaultDeviceUdid: "" }).defaultDeviceUdid).toBeNull();
-		expect(normalizePanelSettings({ defaultDeviceUdid: 42 }).defaultDeviceUdid).toBeNull();
+	it("drops fields left behind by older versions", () => {
+		// 0.2.x 存过 defaultDeviceUdid；设备选择现在归内嵌的预览页，旧值不应透传。
+		expect(normalizePanelSettings({ defaultDeviceUdid: "ABC" })).toEqual(DEFAULT_PANEL_SETTINGS);
 	});
 
 	it("falls back per field for missing or wrongly typed values", () => {
@@ -23,7 +23,6 @@ describe("normalizePanelSettings", () => {
 		expect(normalizePanelSettings({ autoStartServer: false })).toEqual({
 			alwaysShowTab: false,
 			autoStartServer: false,
-			defaultDeviceUdid: null,
 		});
 	});
 
@@ -36,14 +35,13 @@ describe("normalizePanelSettings", () => {
 		expect(DEFAULT_PANEL_SETTINGS).toEqual({
 			alwaysShowTab: false,
 			autoStartServer: true,
-			defaultDeviceUdid: null,
 		});
 	});
 });
 
 describe("PanelSettingsStore", () => {
 	it("loads once and shares concurrent loads", async () => {
-		const readJson = vi.fn(async () => ({ alwaysShowTab: true, autoStartServer: true, defaultDeviceUdid: null }));
+		const readJson = vi.fn(async () => ({ alwaysShowTab: true, autoStartServer: true }));
 		const store = new PanelSettingsStore({ readJson, writeJson: vi.fn(async () => undefined) });
 		const [a, b] = await Promise.all([store.load(), store.load()]);
 		expect(a).toEqual(b);
@@ -71,14 +69,13 @@ describe("PanelSettingsStore", () => {
 		expect(writeJson).toHaveBeenCalledWith("panel-settings.json", {
 			alwaysShowTab: true,
 			autoStartServer: true,
-			defaultDeviceUdid: null,
 		});
 		expect(seen).toEqual([false, true]);
 	});
 
 	it("does not let a later load overwrite an update made before loading", async () => {
 		const store = new PanelSettingsStore({
-			readJson: vi.fn(async () => ({ alwaysShowTab: false, autoStartServer: false, defaultDeviceUdid: null })),
+			readJson: vi.fn(async () => ({ alwaysShowTab: false, autoStartServer: false })),
 			writeJson: vi.fn(async () => undefined),
 		});
 		await store.update({ alwaysShowTab: true });

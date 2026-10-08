@@ -5,8 +5,12 @@
       "type": "hero",
       "eyebrow": "iOS 开发",
       "title": "不离开对话，就能看到并操作 iOS 模拟器",
-      "description": "构建 Apple App 把实时的 iOS 模拟器放进活动面板。AI 负责构建、安装、启动 App，并按无障碍标签逐个点击；你可以旁观，也可以随时在同一台设备上接手。",
-      "badges": ["仅支持 macOS", "Xcode 与 SwiftPM 工程", "内置 SwiftUI 开发指南"]
+      "description": "构建 Apple App 把实时的 iOS 模拟器放进活动面板。AI 负责构建、安装、启动 App，并用截图和日志检查结果；你可以在同一台设备上实时查看、亲手点击。",
+      "badges": [
+        "仅支持 Apple Silicon Mac",
+        "Xcode 与 SwiftPM 工程",
+        "内置 SwiftUI 开发指南"
+      ]
     },
     {
       "type": "showcase",
@@ -14,7 +18,7 @@
         "template": "chat-over-canvas",
         "canvas": "code",
         "user_prompt": "把这个 App 跑起来，进到设置页看看深色模式下对不对。",
-        "assistant_reply": "已构建并安装到 iPhone 17 Pro，切到深色模式后进入设置页——右侧面板就是实时画面，你也可以直接上手点。"
+        "assistant_reply": "已构建并安装到 iPhone 17 Pro，切到深色模式后通过深链进入设置页——右侧面板就是实时画面，你可以直接上手点一遍流程。"
       }
     },
     {
@@ -27,13 +31,13 @@
         },
         {
           "title": "人机共用一台设备",
-          "description": "Agent 在点的同时，你也能直接在面板上点击和滑动。",
+          "description": "AI 在同一台模拟器上构建、运行，你同时可以在面板里点击、滑动和输入。",
           "icon": "solar:hand-shake-linear"
         },
         {
-          "title": "按元素操作",
-          "description": "Agent 通过无障碍树按标签定位控件，而不是靠截图猜坐标。",
-          "icon": "solar:accessibility-linear"
+          "title": "自己检查结果",
+          "description": "每次改动后 AI 会重新构建、启动，并查看截图与日志再向你汇报。",
+          "icon": "solar:checklist-minimalistic-linear"
         },
         {
           "title": "内置开发指南",
@@ -63,24 +67,32 @@
         "tone": "accent",
         "items": [
           "改完直接看到界面",
-          "Agent 能读屏、能操作、能自查",
-          "你随时接管同一台设备"
+          "AI 用截图和日志自查结果",
+          "你随时可以在同一台设备上试用"
         ]
       }
     },
     {
       "type": "steps",
       "items": [
-        { "title": "准备 Xcode 与模拟器运行时", "description": "插件只能在 macOS 上运行，直接使用你在 Xcode 里已有的模拟器。" },
-        { "title": "安装 baguette", "description": "画面投射与手势注入由开源工具 baguette 提供。面板会给出 Homebrew 安装命令，装好后点「重新检查」即可。" },
-        { "title": "安装并启用「构建 Apple App」", "description": "按提示授予所需权限。插件会在本机启动只监听 127.0.0.1 的模拟器服务。" },
-        { "title": "打开 Xcode 或 SwiftPM 工程", "description": "活动面板出现「模拟器」标签后，让 AI 构建并运行你的 App。" }
+        {
+          "title": "准备 Xcode 与模拟器运行时",
+          "description": "插件需要 Apple Silicon Mac，直接使用你在 Xcode 里已有的模拟器。"
+        },
+        {
+          "title": "安装并启用「构建 Apple App」",
+          "description": "按提示授予所需权限。插件通过 Vetta 自带的 Node 运行时启动开源的 serve-sim 预览服务，只监听本机端口，无需另外安装任何东西。"
+        },
+        {
+          "title": "打开 Xcode 或 SwiftPM 工程",
+          "description": "活动面板出现「模拟器」标签。首次启动要下载 serve-sim，可能需要一分钟左右。之后让 AI 构建并运行你的 App。"
+        }
       ]
     },
     {
       "type": "callout",
       "tone": "info",
-      "content": "早期版本的 Vetta 把它作为内置插件提供；自 Vetta 0.5.60 起改为从能力市场安装，重新安装后原有的面板设置会保留。"
+      "content": "在 Xcode 27 上，从面板向模拟器输入文字需要 Device Hub 中的模拟器窗口可见，并在「系统设置 → 隐私与安全性 → 辅助功能」中允许 Vetta。点击和滑动不受影响。"
     }
   ]
 }

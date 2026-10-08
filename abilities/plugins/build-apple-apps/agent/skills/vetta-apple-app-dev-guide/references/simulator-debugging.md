@@ -2,13 +2,13 @@
 
 # Running and Diagnosing
 
-SKILL.md covers the everyday loop: pick a device, build, look, interact. This file is the layer
+SKILL.md covers the everyday loop: pick a device, build, launch, look. This file is the layer
 you open when that is not enough — the full run cycle, log capture, how to pin down the bundle id
 and the build product, and what to check when something goes wrong.
 
-Everything here comes from two commands the plugin already provides — `xcrun` (`simctl` /
-`xcodebuild`) and `baguette`. There is no MCP server behind the simulator panel, so do not look for
-simulator tools in the tool list. The agent shares the one device the user is watching in the panel.
+Everything here uses Xcode's own `xcrun simctl` and `xcodebuild`. There is no MCP server behind the
+simulator panel, so do not look for simulator tools in the tool list. The agent shares the one
+device the user is watching — and can interact with — in the panel.
 
 ## The full run cycle
 
@@ -17,19 +17,20 @@ Follow this order unless the user asked for a narrower action.
 ### 1. Pick the device
 
 ```bash
-baguette list                          # NDJSON: udid, name, state, runtime
+xcrun simctl list devices booted --json
 ```
 
-Reuse a device whose `state` is already `Booted` — the panel is most likely mirroring it, and
-booting another one means the user cannot see what you are doing. Only when nothing is running do
-you choose a device to boot, and say which one you booted:
+Reuse a device that is already booted — the panel is most likely mirroring it, and booting another
+one means the user cannot see what you are doing. Only when nothing is running do you choose a
+device to boot, and say which one you booted:
 
 ```bash
-baguette boot --udid <udid>            # headless; Simulator.app is not required
+xcrun simctl list devices available --json
+xcrun simctl boot <udid>
 xcrun simctl bootstatus <udid> -b      # blocks until the device is actually usable
 ```
 
-Pass `--udid` / `<udid>` explicitly everywhere. `simctl` accepts the literal `booted`, but with
+Pass `<udid>` explicitly everywhere. `simctl` accepts the literal `booted`, but with
 several devices running it silently picks one, which may not be the one in the panel.
 
 ### 2. Identify the project entry point and scheme
@@ -61,9 +62,9 @@ the bundle id is unknown, read it from the built product rather than hunting thr
 ```
 
 **Stop here if the build fails.** Read xcodebuild's stderr, fix the error, rebuild. Do not go on to
-tap the UI with a stale binary — you would be looking at the previous build. Once the build
-succeeds, confirm the app actually came up with `baguette describe-ui` or a screenshot before
-interacting.
+look at the UI with a stale binary — you would be looking at the previous build. Once the build
+succeeds, confirm the app actually came up with a screenshot
+(`xcrun simctl io <udid> screenshot /tmp/shot.png`, then Read it) before reporting back.
 
 If the app is already installed and only needs restarting, skip the build and `simctl launch`
 directly. If the code changed, you must rebuild and reinstall — `simctl launch` does not compile.
@@ -88,9 +89,10 @@ Crash reports land in `~/Library/Logs/DiagnosticReports/`; take the newest one b
 
 Quote the **relevant lines** back to the user. Do not paste whole log dumps into the conversation.
 
-## Paths that need no gestures
+## Reaching a screen without gestures
 
-These are far shorter than locating a control and tapping it. Prefer them when they apply:
+You cannot tap the simulator, so these are how you get somewhere. When none applies, ask the user
+to navigate in the panel and tell you when they are there:
 
 ```bash
 xcrun simctl openurl <udid> "myapp://path"              # jump straight to a screen
@@ -112,9 +114,9 @@ Whether a deep link works depends on the URL scheme the project registers — se
 | Installs but exits immediately | The `--console-pty` output, plus crash lines in `log show --last 2m` |
 | Old behavior after a code change | Did you only `launch` without `build` + `install`? `simctl uninstall` and reinstall if state is suspect |
 | Wrong app launches | Whether the bundle id matches the scheme; re-read it from the product with `PlistBuddy` |
-| Taps do nothing | Whether `baguette` meets the plugin's minimum version (iOS 26 changed the gesture-injection calling convention); whether coordinates came from screenshot pixels instead of accessibility-tree points |
-| Control missing from `describe-ui` | Layout or navigation just changed — re-run `describe-ui`; the element may be off-screen, so scroll first |
-| Panel is black / no picture | Whether the device is really `Booted` (`simctl bootstatus`); restart the simulator service from the plugin's settings page |
+| Screenshot shows the wrong screen | Navigation is the user's in the panel; deep link with `simctl openurl`, or ask them to go there first |
+| User says taps in the panel do nothing | Ask them to restart the preview from the panel's refresh button; with Xcode 27 keyboard input also needs the simulator window visible in Device Hub |
+| Panel is black / no picture | Whether the device is really `Booted` (`simctl bootstatus`); ask the user to restart the preview from the panel or the plugin's settings page |
 
 ## Hand back to the user
 

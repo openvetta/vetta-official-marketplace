@@ -1,7 +1,7 @@
 ---
 name: vetta-apple-app-dev-guide
 alias: 构建 Apple App
-description: Build Apple apps inside Vetta — drive the iOS Simulator shown in the Vetta panel (boot, build, install, launch, read the screen through the accessibility tree, tap, swipe, type), and write or review SwiftUI with the bundled guides for components and navigation, Liquid Glass on iOS 26+, and performance audits. Use whenever the task involves an iOS/iPadOS/macOS app, an Xcode or SwiftPM project, SwiftUI code, or a Simulator.
+description: Build Apple apps inside Vetta — boot, build, install and launch on the iOS Simulator that the Vetta panel mirrors live, check results with screenshots and logs, and write or review SwiftUI with the bundled guides for components and navigation, Liquid Glass on iOS 26+, and performance audits. Use whenever the task involves an iOS/iPadOS/macOS app, an Xcode or SwiftPM project, SwiftUI code, or a Simulator.
 ---
 
 # Building Apple Apps in Vetta
@@ -22,24 +22,23 @@ below links into `references/`; paths are relative to this skill's directory.
 
 ## The Simulator
 
-Two binaries cover everything:
+Everything goes through Xcode's own tools: `xcrun simctl` for the device lifecycle, screenshots,
+logs and app state, and `xcodebuild` for building. There is no simulator MCP server and no other
+CLI behind the panel — do not look for simulator tools in the tool list.
 
-- `xcrun simctl` / `xcodebuild` — device lifecycle, build, install, launch, logs.
-- `baguette` — screen capture, gesture injection and the accessibility tree.
-
-The Vetta panel may already be mirroring a device, and the user is watching it. Reuse the booted
-device instead of creating another one — otherwise your work happens somewhere they cannot see.
-Both of you drive the same device, so narrate what you are about to do before a destructive step.
+The Vetta panel mirrors the booted simulator live, and the user can tap and type in it. Reuse the
+booted device instead of creating another one — otherwise your work happens somewhere they cannot
+see. Both of you use the same device, so say what you are about to do before a destructive step.
 
 ### Pick a device
 
 ```bash
-baguette list                       # NDJSON: udid, name, state, runtime
-xcrun simctl bootstatus <udid> -b   # blocks until fully booted
-baguette boot --udid <udid>         # headless; Simulator.app is not required
+xcrun simctl list devices booted --json          # what the panel is most likely showing
+xcrun simctl list devices available --json       # everything you could boot
+xcrun simctl boot <udid> && xcrun simctl bootstatus <udid> -b
 ```
 
-Always pass `--udid` explicitly. `simctl` accepts the literal `booted`, but it silently picks an
+Always pass the udid explicitly. `simctl` accepts the literal `booted`, but it silently picks an
 arbitrary device when several are running.
 
 ### Build, install, launch
@@ -53,57 +52,25 @@ xcrun simctl launch --console-pty <udid> <bundle-id>
 ```
 
 Read the build product path from `-showBuildSettings`; do not guess the DerivedData layout. Build
-diagnostics live in xcodebuild's stderr. When the build fails, fix it before touching the UI — a
+diagnostics live in xcodebuild's stderr. When the build fails, fix it before looking at the UI — a
 stale binary makes every later observation a lie. For scheme discovery, bundle ids, log capture and
 a symptom table, read `references/simulator-debugging.md`.
 
 ### Look at the screen
 
-Prefer the accessibility tree over pixels:
-
 ```bash
-baguette describe-ui --udid <udid>    # JSON tree; frames are in POINTS
+xcrun simctl io <udid> screenshot /tmp/shot.png
 ```
 
-Screenshots are for judging visual appearance, not for locating elements:
+Then read the file with the Read tool. Always write to a file path: on Xcode 26 the `-` stdout form
+documented in `--help` writes a file literally named `-` instead of streaming.
 
-```bash
-baguette screenshot --udid <udid> --output /tmp/shot.png
-```
+A screenshot shows what is on screen; it is not a way to aim taps. You cannot tap or type into the
+simulator yourself. Reach the screen you need through the paths below, and when a check needs a
+real interaction (a gesture, a form, a multi-step flow), ask the user to do it in the panel and
+tell you what happened, or take a screenshot after they say it is done.
 
-Then read the file with the Read tool. Do **not** use `xcrun simctl io <udid> screenshot -`: on
-Xcode 26 the `-` stdout form documented in `--help` writes a file literally named `-` instead of
-streaming.
-
-**Never compute tap coordinates from a screenshot.** Three coordinate spaces are in play: the
-screenshot is native pixels (e.g. 1206x2622), the accessibility tree is points (e.g. 402x874, a 3x
-factor), and the image you receive has been downscaled again before it reaches you. Locate elements
-by label and frame from `describe-ui`.
-
-### Interact
-
-Every gesture command needs the screen size it is relative to; pass the same space your coordinates
-are in (points from `describe-ui` is the simple choice).
-
-```bash
-baguette tap    --udid <udid> --x <x> --y <y> --width 402 --height 874
-baguette swipe  --udid <udid> --start-x <x1> --start-y <y1> --end-x <x2> --end-y <y2> --width 402 --height 874
-baguette type   --udid <udid> "text"
-baguette press  --udid <udid> --button <button>
-```
-
-`press` covers hardware keys and the edge gestures that a plain swipe cannot produce:
-`swipe-to-home`, `swipe-to-app-switcher`, `pull-down-to-lock-screen`,
-`pull-down-to-notification-center`, plus `home`, `lock`, `volume-up`, `volume-down`, `action`,
-`side-button`. Use `press --button swipe-to-home` to leave an app — dragging from the bottom edge
-with `swipe` does not trigger the home indicator.
-
-Re-read `describe-ui` after any navigation. Element frames belong to the current screen state and
-must not be reused across transitions.
-
-### Without gesture injection
-
-These need no HID at all and are often the shortest path:
+### Reach a screen without touching it
 
 ```bash
 xcrun simctl openurl <udid> "myapp://path"        # deep link straight to a screen
@@ -113,6 +80,9 @@ xcrun simctl ui <udid> appearance dark
 xcrun simctl status_bar <udid> override --time "9:41" --batteryLevel 100
 ```
 
+Launch arguments and environment variables are another way in, when the app reads them:
+`xcrun simctl launch <udid> <bundle-id> -UITestScreen settings`.
+
 ## Writing SwiftUI
 
 Before writing a new screen, decide state ownership and the minimum OS, then pick the smallest
@@ -121,8 +91,9 @@ anti-patterns and the step-by-step for a new view. Reach into
 `references/components-index.md` for the component you actually need instead of reading the whole
 set.
 
-Verify with a build, not by eye. After a change, rebuild, then confirm the result on the device
-using the panel — that loop is the reason this plugin exists.
+Verify with a build, not by eye. After a change, rebuild, reinstall and relaunch, then confirm the
+result with a screenshot — the user sees the same device live in the panel, which is the loop this
+plugin exists for.
 
 ## Boundaries
 
@@ -131,7 +102,6 @@ using the panel — that loop is the reason this plugin exists.
   context.
 - Confirm with the user before erasing a device, deleting app data, or any action that destroys
   state you cannot restore.
-- `baguette lifetime --detach` changes a machine-wide Simulator preference. Do not run it without
-  asking.
+- `xcrun simctl erase` wipes a device. Ask before running it, and never run it with `all`.
 
-For flags not covered here, read `baguette help <subcommand>` rather than guessing.
+For flags not covered here, read `xcrun simctl help <subcommand>` rather than guessing.

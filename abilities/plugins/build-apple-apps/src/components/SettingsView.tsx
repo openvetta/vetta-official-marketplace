@@ -1,37 +1,34 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
 import { type JSX, useEffect, useState } from "react";
 import { getPluginCtx } from "../plugin-context.js";
-import { MINIMUM_BAGUETTE_VERSION } from "../runtime/baguette-version.js";
 import type { PanelSettings } from "../runtime/panel-settings.js";
 import { getRuntimeController } from "../runtime/runtime-instance.js";
-import { buildSimulatorsUrl } from "../runtime/serve-url.js";
+import { SERVE_SIM_PACKAGE } from "../runtime/serve-sim-command.js";
+import { buildPreviewUrl } from "../runtime/serve-url.js";
 import { getSettingsStore } from "../runtime/settings-instance.js";
-import { errorMessage, type RuntimeState } from "../runtime/simulator-runtime.js";
+import type { RuntimeState } from "../runtime/simulator-runtime.js";
 import { DeviceIcon } from "./icons.js";
-import { INSTALL_COMMAND } from "./RuntimeGate.js";
 
-function statusKey(state: RuntimeState): string {
+function statusText(state: RuntimeState, t: (key: string, params?: Record<string, string>) => string): string {
 	switch (state.phase) {
-		case "ready":
-			return "settings.runtime.ready";
-		case "missing":
-			return "settings.runtime.missing";
-		case "outdated":
-			return "settings.runtime.outdated";
+		case "running":
+			return t("settings.service.running", { port: String(state.port ?? "?") });
+		case "starting":
+			return t("settings.service.starting");
+		case "failed":
+			return t("settings.service.failed");
 		case "unsupported":
-			return "settings.runtime.unsupported";
-		case "error":
-			return "settings.runtime.failed";
+			return t("settings.service.unsupported");
 		default:
-			return "settings.runtime.checking";
+			return t("settings.service.stopped");
 	}
 }
 
 function dotColor(state: RuntimeState): string {
-	if (state.phase === "ready") return "#22c55e";
-	if (state.phase === "error" || state.phase === "unsupported") return "var(--destructive, #ef4444)";
-	if (state.phase === "checking") return "#f59e0b";
-	return "#f59e0b";
+	if (state.phase === "running") return "#22c55e";
+	if (state.phase === "starting") return "#f59e0b";
+	if (state.phase === "failed" || state.phase === "unsupported") return "var(--destructive, #ef4444)";
+	return "var(--muted-foreground)";
 }
 
 function Toggle(props: {
@@ -56,42 +53,22 @@ function Toggle(props: {
 	);
 }
 
-/** 工作区配置页：运行时状态、服务控制与插件自身的开关。 */
+/** 工作区配置页：服务状态与控制、插件自身的开关。 */
 export function SettingsView(): JSX.Element {
 	const { t } = useTranslation();
 	const controller = getRuntimeController();
 	const store = getSettingsStore();
 	const [state, setState] = useState<RuntimeState>(() => controller.current());
 	const [settings, setSettings] = useState<PanelSettings>(() => store.current());
-	const [diagnostics, setDiagnostics] = useState<string | null>(null);
-	const [busy, setBusy] = useState(false);
-	const [copied, setCopied] = useState(false);
 
 	useEffect(() => controller.subscribe(setState), [controller]);
 	useEffect(() => store.subscribe(setSettings), [store]);
 	useEffect(() => {
 		void store.load();
-		void controller.refresh();
-	}, [controller, store]);
+	}, [store]);
 
-	const needsInstall = state.phase === "missing" || state.phase === "outdated";
-	const statusText = t(statusKey(state), {
-		version: state.version ?? "?",
-		found: state.version ?? "?",
-		required: MINIMUM_BAGUETTE_VERSION,
-	});
-
-	const restart = (): void => {
-		setBusy(true);
-		setDiagnostics(null);
-		void controller
-			.restartServer()
-			.then(() => controller.ensureServer())
-			.catch(async (cause: unknown) => {
-				setDiagnostics((await controller.serverDiagnostics()) ?? errorMessage(cause));
-			})
-			.finally(() => setBusy(false));
-	};
+	const running = state.phase === "running" && state.port !== undefined;
+	const busy = state.phase === "starting" || state.phase === "unsupported";
 
 	return (
 		<div className="ios-sim-page">
@@ -107,110 +84,48 @@ export function SettingsView(): JSX.Element {
 				</header>
 
 				<section className="flex flex-col gap-2.5">
-					<span className="ios-sim-section-label">{t("settings.runtime.heading")}</span>
-					<div className="ios-sim-card flex flex-col gap-3 p-4">
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-							<span
-								className={`ios-sim-dot${state.phase === "checking" ? " ios-sim-pulse" : ""}`}
-								style={{ background: dotColor(state) }}
-								aria-hidden="true"
-							/>
-							<h2 className="text-sm font-medium">{statusText}</h2>
-							<div className="ms-auto flex flex-wrap items-center gap-2">
-								{needsInstall ? (
-									<button
-										type="button"
-										className="ios-sim-button"
-										onClick={() => {
-											void navigator.clipboard
-												.writeText(INSTALL_COMMAND)
-												.then(() => {
-													setCopied(true);
-													setTimeout(() => setCopied(false), 1500);
-												})
-												.catch(() => undefined);
-										}}
-									>
-										{copied ? t("gate.copied") : t("gate.copy")}
-									</button>
-								) : null}
-								<button type="button" className="ios-sim-button-ghost" onClick={() => void controller.refresh()}>
-									{t("gate.recheck")}
-								</button>
-							</div>
-						</div>
-						{needsInstall ? (
-							<p className="text-xs leading-relaxed text-muted-foreground">
-								{t("settings.runtime.installHint")} <code className="ios-sim-code">{INSTALL_COMMAND}</code>
-							</p>
-						) : null}
-						{state.message ? (
-							<p className="text-xs" style={{ color: "var(--destructive, #ef4444)" }}>
-								{state.message}
-							</p>
-						) : null}
-					</div>
-				</section>
-
-				<section className="flex flex-col gap-2.5">
 					<span className="ios-sim-section-label">{t("settings.service.heading")}</span>
 					<div className="ios-sim-card flex flex-col gap-3 p-4">
 						<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
 							<span
-								className="ios-sim-dot"
-								style={{ background: state.serverPort === undefined ? "var(--muted-foreground)" : "#22c55e" }}
+								className={`ios-sim-dot${state.phase === "starting" ? " ios-sim-pulse" : ""}`}
+								style={{ background: dotColor(state) }}
 								aria-hidden="true"
 							/>
-							<h2 className="text-sm font-medium">
-								{state.serverPort === undefined
-									? t("settings.service.stopped")
-									: t("settings.service.running", { port: String(state.serverPort) })}
-							</h2>
+							<h2 className="text-sm font-medium">{statusText(state, t)}</h2>
 							<div className="ms-auto flex flex-wrap items-center gap-2">
-								<button type="button" className="ios-sim-button-ghost" disabled={busy} onClick={restart}>
-									{t("settings.service.restart")}
+								<button
+									type="button"
+									className="ios-sim-button-ghost"
+									disabled={busy}
+									onClick={() => void (running ? controller.restart() : controller.ensureServer())}
+								>
+									{running ? t("settings.service.restart") : t("settings.service.start")}
 								</button>
 								<button
 									type="button"
 									className="ios-sim-button-ghost"
-									disabled={state.serverPort === undefined}
+									disabled={!running}
 									onClick={() => {
-										if (state.serverPort === undefined) return;
+										if (state.port === undefined) return;
 										void getPluginCtx()
-											.ui.openExternal(buildSimulatorsUrl(state.serverPort))
-											.catch(() => undefined);
+											.ui.openExternal(buildPreviewUrl(state.port))
+											.catch((error: unknown) =>
+												getPluginCtx().ui.notify({ message: t("panel.openExternalFailed"), error }),
+											);
 									}}
 								>
 									{t("panel.openExternal")}
 								</button>
 							</div>
 						</div>
-						<p className="text-xs leading-relaxed text-muted-foreground">{t("settings.service.hint")}</p>
-						{diagnostics ? <pre className="ios-sim-output">{diagnostics}</pre> : null}
-					</div>
-				</section>
-
-				<section className="flex flex-col gap-2.5">
-					<span className="ios-sim-section-label">{t("settings.device.heading")}</span>
-					<div className="ios-sim-card flex flex-col gap-3 p-4">
-						<label className="flex flex-col gap-2">
-							<span className="text-[13px]">{t("settings.device.label")}</span>
-							<select
-								className="w-full rounded-lg border border-border bg-transparent px-2.5 py-1.5 text-[13px]"
-								value={settings.defaultDeviceUdid ?? ""}
-								onChange={(event) =>
-									void store.update({ defaultDeviceUdid: event.target.value || null })
-								}
-							>
-								<option value="">{t("settings.device.auto")}</option>
-								{state.devices.map((item) => (
-									<option key={item.udid} value={item.udid}>
-										{`${item.name} · ${item.runtime}`}
-									</option>
-								))}
-							</select>
-						</label>
-						<p className="text-xs leading-relaxed text-muted-foreground">{t("settings.device.hint")}</p>
+						<p className="text-xs leading-relaxed text-muted-foreground">
+							{t("settings.service.hint", { package: SERVE_SIM_PACKAGE })}
+						</p>
+						{state.phase === "failed" && state.commandDisabled ? (
+							<p className="text-xs leading-relaxed text-muted-foreground">{t("panel.commandDisabled.body")}</p>
+						) : null}
+						{state.phase === "failed" && state.failure ? <pre className="ios-sim-output">{state.failure}</pre> : null}
 					</div>
 				</section>
 

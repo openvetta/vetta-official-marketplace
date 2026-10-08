@@ -59,13 +59,17 @@ describe("vetta-apple-app-dev-guide skill", () => {
 		expect(missing).toEqual([]);
 	});
 
-	it("drives the simulator through baguette and xcrun, not XcodeBuildMCP", async () => {
-		// 指南是从一份基于 XcodeBuildMCP 的 skill 改写来的；工具名残留会让模型去调
-		// 本插件根本没有注册的 MCP 工具。
+	it("drives the simulator through xcrun only", async () => {
+		// 指南是从一份基于 XcodeBuildMCP 的 skill 改写来的；工具名残留会让模型去调本插件根本
+		// 没有注册的 MCP 工具。baguette 是旧面板的运行时；serve-sim 只给面板用，Agent 不该
+		// 知道它——多给一套 CLI 只会让模型绕开 xcrun 去试那套命令。
 		const files = await listMarkdown(skillDir);
 		const leaked: string[] = [];
 		for (const file of files) {
-			if (/XcodeBuildMCP/.test(await readFile(file, "utf8"))) leaked.push(basename(file));
+			const source = await readFile(file, "utf8");
+			for (const name of ["XcodeBuildMCP", "baguette", "serve-sim"]) {
+				if (source.includes(name)) leaked.push(`${basename(file)}: ${name}`);
+			}
 		}
 		expect(leaked).toEqual([]);
 	});

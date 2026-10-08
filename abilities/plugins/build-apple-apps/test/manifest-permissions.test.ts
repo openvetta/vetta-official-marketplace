@@ -21,10 +21,11 @@ describe("Build Apple Apps plugin manifest", () => {
 	});
 
 	it("only drives the one executable the panel spawns", async () => {
-		// 用户安装时要逐项授权，命令面必须保持最小。Skill 里的
-		// xcrun/xcodebuild 走 Agent 自己的 shell，不经过插件的 commands 白名单。
+		// 用户安装时要逐项授权，命令面必须保持最小：只有拉起 serve-sim 的 npx（宿主交给
+		// 自带的 Node 运行时）。Skill 里的 xcrun/xcodebuild 走 Agent 自己的 shell，
+		// 不经过插件的 commands 白名单。
 		const manifest = await readManifest();
-		expect(manifest.commands).toEqual(["baguette"]);
+		expect(manifest.commands).toEqual(["npx"]);
 	});
 
 	it("requests the panel, command and skill permissions it uses", async () => {
@@ -33,7 +34,6 @@ describe("Build Apple Apps plugin manifest", () => {
 			expect.arrayContaining([
 				"ui.slot.activity-tab",
 				"ui.slot.workspace-view",
-				"agent.command.run",
 				"agent.command.spawn",
 				"agent.skills.control",
 				"fs.read",
@@ -56,6 +56,8 @@ describe("Build Apple Apps plugin manifest", () => {
 				"network.fetch",
 			]),
 		);
+		// 只拉起长驻服务，不跑一次性命令。
+		expect(manifest.permissions).not.toContain("agent.command.run");
 	});
 
 	it("ships the agent skill", async () => {
