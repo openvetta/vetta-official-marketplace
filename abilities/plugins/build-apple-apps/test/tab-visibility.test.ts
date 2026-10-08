@@ -24,7 +24,7 @@ describe("shouldShowTab", () => {
 	});
 
 	it("stays hidden off macOS even in an iOS project", () => {
-		// 非 macOS 上 baguette 和 Xcode 都不存在，上栏只会给出一个永远报错的面板。
+		// 非 macOS 上没有 Xcode 与模拟器，上栏只会给出一个永远报错的面板。
 		expect(shouldShowTab({ platform: "win32", entryNames: ["A.xcodeproj"] })).toBe(false);
 	});
 

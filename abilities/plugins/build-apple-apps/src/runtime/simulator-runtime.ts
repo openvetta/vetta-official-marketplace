@@ -1,51 +1,64 @@
 import type { PluginCommandApi, PluginCommandSpawnHandle } from "@vetta-org/plugin-sdk";
-import { isBaguetteCompatible, MINIMUM_BAGUETTE_VERSION, parseBaguetteVersion } from "./baguette-version.js";
-import { isBooted, parseDeviceList, type SimulatorDevice } from "./device-registry.js";
+import { buildServeArgs, parseServePort } from "./serve-sim-command.js";
 
 /**
- * 面板的运行时状态机：探测 baguette 并托管它的 serve 进程。
+ * 面板的运行时状态机：托管 serve-sim 预览服务。
  *
- * 设备列表、开关机和所有设备操作都归 baguette 自带的 Web UI（见 serve-url），
- * 这里刻意不重复实现——插件只负责「运行时可不可用」和「服务在不在」。
+ * 设备选择、开机、画面和输入都归 serve-sim 自带的预览页（见 serve-url），这里刻意不重复
+ * 实现——插件只负责「服务在不在、能不能打开」。
  *
- * 进程生命周期归宿主：spawn 走独立进程组，插件禁用/卸载/退出时统一回收。
+ * 进程生命周期归宿主：spawn 走独立进程组，插件禁用/卸载/退出时统一回收整棵进程树。
  */
 
-export type RuntimePhase = "unsupported" | "checking" | "missing" | "outdated" | "ready" | "error";
+export const RUNTIME_COMMAND = "npx";
+
+export type ServerPhase = "unsupported" | "idle" | "starting" | "running" | "failed";
 
 export interface RuntimeState {
-	readonly phase: RuntimePhase;
-	readonly version?: string;
-	readonly message?: string;
-	/** serve 正在监听的端口；未启动时为 undefined。 */
-	readonly serverPort?: number;
-	readonly devices: readonly SimulatorDevice[];
-	/** 正在启动的设备 udid；用于面板显示「正在启动…」。 */
-	readonly bootingUdid?: string;
+	readonly phase: ServerPhase;
+	/** 服务实际监听的端口；只在 running 时存在。 */
+	readonly port?: number;
+	/** 启动失败时的错误与最近输出，原样给用户看。 */
+	readonly failure?: string;
+	/**
+	 * 用户还没在能力详情里打开 `npx` 命令开关。宿主不会自动授权新声明的命令（升级时只沿用
+	 * 上一版已授权的命令），这是装完后最常见的失败，面板要直接告诉用户去哪里打开。
+	 */
+	readonly commandDisabled?: boolean;
 }
 
 export interface RuntimePorts {
 	readonly command: PluginCommandApi;
 	readonly platform: string;
+	/** 测试注入；缺省为真实计时器。 */
+	readonly sleep?: (ms: number) => Promise<void>;
 }
 
-const COMMAND_TIMEOUT_MS = 20_000;
-/** boot 要等 CoreSimulator 起完整个系统，比普通命令慢得多。 */
-const BOOT_TIMEOUT_MS = 120_000;
+/** 首次运行要从 npm 下载 serve-sim（约 5 MB），并可能顺带启动一台模拟器，给足时间。 */
+const READY_TIMEOUT_MS = 180_000;
+const READY_POLL_MS = 400;
 
-function errorMessage(error: unknown): string {
+/** 宿主拒绝未授权命令时的报错：`Plugin <id> command disabled by user: npx`。 */
+export function isCommandDisabledError(message: string): boolean {
+	return /command disabled by user/i.test(message);
+}
+
+export function errorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
 
+const defaultSleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class SimulatorRuntimeController {
-	private state: RuntimeState = { phase: "checking", devices: [] };
+	private state: RuntimeState;
 	private readonly listeners = new Set<(state: RuntimeState) => void>();
 	private disposed = false;
-	private serverHandle: PluginCommandSpawnHandle | null = null;
-	private serverStarting: Promise<number> | null = null;
-	private refreshing: Promise<RuntimeState> | null = null;
+	private handle: PluginCommandSpawnHandle | null = null;
+	private starting: Promise<void> | null = null;
 
-	constructor(private readonly ports: RuntimePorts) {}
+	constructor(private readonly ports: RuntimePorts) {
+		this.state = { phase: ports.platform === "darwin" ? "idle" : "unsupported" };
+	}
 
 	current(): RuntimeState {
 		return this.state;
@@ -57,132 +70,87 @@ export class SimulatorRuntimeController {
 		return () => this.listeners.delete(listener);
 	}
 
-	private emit(patch: Partial<RuntimeState>): void {
+	private emit(next: RuntimeState): void {
 		if (this.disposed) return;
-		this.state = { ...this.state, ...patch };
-		for (const listener of this.listeners) listener(this.state);
+		this.state = next;
+		for (const listener of this.listeners) listener(next);
 	}
 
-	/** 探测运行时。并发调用共享同一次执行。 */
-	async refresh(): Promise<RuntimeState> {
-		if (this.refreshing) return this.refreshing;
-		this.refreshing = this.runRefresh().finally(() => {
-			this.refreshing = null;
+	/** 保证服务在跑。并发调用共享同一次启动；已在运行或不支持时直接返回。 */
+	async ensureServer(): Promise<void> {
+		if (this.state.phase === "unsupported" || this.state.phase === "running") return;
+		if (this.starting) return this.starting;
+		this.starting = this.start().finally(() => {
+			this.starting = null;
 		});
-		return this.refreshing;
+		return this.starting;
 	}
 
-	private async runRefresh(): Promise<RuntimeState> {
-		if (this.ports.platform !== "darwin") {
-			this.emit({ phase: "unsupported", message: undefined });
-			return this.state;
-		}
-		this.emit({ phase: "checking", message: undefined });
-		let version: string | null;
+	private async start(): Promise<void> {
+		this.emit({ phase: "starting" });
+		let handle: PluginCommandSpawnHandle;
 		try {
-			const result = await this.ports.command.run("baguette", ["--version"], { timeoutMs: COMMAND_TIMEOUT_MS });
-			version = parseBaguetteVersion(`${result.stdout}\n${result.stderr}`);
-		} catch {
-			// 二进制不存在、未声明或被用户在插件设置里关掉，都按「没装」处理。
-			this.emit({ phase: "missing", version: undefined });
-			return this.state;
-		}
-		if (!isBaguetteCompatible(version)) {
-			this.emit({ phase: "outdated", version: version ?? undefined });
-			return this.state;
-		}
-		this.emit({ phase: "ready", version: version ?? undefined });
-		await this.refreshDevices();
-		return this.state;
-	}
-
-	async refreshDevices(): Promise<readonly SimulatorDevice[]> {
-		try {
-			const result = await this.ports.command.run("baguette", ["list"], { timeoutMs: COMMAND_TIMEOUT_MS });
-			const devices = parseDeviceList(result.stdout);
-			this.emit({ devices });
-			return devices;
+			handle = await this.ports.command.spawn(RUNTIME_COMMAND, buildServeArgs(), { allocatePort: true });
 		} catch (error) {
-			this.emit({ phase: "error", message: errorMessage(error) });
-			return this.state.devices;
+			// npx 未授权、被用户关掉、或宿主没有可用的 Node 运行时。
+			const failure = errorMessage(error);
+			this.emit({ phase: "failed", failure, commandDisabled: isCommandDisabledError(failure) });
+			return;
 		}
-	}
-
-	/**
-	 * 保证设备已启动。已经是 Booted 就直接返回，不重复 boot——用户可能正在用它。
-	 * boot 之后刷新设备表，让面板拿到新的 state。
-	 */
-	async ensureBooted(device: SimulatorDevice): Promise<void> {
-		if (isBooted(device)) return;
-		this.emit({ bootingUdid: device.udid });
-		try {
-			await this.ports.command.run("baguette", ["boot", "--udid", device.udid], {
-				timeoutMs: BOOT_TIMEOUT_MS,
-			});
-			await this.refreshDevices();
-		} finally {
-			this.emit({ bootingUdid: undefined });
-		}
-	}
-
-	/** 保证 serve 在跑并返回端口。并发调用共享同一次启动。 */
-	async ensureServer(): Promise<number> {
-		if (this.serverHandle) {
-			const status = await this.serverHandle.status();
-			if (status.running && status.port !== undefined) return status.port;
-			this.serverHandle = null;
-		}
-		if (this.serverStarting) return this.serverStarting;
-		this.serverStarting = this.startServer().finally(() => {
-			this.serverStarting = null;
+		this.handle = handle;
+		handle.onExit((exit) => {
+			if (this.handle !== handle) return;
+			this.handle = null;
+			// 运行中退出（模拟器关了、进程崩了）回到 idle，面板会提示重新启动。
+			if (this.state.phase === "running") this.emit({ phase: "idle" });
+			else if (this.state.phase === "starting") {
+				this.emit({ phase: "failed", failure: `serve-sim exited (code ${exit.exitCode ?? exit.signal ?? "?"})` });
+			}
 		});
-		return this.serverStarting;
-	}
 
-	private async startServer(): Promise<number> {
-		// --host 保持缺省的 127.0.0.1：serve 不应该对局域网可见。
-		const handle = await this.ports.command.spawn("baguette", ["serve", "--port", "{{PORT}}"], {
-			allocatePort: true,
-		});
-		if (handle.port === undefined) {
-			await handle.stop();
-			throw new Error("host did not allocate a port for baguette serve");
+		const sleep = this.ports.sleep ?? defaultSleep;
+		const deadline = Date.now() + READY_TIMEOUT_MS;
+		while (!this.disposed && this.handle === handle) {
+			const status = await handle.status().catch(() => null);
+			if (!status) break;
+			const port = parseServePort(status.recentOutput);
+			if (port !== null) {
+				this.emit({ phase: "running", port });
+				return;
+			}
+			if (!status.running) {
+				this.handle = null;
+				this.emit({ phase: "failed", failure: status.recentOutput.trim() || "serve-sim exited before it was ready" });
+				return;
+			}
+			if (Date.now() > deadline) {
+				this.handle = null;
+				await handle.stop().catch(() => undefined);
+				this.emit({ phase: "failed", failure: status.recentOutput.trim() || "serve-sim did not become ready in time" });
+				return;
+			}
+			await sleep(READY_POLL_MS);
 		}
-		this.serverHandle = handle;
-		handle.onExit(() => {
-			if (this.serverHandle !== handle) return;
-			this.serverHandle = null;
-			this.emit({ serverPort: undefined });
-		});
-		this.emit({ serverPort: handle.port });
-		return handle.port;
 	}
 
-	/** 停掉当前 serve；下一次 ensureServer() 会重新拉起。 */
-	async restartServer(): Promise<void> {
-		const handle = this.serverHandle;
-		this.serverHandle = null;
-		this.emit({ serverPort: undefined });
+	/** 停掉当前服务并重新拉起。 */
+	async restart(): Promise<void> {
+		await this.stop();
+		await this.ensureServer();
+	}
+
+	async stop(): Promise<void> {
+		const handle = this.handle;
+		this.handle = null;
+		if (this.state.phase !== "unsupported") this.emit({ phase: "idle" });
 		if (handle) await handle.stop().catch(() => undefined);
-	}
-
-	/** serve 起不来时把最近输出带出来——否则用户只看到一个空面板。 */
-	async serverDiagnostics(): Promise<string | null> {
-		if (!this.serverHandle) return null;
-		try {
-			return (await this.serverHandle.status()).recentOutput;
-		} catch {
-			return null;
-		}
 	}
 
 	async dispose(): Promise<void> {
 		this.disposed = true;
 		this.listeners.clear();
-		const handle = this.serverHandle;
-		this.serverHandle = null;
+		const handle = this.handle;
+		this.handle = null;
 		if (handle) await handle.stop().catch(() => undefined);
 	}
 }
-
-export { errorMessage, MINIMUM_BAGUETTE_VERSION };

@@ -9,19 +9,13 @@ export interface PanelSettings {
 	 * 给工程不在仓库顶层（monorepo、子目录、只有 SPM 包）的用户兜底。
 	 */
 	readonly alwaysShowTab: boolean;
-	/** 打开面板时自动拉起 baguette serve；关掉后改为手动点按钮启动。 */
+	/** 打开面板时自动拉起 serve-sim；关掉后改为手动点按钮启动。 */
 	readonly autoStartServer: boolean;
-	/**
-	 * 面板默认进入的设备 udid。为 null 时自动挑选（已启动的优先，其次 iPhone 17 Pro）。
-	 * 见 device-registry 的 selectPreferredDevice。
-	 */
-	readonly defaultDeviceUdid: string | null;
 }
 
 export const DEFAULT_PANEL_SETTINGS: PanelSettings = {
 	alwaysShowTab: false,
 	autoStartServer: true,
-	defaultDeviceUdid: null,
 };
 
 /** 存储里的值是不可信输入：逐字段收窄，任何缺失或类型不符都回落到默认值。 */
@@ -35,10 +29,6 @@ export function normalizePanelSettings(value: unknown): PanelSettings {
 			typeof record.autoStartServer === "boolean"
 				? record.autoStartServer
 				: DEFAULT_PANEL_SETTINGS.autoStartServer,
-		defaultDeviceUdid:
-			typeof record.defaultDeviceUdid === "string" && record.defaultDeviceUdid.length > 0
-				? record.defaultDeviceUdid
-				: DEFAULT_PANEL_SETTINGS.defaultDeviceUdid,
 	};
 }
 
