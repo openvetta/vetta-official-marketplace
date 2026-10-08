@@ -49,7 +49,7 @@ abilities/plugins/<slug>/
 ├── assets/                             # 官方品牌图标等静态资源
 ├── locales/                            # 插件运行期 i18n catalog
 ├── runtime-lock.json                   # 受管二进制的固定版本、来源和校验值
-└── release/                            # 提交的可安装插件归档
+└── release/                            # 本地可安装插件归档，不提交
 ```
 
 ### 文件命名规则
@@ -119,4 +119,8 @@ bun run build
 node --test tests/marketplace.test.mjs
 ```
 
-插件运行内容变化时提升插件版本，并同步 `plugin.json`、`ability.json`、`package.json`、锁文件、构建产物、归档和顶层 `marketplaceVersion`。
+同一批未发布的分发内容变更只提升一次插件版本：源码仍等于已发布版本时，为本批变更提升一次；已有待发布版本则沿用。
+后续修改、测试、构建和本地安装不再递增，优先使用热更新或重载，需要时重新安装同一待发布版本的本地包。
+版本需同步源码目录条目、`plugin.json`、`ability.json`、`package.json` 和锁文件；发布前只核对并构建验证，
+不额外递增。已发布制品不可覆盖；`marketplaceVersion` 由发布 CI 管理，构建产物和归档不提交。
+具体规则见根目录 `AGENTS.md`。

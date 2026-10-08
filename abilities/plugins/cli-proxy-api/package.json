@@ -1,6 +1,6 @@
 {
   "name": "@vetta-marketplace/cli-proxy-api",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,10 +11,11 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.12",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.1",
     "@vetta-org/plugin-cli": "^0.1.4",
-    "@vetta-org/plugin-sdk": "^0.3.5",
+    "@vetta-org/plugin-sdk": "^0.3.10",
     "@vetta-org/plugin-vite": "^0.2.0",
     "jsdom": "^26.1.0",
     "react": "19.1.1",
@@ -22,5 +23,8 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vitest": "^3.2.6"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
   }
 }

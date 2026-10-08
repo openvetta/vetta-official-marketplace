@@ -1,4 +1,5 @@
 import { record, textField, type AccountQuota, type JsonRecord, type ProxyAccount, type QuotaGroup, type QuotaWindow } from "./proxy-client";
+import { readNormalizedQuota } from "./domain/normalized-quota";
 
 /**
  * Reads a credential's remaining quota from the provider that issued it.
@@ -6,7 +7,7 @@ import { record, textField, type AccountQuota, type JsonRecord, type ProxyAccoun
  * The gateway only records limits it happened to see on a response, so a
  * freshly authorized account reports nothing until it has served traffic. The
  * providers all expose the figures directly, and the gateway can already make a
- * call on a credential's behalf — `/v0/management/api-call` substitutes the
+ * call on a credential's behalf — `/v8/management/requests/api-call` substitutes the
  * stored token for the `$TOKEN$` placeholder — so asking outright is both
  * possible and the only way to answer "how much is left" before first use.
  *
@@ -31,7 +32,7 @@ type ProviderProbe = {
 const TOKEN = "Bearer $TOKEN$";
 
 /** Client identity the provider expects; a generic agent gets rejected. */
-const CODEX_AGENT = "codex-tui/0.149.1 (Mac OS 26.5.2; arm64) iTerm.app/3.6.11 (codex-tui; 0.149.1)";
+const CODEX_AGENT = "codex-tui/0.154.0 (Mac OS 26.5.2; arm64) iTerm.app/3.6.11 (codex-tui; 0.154.0)";
 const ANTIGRAVITY_AGENT = "antigravity/cli/1.0.13 (aidev_client; os_type=darwin; arch=arm64)";
 
 function number(value: unknown): number | undefined {
@@ -131,6 +132,7 @@ const PROBES: Record<string, ProviderProbe> = {
 };
 
 export function hasQuotaProbe(account: ProxyAccount): boolean {
+  if (account.authIndex && (account.supportsQuota || account.hasDeclarativeQuotaProbe)) return true;
   const probe = PROBES[account.provider.trim().toLowerCase()];
   return probe !== undefined && probe.calls(account).length > 0;
 }
@@ -145,17 +147,33 @@ type ApiCallResponse = { status_code?: number; body?: unknown; bodyText?: string
  * failed rather than quietly showing a card with no limits.
  */
 export async function probeAccountQuota(
-  serviceRequest: <T>(path: string, options: { method?: "POST"; credentialId: string; body?: unknown }) => Promise<T>,
+  serviceRequest: <T>(path: string, options: { method?: "GET" | "POST"; credentialId: string; body?: unknown }) => Promise<T>,
   managerCredential: string,
   account: ProxyAccount
 ): Promise<AccountQuota | undefined> {
+  if (account.authIndex && (account.supportsQuota || account.hasDeclarativeQuotaProbe)) {
+    const listing = record(await serviceRequest<unknown>("/v8/management/plugins", { credentialId: managerCredential }));
+    if (!Array.isArray(listing?.plugins)) throw new Error("Invalid quota provider listing");
+    const plugin = listing.plugins.map(record).find((entry) => entry?.effective_enabled === true
+      && entry.supports_quota === true && entry.quota_provider === (account.quotaProvider ?? account.provider));
+    const pluginId = textField(plugin, "id");
+    // CPA v8 deliberately retains the legacy generic quota route for provider
+    // discovery/declarative probes; its removed /v8/credentials/quota alias is invalid.
+    const path = pluginId ? `/v8/management/plugins/${encodeURIComponent(pluginId)}/quota` : "/v0/management/quota/fetch";
+    const response = await serviceRequest<unknown>(path, {
+      method: "POST", credentialId: managerCredential, body: { auth_index: account.authIndex },
+    });
+    const quota = readNormalizedQuota(response);
+    if (!quota) throw new Error("The quota provider returned no usable quota");
+    return quota;
+  }
   const probe = PROBES[account.provider.trim().toLowerCase()];
   if (!probe || !account.authIndex) return undefined;
   let lastError: unknown;
   for (const call of probe.calls(account)) {
     let response: ApiCallResponse | undefined;
     try {
-      response = await serviceRequest<ApiCallResponse>("/v0/management/api-call", {
+      response = await serviceRequest<ApiCallResponse>("/v8/management/requests/api-call", {
         method: "POST",
         credentialId: managerCredential,
         body: {

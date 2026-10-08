@@ -1,4 +1,4 @@
-export type OAuthProviderId = "gemini-cli" | "codex" | "claude" | "antigravity" | "kimi" | "xai";
+export type OAuthProviderId = "gemini-cli" | "codex" | "claude" | "antigravity" | "kimi" | "xai" | "meta" | "devin" | "kimi-ai";
 export type ProtocolGroup = "google" | "anthropic" | "responses" | "completions";
 
 export interface OAuthProviderDefinition {
@@ -8,23 +8,15 @@ export interface OAuthProviderDefinition {
 }
 
 export const OAUTH_PROVIDERS: readonly OAuthProviderDefinition[] = [
-  { id: "gemini-cli", authPath: "/v0/management/gemini-cli-auth-url", deviceFlow: false },
-  { id: "codex", authPath: "/v0/management/codex-auth-url?is_webui=true", deviceFlow: false },
-  { id: "claude", authPath: "/v0/management/anthropic-auth-url?is_webui=true", deviceFlow: false },
-  { id: "antigravity", authPath: "/v0/management/antigravity-auth-url?is_webui=true", deviceFlow: false },
-  { id: "kimi", authPath: "/v0/management/kimi-auth-url", deviceFlow: true },
-  { id: "xai", authPath: "/v0/management/xai-auth-url", deviceFlow: true }
-] as const;
-
-export const CONFIGURED_PROVIDER_ROUTES = [
-  "/v0/management/gemini-api-key",
-  "/v0/management/interactions-api-key",
-  "/v0/management/claude-api-key",
-  "/v0/management/codex-api-key",
-  "/v0/management/xai-api-key",
-  "/v0/management/vertex-api-key",
-  "/v0/management/openai-compatibility",
-  "/v0/management/vertex/import"
+  { id: "gemini-cli", authPath: "/v8/management/oauth/auth-url?provider=gemini-cli", deviceFlow: false },
+  { id: "codex", authPath: "/v8/management/oauth/auth-url?provider=codex&is_webui=true", deviceFlow: false },
+  { id: "claude", authPath: "/v8/management/oauth/auth-url?provider=claude&is_webui=true", deviceFlow: false },
+  { id: "antigravity", authPath: "/v8/management/oauth/auth-url?provider=antigravity&is_webui=true", deviceFlow: false },
+  { id: "kimi", authPath: "/v8/management/oauth/auth-url?provider=kimi", deviceFlow: true },
+  { id: "xai", authPath: "/v8/management/oauth/auth-url?provider=xai", deviceFlow: true },
+  { id: "meta", authPath: "/v8/management/oauth/auth-url?provider=meta", deviceFlow: true },
+  { id: "devin", authPath: "/v8/management/oauth/auth-url?provider=devin", deviceFlow: false },
+  { id: "kimi-ai", authPath: "/v8/management/oauth/auth-url?provider=kimi-ai", deviceFlow: true }
 ] as const;
 
 /** Every protocol group, in the order providers are published. */
@@ -38,13 +30,13 @@ export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup 
   const source = owner.trim().toLowerCase();
   if (source === "antigravity" && /claude|anthropic/u.test(modelId.toLowerCase())) return "anthropic";
   if (["gemini-cli", "gemini", "google", "vertex", "antigravity", "aistudio"].includes(source)) return "google";
-  if (["claude", "anthropic", "kimi"].includes(source)) return "anthropic";
+  if (["claude", "anthropic", "kimi", "kimi-ai"].includes(source)) return "anthropic";
   if (["codex", "openai"].includes(source)) return "responses";
   return "completions";
 }
 
 /**
- * Channels accepted by `/v0/management/model-definitions/:channel`.
+ * Channels accepted by `/v8/management/routing/model-definitions/:channel`.
  *
  * The route is keyed by upstream **channel**, not by the `owned_by` value that
  * `/v1/models` reports, and the runtime answers `{"error":"unknown channel"}`
@@ -53,7 +45,7 @@ export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup 
  * merging stays deterministic.
  */
 export const MODEL_DEFINITION_CHANNELS = [
-  "antigravity", "aistudio", "claude", "codex", "gemini", "kimi", "vertex", "xai"
+  "antigravity", "aistudio", "claude", "codex", "gemini", "kimi", "vertex", "xai", "meta", "devin", "kimi-ai"
 ] as const;
 
 /**
@@ -67,7 +59,10 @@ export const MODEL_CHANNEL_BY_PROVIDER: Record<OAuthProviderId, string> = {
   claude: "claude",
   antigravity: "antigravity",
   kimi: "kimi",
-  xai: "xai"
+  xai: "xai",
+  meta: "meta",
+  devin: "devin",
+  "kimi-ai": "kimi-ai"
 };
 
 /** The channel backing a credential, or `undefined` for providers this plugin does not model. */

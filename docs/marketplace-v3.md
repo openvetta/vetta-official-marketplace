@@ -13,7 +13,7 @@ Desktop 添加仓库时使用分支 gh-pages。无需开启 GitHub Pages；包�
 
 ## 发布一个版本
 
-1. 修改源码；准备发布时提高能力版本，保持源码条目、ability.json 和类型身份文件版本一致。
+1. 同一批未发布的分发内容变更只提升一次能力版本：源码版本仍等于已发布版本时提升一次，已有待发布版本则沿用。后续修改、测试和本地安装不再递增；发布前核对源码条目、ability.json 和类型身份文件一致，不额外加号。
 2. Plugin 在源码条目上声明 minAppVersion，包括仅 Bundle 引用的成员。
 3. 普通 PR 以 main 为基准分支，检查源码、构建候选内容并核实宿主兼容性。保护 main，要求人工审核和 marketplace 检查。
 4. 合并后 Publish ability marketplace 自动发布。版本没变的插件不重建、不覆盖；新版本以 `<slug>-<version>.vettapkg` 追加到该插件固定的 `plugin-<slug>` Release。非插件运行文件也保留至版本提高。

@@ -1,0 +1,11 @@
+{
+  "devin": {
+    "source": "https://devin.ai/icon.png",
+    "page": "https://devin.ai/",
+    "sha256": "f348baaa6bf835eba9a89b119ae745c10713c8b0cc7764c047916ecc9e8b66fa"
+  },
+  "meta": {
+    "source": "https://www.meta.com/favicon.ico",
+    "sha256": "b96d739c3a8ac4ef0b34212c8a2b7f23dcb7b039e0dd14ef170d8e9232972bf7"
+  }
+}

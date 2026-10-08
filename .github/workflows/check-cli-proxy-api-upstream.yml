@@ -1,0 +1,27 @@
+name: Check CLIProxyAPI upstream
+
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+      # Exit 2 means a newer stable runtime needs a source PR and canary review.
+      # This job never changes a lock or bypasses the major-version review guard.
+      - name: Compare stable upstream releases with the fixed runtime lock
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/update-cli-proxy-api.mjs

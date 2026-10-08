@@ -78,7 +78,7 @@ export function reconcileModels({ published, routable, accounts, catalog }: Reco
       continue;
     }
     for (const model of listing) {
-      const group = protocolGroupFor(account.provider, model.id);
+      const group = protocolGroupFor(model.ownedBy ?? account.provider, model.id);
       backed.add(group);
       const ids = claimed.get(group);
       if (ids) ids.add(model.id);

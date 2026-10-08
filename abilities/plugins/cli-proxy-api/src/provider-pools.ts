@@ -1,5 +1,5 @@
 import { modelRouteKey, type ModelRouteKey } from "./model-selection";
-import { protocolGroupFor, type OAuthProviderId } from "./provider-contract";
+import { OAUTH_PROVIDERS, protocolGroupFor, type OAuthProviderId } from "./provider-contract";
 import type { ChannelModel, ProxyAccount } from "./proxy-client";
 
 export type AccountModelState = { models: ChannelModel[]; error?: string };
@@ -23,7 +23,7 @@ function canonicalProvider(account: ProxyAccount): { id: string; provider?: OAut
   const value = account.provider.trim().toLowerCase();
   if (value === "anthropic") return { id: "claude", provider: "claude" };
   if (value === "gemini") return { id: "gemini-cli", provider: "gemini-cli" };
-  const known: OAuthProviderId[] = ["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"];
+  const known = OAUTH_PROVIDERS.map((provider) => provider.id);
   return known.includes(value as OAuthProviderId)
     ? { id: value, provider: value as OAuthProviderId }
     : { id: value || "unknown" };
@@ -47,7 +47,7 @@ export function buildProviderPools(
       const state = accountModels.get(account.key);
       if (state?.error) errors.push(state.error);
       for (const model of state?.models ?? []) {
-        const routeKey = modelRouteKey({ id: model.id, group: protocolGroupFor(account.provider, model.id) });
+        const routeKey = modelRouteKey({ id: model.id, group: protocolGroupFor(model.ownedBy ?? account.provider, model.id) });
         const current = models.get(routeKey);
         if (current) current.accounts.push(account.key);
         else models.set(routeKey, { model, accounts: [account.key] });

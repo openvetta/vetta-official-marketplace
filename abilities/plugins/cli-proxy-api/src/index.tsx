@@ -1,7 +1,8 @@
 import { definePlugin, type PluginContext } from "@vetta-org/plugin-sdk";
 import { createElement } from "react";
-import { ProxySetupSlot } from "./setup-slot";
-import { ProxyWorkspaceView, WORKSPACE_VIEW_ID } from "./workspace-view";
+import { ProxySetupSlot } from "./features/service/components/proxy-setup-slot";
+import { ProxyWorkspaceView } from "./features/console/components/proxy-workspace-view";
+import { WORKSPACE_VIEW_ID } from "./domain/workspace-view-id";
 import { maintainModelConnection } from "./model-connection";
 import type { ManagedPluginContext } from "./runtime-contract";
 import { ensureServiceStarted } from "./runtime-provisioner";

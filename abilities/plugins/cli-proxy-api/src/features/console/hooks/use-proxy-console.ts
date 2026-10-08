@@ -1,12 +1,12 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "./provider-contract";
-import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
-import { toDisplayErrorMessage } from "./error-message";
-import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type AccountQuota, type ModelCatalog, type ProxyAccount, type ProxyModel } from "./proxy-client";
-import { hasQuotaProbe, probeAccountQuota } from "./quota-probe";
-import { readModelSelection } from "./model-selection";
-import { refreshImageProviderCatalog } from "./media-provider";
+import { OAUTH_PROVIDERS, type OAuthProviderDefinition, type OAuthProviderId } from "../../../provider-contract";
+import type { ManagedPluginContext, ServiceStatus } from "../../../runtime-contract";
+import { toDisplayErrorMessage } from "../../../error-message";
+import { MANAGER_CREDENTIAL, SERVICE_ID, createProxyClient, record, textField, safeExternalUrl, type AccountQuota, type ModelCatalog, type ProxyAccount, type ProxyModel } from "../../../proxy-client";
+import { hasQuotaProbe, probeAccountQuota } from "../../../quota-probe";
+import { readModelSelection } from "../../../model-selection";
+import { refreshImageProviderCatalog } from "../../../media-provider";
 
 export type OAuthFlow = {
   provider: OAuthProviderId;
@@ -39,7 +39,7 @@ export function providerForAccount(account: ProxyAccount): OAuthProviderId | und
  */
 export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const client = useMemo(() => createProxyClient(pluginContext), [pluginContext]);
-  const { serviceRequest, loadPublishableModels, publishModels, setAccountDisabled, resetAccountQuota } = client;
+  const { serviceRequest, loadPublishableModels, publishModels, setAccountDisabled, resetAccountQuota, refreshAccountCredential } = client;
   const { t } = useTranslation();
   const [status, setStatus] = useState<ServiceStatus>({
     serviceId: SERVICE_ID,
@@ -67,6 +67,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
   const probedRef = useRef<Set<string>>(new Set());
   const startingRef = useRef(false);
   const removingAccountRef = useRef(false);
+  const pendingAccountRef = useRef(false);
   const oauthGeneration = useRef(0);
   const flowRef = useRef<OAuthFlow | null>(null);
   /** Latest credentials as read, so a retry loop can see past its own closure. */
@@ -160,7 +161,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       const rawUrl = textField(payload, "url", "verification_uri_complete", "verification_uri");
       if (!state || !rawUrl || textField(payload, "status") !== "ok") throw new Error("Invalid OAuth start response");
       if (generation !== oauthGeneration.current) {
-        await serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(state)}`, {
+        await serviceRequest(`/v8/management/oauth/session?state=${encodeURIComponent(state)}`, {
           credentialId: MANAGER_CREDENTIAL, method: "DELETE"
         });
         return;
@@ -190,7 +191,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     flowRef.current = null;
     setFlow(null);
     try {
-      await serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(current.state)}`, {
+      await serviceRequest(`/v8/management/oauth/session?state=${encodeURIComponent(current.state)}`, {
         credentialId: MANAGER_CREDENTIAL, method: "DELETE"
       });
     } catch (reason) {
@@ -209,7 +210,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     setRemovingAccount(account.key);
     setError(null);
     try {
-      await serviceRequest(`/v0/management/auth-files?name=${encodeURIComponent(account.deleteName)}`, {
+      await serviceRequest(`/v8/management/credentials?name=${encodeURIComponent(account.deleteName)}`, {
         credentialId: MANAGER_CREDENTIAL,
         method: "DELETE"
       });
@@ -229,7 +230,8 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     action: () => Promise<void>,
     failureKey: string
   ): Promise<void> => {
-    if (pendingAccount !== null) return;
+    if (pendingAccountRef.current) return;
+    pendingAccountRef.current = true;
     setPendingAccount(account.key);
     setError(null);
     try {
@@ -237,10 +239,12 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       await refresh(false);
     } catch (reason) {
       setError(t(failureKey, { details: toDisplayErrorMessage(reason) }));
+      pluginContext.ui.notify({ message: t(failureKey, { details: toDisplayErrorMessage(reason) }), error: reason });
     } finally {
+      pendingAccountRef.current = false;
       setPendingAccount(null);
     }
-  }, [pendingAccount, refresh, t]);
+  }, [pluginContext, refresh, t]);
 
   const toggleAccount = useCallback((account: ProxyAccount): Promise<void> => runAccountAction(
     account, () => setAccountDisabled(account, !account.disabled), "console.toggleFailed"
@@ -250,15 +254,25 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     account, () => resetAccountQuota(account), "console.resetFailed"
   ), [runAccountAction, resetAccountQuota]);
 
+  const refreshCredential = useCallback((account: ProxyAccount): Promise<void> => runAccountAction(
+    account, async () => {
+      await refreshAccountCredential(account);
+      probedRef.current.delete(account.key);
+      setQuotas((current) => { const next = new Map(current); next.delete(account.key); return next; });
+    }, "console.refreshCredentialFailed"
+  ), [runAccountAction, refreshAccountCredential]);
+
   /**
    * Asks the provider what is left on one credential.
    *
    * Done once per credential per session unless the user asks again: it is an
    * outbound call on their account, not something to repeat on every render.
    */
+  const probingRef = useRef(new Set<string>());
   const loadQuota = useCallback(async (account: ProxyAccount, force = false): Promise<void> => {
-    if (!hasQuotaProbe(account)) return;
+    if (!hasQuotaProbe(account) || probingRef.current.has(account.key)) return;
     if (!force && probedRef.current.has(account.key)) return;
+    probingRef.current.add(account.key);
     setQuotaLoading((current) => new Set([...current, account.key]));
     setQuotaErrors((current) => {
       const next = new Map(current);
@@ -276,6 +290,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       // Said out loud on the card: a silent failure looks exactly like "no limits".
       setQuotaErrors((current) => new Map(current).set(account.key, toDisplayErrorMessage(reason)));
     } finally {
+      probingRef.current.delete(account.key);
       setQuotaLoading((current) => {
         const next = new Set(current);
         next.delete(account.key);
@@ -309,7 +324,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       subscription.dispose();
       const current = flowRef.current;
       if (current?.phase === "waiting") {
-        void serviceRequest(`/v0/management/oauth-session?state=${encodeURIComponent(current.state)}`, {
+        void serviceRequest(`/v8/management/oauth/session?state=${encodeURIComponent(current.state)}`, {
           credentialId: MANAGER_CREDENTIAL,
           method: "DELETE"
         }).catch(() => undefined);
@@ -324,7 +339,7 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
       const current = flowRef.current;
       if (!current || current.phase !== "waiting" || inFlight) return;
       inFlight = true;
-      void serviceRequest<unknown>(`/v0/management/get-auth-status?state=${encodeURIComponent(current.state)}`, {
+      void serviceRequest<unknown>(`/v8/management/oauth/status?state=${encodeURIComponent(current.state)}`, {
         credentialId: MANAGER_CREDENTIAL
       }).then((payload) => {
         if (flowRef.current !== current) return;
@@ -363,6 +378,6 @@ export function useProxyConsole(pluginContext: ManagedPluginContext) {
     client, status, models, catalog, accounts, accountsByProvider, busy, flow, error, setError,
     refreshing, syncing, syncedModelCount, startingOAuth,
     removalCandidate, setRemovalCandidate, removingAccount, pendingAccount, quotas, quotaLoading, quotaErrors, loadQuota,
-    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota
+    refresh, startOAuth, cancelOAuth, dismissFlow, removeAccount, toggleAccount, resetQuota, refreshCredential
   };
 }

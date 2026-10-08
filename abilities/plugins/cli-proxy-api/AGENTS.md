@@ -41,20 +41,25 @@ CLI），**两者冲突时以它为准**。
 ## 开发闭环
 
 ```bash
-npm run dev            # Vite + Module Federation 开发服务器
 npm run build          # 产出 dist/
-npm run install:vetta  # 打包并装进正在运行的 Vetta（需要 Vetta 已启动）
+npx vetta-plugin-cli add .  # 将本地构建包装进开发实例（需要 Vetta 已启动）
 npx vetta-plugin-cli watch   # 开热更新：宿主改从本工程目录加载，改完即生效
 npx vetta-plugin-cli uninstall  # 卸载（省略 id 即本工程对应的插件）
 ```
 
-`install:vetta` 走 `vetta-plugin-cli add .`：它找到本工程打出来的归档，交给正在运行的
+`vetta-plugin-cli add .` 找到本工程打出来的归档，交给正在运行的
 Desktop 校验、授权、安装。它**不会**直接写 `~/.vetta/plugins`。
 
 装完若提示有 pending 版本，用 `npx vetta-plugin-cli reload cli-proxy-api` 让宿主应用它。
 
 开发期建议开热更新（`watch`）：之后改源码即时生效，不用每次重新打包安装。改 `plugin.json`
 的权限或命令声明时仍需重新安装一次，让宿主把授权落盘。`watch --stop` 关闭。
+
+**同一批未发布改动只提升一次插件版本。** 修改会改变市场分发内容时，若源码版本仍等于已发布版本，
+为本批变更提升一次并同步全部身份文件；若已有待发布版本，直接沿用。后续 UI 调整、修复、测试、构建、
+开发实例安装和重载不再加号。发布前只核对版本一致性，不额外递增；本批发布后，下一批分发内容变更再提升一次。
+需要测安装包时，在开发实例重新安装同一待发布版本即可。CPA / Gemini 的运行时版本按实际制品维护，
+不按每次上游更新自动递增插件版本；市场上已发布的同版本制品仍不可覆盖。详见根目录「开发版本与市场发布版本」。
 
 ## 能力市场发布
 

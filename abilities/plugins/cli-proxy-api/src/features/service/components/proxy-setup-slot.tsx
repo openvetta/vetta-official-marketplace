@@ -1,19 +1,16 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
-import type { ReactElement } from "react";
-import type { ManagedPluginContext, ServiceStatus } from "./runtime-contract";
-import { ensureServiceStarted } from "./runtime-provisioner";
-import { toDisplayErrorMessage } from "./error-message";
-import { ActionIcon, Button, ServiceIcon, Spin } from "./ui-kit";
-import { useProxyConsole } from "./use-proxy-console";
-import { WORKSPACE_VIEW_ID } from "./workspace-view";
-import { SERVICE_ID } from "./proxy-client";
-
-function statusLabelKey(phase: ServiceStatus["phase"]): string {
-  if (phase === "ready") return "setup.serviceReady";
-  if (phase === "failed") return "setup.serviceFailed";
-  if (phase === "stopped" || phase === "disabled") return "setup.serviceStopped";
-  return "setup.serviceWorking";
-}
+import { type ReactElement } from "react";
+import { type ManagedPluginContext } from "../../../runtime-contract";
+import { ensureServiceStarted } from "../../../runtime-provisioner";
+import { toDisplayErrorMessage } from "../../../error-message";
+import { ActionIcon } from "../../../shared/components/action-icon";
+import { Button } from "../../../shared/components/button";
+import { ServiceIcon } from "../../../shared/components/service-icon";
+import { Spin } from "../../../shared/components/spin";
+import { useProxyConsole } from "../../console/hooks/use-proxy-console";
+import { WORKSPACE_VIEW_ID } from "../../../domain/workspace-view-id";
+import { SERVICE_ID } from "../../../proxy-client";
+import { statusLabelKey } from "../../../domain/service-labels";
 
 /**
  * The ability page's slot: the state of the managed runtime, and the way into

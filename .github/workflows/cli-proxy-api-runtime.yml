@@ -1,0 +1,49 @@
+name: CLIProxyAPI runtime checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - abilities/plugins/cli-proxy-api/**
+      - scripts/test-cli-proxy-api-runtime.py
+      - .github/workflows/cli-proxy-api-runtime.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    name: CPA ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-x64, runner: ubuntu-24.04 }
+          - { platform: linux-arm64, runner: ubuntu-24.04-arm }
+          - { platform: darwin-x64, runner: macos-15-intel }
+          - { platform: darwin-arm64, runner: macos-15 }
+          - { platform: win32-x64, runner: windows-2025 }
+          - { platform: win32-arm64, runner: windows-11-arm }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+        working-directory: abilities/plugins/cli-proxy-api
+      - run: npm run check
+        working-directory: abilities/plugins/cli-proxy-api
+      - run: npm run test
+        working-directory: abilities/plugins/cli-proxy-api
+      - run: npm run build
+        working-directory: abilities/plugins/cli-proxy-api
+      - name: Check pinned binaries against a loopback upstream
+        run: python scripts/test-cli-proxy-api-runtime.py --expected-platform ${{ matrix.platform }}
