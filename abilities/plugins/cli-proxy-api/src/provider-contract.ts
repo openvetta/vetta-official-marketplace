@@ -38,7 +38,10 @@ export function protocolGroupFor(owner: string, modelId: string): ProtocolGroup 
   const source = owner.trim().toLowerCase();
   if (source === "antigravity" && /claude|anthropic/u.test(modelId.toLowerCase())) return "anthropic";
   if (["gemini-cli", "gemini", "google", "vertex", "antigravity", "aistudio"].includes(source)) return "google";
-  if (["claude", "anthropic", "kimi"].includes(source)) return "anthropic";
+  // `/v1/models` reports Kimi models as owned by `moonshot`, while credentials and
+  // the model-definitions route call the same channel `kimi`; both must land on
+  // one route or a ticked Kimi model never matches what the gateway serves.
+  if (["claude", "anthropic", "kimi", "moonshot"].includes(source)) return "anthropic";
   if (["codex", "openai"].includes(source)) return "responses";
   return "completions";
 }

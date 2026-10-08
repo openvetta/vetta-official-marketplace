@@ -3,6 +3,7 @@ import { createProxyClient, isImageOnlyModelId, safeExternalUrl } from "../src/p
 import { OAUTH_PROVIDERS, protocolGroupFor } from "../src/provider-contract";
 import { maintainModelConnection } from "../src/model-connection";
 import { groupModels } from "../src/model-reconciler";
+import { buildProviderPools } from "../src/provider-pools";
 import { fixture } from "./helpers";
 
 afterEach(() => vi.useRealTimers());
@@ -48,6 +49,7 @@ describe("CLIProxyAPI contracts", () => {
     expect(protocolGroupFor("google", "alias")).toBe("google");
     expect(protocolGroupFor("antigravity", "claude-sonnet")).toBe("anthropic");
     expect(protocolGroupFor("kimi", "alias")).toBe("anthropic");
+    expect(protocolGroupFor("moonshot", "alias")).toBe("anthropic");
     expect(protocolGroupFor("openai", "alias")).toBe("responses");
     expect(protocolGroupFor("openrouter", "gpt-or-claude-or-gemini")).toBe("completions");
     expect(protocolGroupFor("", "gemini")).toBe("completions");
@@ -114,6 +116,28 @@ describe("CLIProxyAPI contracts", () => {
     expect(f.replaceOwnedProviders).toHaveBeenCalledWith(expect.objectContaining({
       anthropic: expect.objectContaining({ models: [{ id: "mystery", api: "anthropic-messages" }] })
     }));
+  });
+  it("publishes a Kimi model the user ticked even though the gateway reports its owner as moonshot", async () => {
+    const f = fixture();
+    // Shapes copied from a live gateway: the channel is `kimi`, the owner `moonshot`.
+    f.handle.mockImplementation(async (request: { path: string }) => {
+      if (request.path === "/v1/models") return { data: [{ id: "kimi-k3", owned_by: "moonshot" }] };
+      if (request.path === "/v0/management/auth-files") return { files: [{ name: "kimi-1.json", provider: "kimi", type: "kimi" }] };
+      if (request.path === "/v0/management/model-definitions/kimi") {
+        return { channel: "kimi", models: [{ id: "kimi-k3", owned_by: "moonshot", type: "kimi", context_length: 262144 }] };
+      }
+      throw new Error("unknown channel");
+    });
+    const client = createProxyClient(f.context);
+    const { accounts, catalog, models, complete } = await client.loadPublishableModels();
+    // The route key the workspace view stores when the user ticks the model.
+    const [pool] = buildProviderPools(accounts, new Map([[accounts[0]!.key, { models: catalog.channels.get("kimi") ?? [] }]]));
+    const routes = new Set(pool!.models.map((model) => model.routeKey));
+    expect(complete).toBe(true);
+    await client.publishModels(models, () => true, { mode: "custom", routes });
+    expect(f.replaceOwnedProviders).toHaveBeenLastCalledWith({
+      anthropic: expect.objectContaining({ models: [{ id: "kimi-k3", api: "anthropic-messages", contextWindow: 262144 }] })
+    });
   });
   it("reads the provider's limit headers as remaining budget, ignoring what it cannot parse", () => {
     const client = createProxyClient(fixture().context);
