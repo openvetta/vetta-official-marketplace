@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "在 Vetta 中使用百智云工具",
+      "description": "使用自己的 API Key 连接托管的 Agent Toolkit。实际可用工具由账号和密钥权限决定。"
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "调研最近关于远端 MCP 连接安全的建议，概括要点并附上原始来源链接。",
+        "assistant_reply": "我会使用此 Key 可用的工具搜索，比较能够访问的来源，并附上链接供你核对。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "可以让 Vetta 做什么",
+      "items": [
+        {
+          "title": "调研主题",
+          "description": "如果密钥有搜索工具权限，可让 Vetta 搜索网页。",
+          "icon": "solar:magnifer-bold"
+        },
+        {
+          "title": "读取与提取页面",
+          "description": "如果对应工具可用，可请求页面内容或提取结构化字段。",
+          "icon": "solar:document-text-bold"
+        },
+        {
+          "title": "查看可用工具",
+          "description": "在允许敏感或可能收费的操作前，先核对本连接实际开放的工具。",
+          "icon": "solar:list-check-bold"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "开始使用",
+      "items": [
+        {
+          "title": "创建限定权限的 API Key",
+          "description": "在百智云控制台检查密钥权限及当前服务额度或费用。"
+        },
+        {
+          "title": "在 Vetta 中安装此能力",
+          "description": "在提示时只输入 Key 本身，连接配置会补上 Bearer 前缀。"
+        },
+        {
+          "title": "询问带来源的答案",
+          "description": "例如让 Vetta 用该 Key 可用的工具调研主题并给出来源链接。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "托管服务与可能的费用",
+      "content": "工具输入会通过 HTTPS 发送到百智云。部分可用工具可能产生副作用或消耗额度；本连接不会把账号能力限制为网页调研。使用前请核对工具列表和权限。"
+    },
+    {
+      "type": "markdown",
+      "content": "开源[集成仓库](https://github.com/chaitin/baizhi-agent-toolkit)提供客户端配置与文档，不含托管后端源码。未经组织允许，不要发送私密文档、个人信息或保密链接，也不要把 API Key 粘贴到聊天提示词或共享日志。"
+    }
+  ]
+}
