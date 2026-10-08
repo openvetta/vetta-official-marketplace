@@ -2,10 +2,18 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
+import { assertRuntimeUpgrade, assertUnchangedRuntimeAssets } from "./cli-proxy-api-release-policy.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pluginDirectory = resolve(root, "abilities/plugins/cli-proxy-api");
-const write = process.argv.includes("--write");
+const { values: options } = parseArgs({ options: {
+  write: { type: "boolean", default: false },
+  "allow-major": { type: "boolean", default: false },
+  "core-version": { type: "string" },
+  "gemini-version": { type: "string" },
+} });
+const write = options.write;
 const token = process.env.GITHUB_TOKEN?.trim();
 
 const repositories = {
@@ -41,6 +49,16 @@ async function latestStable(repository) {
   const releases = await fetchJson(`https://api.github.com/repos/${repository}/releases?per_page=20`);
   const release = releases.find((candidate) => !candidate.draft && !candidate.prerelease);
   if (!release?.tag_name || !Array.isArray(release.assets)) throw new Error(`No stable release found for ${repository}`);
+  return release;
+}
+
+async function selectRelease(repository, version) {
+  if (!version) return latestStable(repository);
+  if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error(`Unsupported stable version: ${version}`);
+  const release = await fetchJson(`https://api.github.com/repos/${repository}/releases/tags/v${version}`);
+  if (release.draft || release.prerelease || release.tag_name !== `v${version}` || !Array.isArray(release.assets)) {
+    throw new Error(`Not a stable release: ${repository}@${version}`);
+  }
   return release;
 }
 
@@ -83,12 +101,6 @@ async function verifyAsset(asset) {
   if (asset.size !== undefined && size !== asset.size) throw new Error(`Size mismatch: ${asset.name}`);
 }
 
-function bumpPatch(version) {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/u.exec(version);
-  if (!match) throw new Error(`Plugin version is not semver: ${version}`);
-  return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
-}
-
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -106,8 +118,8 @@ async function writeJson(path, value) {
 }
 
 const [coreRelease, geminiRelease] = await Promise.all([
-  latestStable(repositories.core),
-  latestStable(repositories.gemini),
+  selectRelease(repositories.core, options["core-version"]),
+  selectRelease(repositories.gemini, options["gemini-version"]),
 ]);
 const coreVersion = versionFromTag(coreRelease.tag_name);
 const geminiVersion = versionFromTag(geminiRelease.tag_name);
@@ -119,6 +131,14 @@ const runtimeLock = await readJson(runtimeLockPath);
 const currentRuntimeVersion = service.runtime.version;
 const currentPlatforms = stableJson(runtimeLock.platforms);
 const nextRuntimeVersion = `${coreVersion}+gemini.${geminiVersion}`;
+const upstreamPath = resolve(pluginDirectory, "upstream.json");
+const upstream = await readJson(upstreamPath);
+const previousCoreVersion = upstream.core.version;
+const previousGeminiVersion = upstream.providerPlugins["gemini-cli"].version;
+if (write) {
+  assertRuntimeUpgrade("CLIProxyAPI", previousCoreVersion, coreVersion, { allowMajor: options["allow-major"] });
+  assertRuntimeUpgrade("Gemini CLI", previousGeminiVersion, geminiVersion, { allowMajor: options["allow-major"] });
+}
 
 const selectedAssets = [];
 const nextPlatforms = {};
@@ -144,9 +164,10 @@ for (const [platform, names] of Object.entries(platforms)) {
 }
 
 console.log(`CLIProxyAPI: ${currentRuntimeVersion} -> ${nextRuntimeVersion}`);
+assertUnchangedRuntimeAssets(runtimeLock.platforms, nextPlatforms);
 if (currentRuntimeVersion === nextRuntimeVersion) {
   if (currentPlatforms !== stableJson(nextPlatforms)) throw new Error("Release assets changed without a version change; review the supply chain before changing the lock.");
-  console.log("The marketplace lock already points at the latest stable runtime set.");
+  console.log("The marketplace lock already points at the selected stable runtime set.");
   process.exit(0);
 }
 if (!write) {
@@ -164,28 +185,14 @@ const [coreRevision, geminiRevision] = await Promise.all([
   releaseCommit(repositories.core, coreRelease.tag_name),
   releaseCommit(repositories.gemini, geminiRelease.tag_name),
 ]);
-const nextPluginVersion = bumpPatch(plugin.version);
+// Keep the existing pending release version across dependency updates. The
+// author assigns a next version once per unpublished batch, not per script run.
 service.runtime.version = nextRuntimeVersion;
-plugin.version = nextPluginVersion;
 await writeJson(pluginPath, plugin);
 runtimeLock.version = nextRuntimeVersion;
 runtimeLock.platforms = nextPlatforms;
 await writeJson(runtimeLockPath, runtimeLock);
 
-const packageJsonPath = resolve(pluginDirectory, "package.json");
-const packageJson = await readJson(packageJsonPath);
-packageJson.version = nextPluginVersion;
-await writeJson(packageJsonPath, packageJson);
-
-const abilityPath = resolve(pluginDirectory, "ability.json");
-const ability = await readJson(abilityPath);
-ability.version = nextPluginVersion;
-await writeJson(abilityPath, ability);
-
-const upstreamPath = resolve(pluginDirectory, "upstream.json");
-const upstream = await readJson(upstreamPath);
-const previousCoreVersion = upstream.core.version;
-const previousGeminiVersion = upstream.providerPlugins["gemini-cli"].version;
 upstream.core.version = coreVersion;
 upstream.core.revision = coreRevision;
 upstream.providerPlugins["gemini-cli"].version = geminiVersion;
@@ -199,11 +206,4 @@ for (const name of ["detail.json", "detail.zh.json"]) {
   await writeFile(path, original.replaceAll(previousCoreVersion, coreVersion).replaceAll(previousGeminiVersion, geminiVersion));
 }
 
-const marketplacePath = resolve(root, ".vetta/marketplace.source.json");
-const marketplace = await readJson(marketplacePath);
-const catalogEntry = marketplace.abilities.find((candidate) => candidate.slug === "cli-proxy-api");
-if (!catalogEntry) throw new Error("CLIProxyAPI marketplace entry is missing");
-catalogEntry.version = nextPluginVersion;
-await writeJson(marketplacePath, marketplace);
-
-console.log(`Updated plugin ${nextPluginVersion}; rebuild dist and run marketplace tests before opening a PR.`);
+console.log(`Updated runtime lock; plugin version remains ${plugin.version}. Reuse an existing pending release version; assign a next version once if this starts a new unpublished batch.`);

@@ -325,32 +325,22 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(template, /max-retry-interval: 0/u);
   assert.match(template, /routing:[\s\S]*session-affinity: true/u);
   assert.match(template, /routing:[\s\S]*session-affinity-ttl: "1h"/u);
-  assert.match(template, /quota-exceeded:[\s\S]*switch-project: false/u);
-  assert.match(template, /quota-exceeded:[\s\S]*switch-preview-model: false/u);
-  assert.match(template, /quota-exceeded:[\s\S]*antigravity-credits: false/u);
+  assert.match(template, /^config-version: 8/mu);
+  assert.match(template, /routing:[\s\S]*session-affinity-subagents: true/u);
+  assert.match(template, /oauth:[\s\S]*antigravity-credits: false/u);
+  assert.doesNotMatch(template, /quota-exceeded|remote-management/u);
   assert.match(template, /plugins:[\s\S]*gemini-cli:/u);
   assert.doesNotMatch(template, /0\.0\.0\.0/u);
 
   const providerContract = readFileSync(packageFile(directory, "src/provider-contract.ts"), "utf8");
-  for (const route of [
-    "gemini-cli-auth-url",
-    "codex-auth-url",
-    "anthropic-auth-url",
-    "antigravity-auth-url",
-    "kimi-auth-url",
-    "xai-auth-url",
-    "gemini-api-key",
-    "claude-api-key",
-    "codex-api-key",
-    "xai-api-key",
-    "vertex-api-key",
-    "openai-compatibility",
-  ]) assert.match(providerContract, new RegExp(route, "u"));
+  for (const provider of ["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]) {
+    assert.ok(providerContract.includes(`/v8/management/oauth/auth-url?provider=${provider}`));
+  }
 
-  const integration = ["src/index.tsx", "src/setup-slot.tsx", "src/use-proxy-console.ts", "src/workspace-view.tsx", "src/model-selection.ts", "src/provider-pools.ts", "src/media-provider.ts", "src/quota-probe.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
-  assert.match(integration, /\/v0\/management\/get-auth-status/u);
-  assert.match(integration, /\/v0\/management\/oauth-session/u);
-  assert.match(integration, /\/v0\/management\/auth-files/u);
+  const integration = ["src/index.tsx", "src/features/service/components/proxy-setup-slot.tsx", "src/features/console/hooks/use-proxy-console.ts", "src/features/console/components/proxy-workspace-view.tsx", "src/model-selection.ts", "src/provider-pools.ts", "src/media-provider.ts", "src/quota-probe.ts", "src/proxy-client.ts", "src/runtime-provisioner.ts"].map((path) => readFileSync(packageFile(directory, path), "utf8")).join("\n");
+  assert.match(integration, /\/v8\/management\/oauth\/status/u);
+  assert.match(integration, /\/v8\/management\/oauth\/session/u);
+  assert.match(integration, /\/v8\/management\/credentials/u);
   assert.match(integration, /google-generative-ai/u);
   assert.match(integration, /anthropic-messages/u);
   assert.match(integration, /openai-responses/u);
@@ -359,12 +349,12 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(integration, /services\.install/u);
   // Models must carry the upstream context window; without it the host silently
   // falls back to 128k and 1M-token models are published eight times too small.
-  assert.match(integration, /\/v0\/management\/model-definitions/u);
+  assert.match(integration, /\/v8\/management\/routing\/model-definitions/u);
   assert.match(integration, /contextWindow/u);
   assert.match(integration, /registerWorkspaceView/u);
   // Quota is read through the gateway, which substitutes the token: the plugin
   // must never carry a provider credential itself.
-  assert.match(integration, /\/v0\/management\/api-call/u);
+  assert.match(integration, /\/v8\/management\/requests\/api-call/u);
   assert.match(integration, /\$TOKEN\$/u);
   // The published set is chosen by the user and must survive a restart, or the
   // service's own sync would put the unticked models back on the next start.

@@ -52,7 +52,7 @@
       "slug": "cli-proxy-api",
       "name": "CLIProxyAPI",
       "description": "Run a managed local gateway for Gemini CLI, Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
-      "version": "1.10.3",
+      "version": "1.11.0",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta / Router For Me",

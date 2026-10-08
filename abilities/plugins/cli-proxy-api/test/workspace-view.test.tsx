@@ -1,7 +1,9 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
-import { ProxyWorkspaceView, formatTokens } from "../src/workspace-view";
+import { ProxyWorkspaceView } from "../src/features/console/components/proxy-workspace-view";
+import { formatTokens } from "../src/domain/console-format";
 import { fixture } from "./helpers";
 
 vi.mock("@vetta-org/plugin-sdk", () => {
@@ -15,7 +17,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 function withAccounts(f: ReturnType<typeof fixture>): void {
   const original = f.handle.getMockImplementation();
   f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-    if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+    if (request.path === "/v8/management/credentials" && request.method === undefined) {
       return { files: [
         {
           auth_index: "gem-1",
@@ -44,7 +46,7 @@ function withAccounts(f: ReturnType<typeof fixture>): void {
         }
       ] };
     }
-    if (request.path.startsWith("/v0/management/auth-files/models")) {
+    if (request.path.startsWith("/v8/management/credentials/models")) {
       return { models: [{ id: "gemini-test", display_name: "Gemini Test" }] };
     }
     return original!(request);
@@ -63,6 +65,64 @@ async function cardFor(name: string): Promise<HTMLElement> {
 }
 
 describe("CLIProxyAPI console", () => {
+  it("refreshes a credential, exposes cooldowns and reports refresh failure", async () => {
+    const f = fixture();
+    let succeeds = true;
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request) => {
+      if (request.path === "/v8/management/credentials" && !request.method) return { files: [{
+        name: "meta.json", auth_index: "meta-1", provider: "meta", email: "meta@example.com",
+        cooldowns: [{ scope: "model", model_key: "muse", reason: "quota", retry_at: "2026-10-08T00:00:00Z", remaining_seconds: 60, http_status: 429 }],
+      }] };
+      if (request.path === "/v8/management/credentials/refresh") {
+        if (!succeeds) throw new Error("Refresh rejected by provider");
+        return { ok: true };
+      }
+      return original(request);
+    });
+    const user = userEvent.setup();
+    render(<ProxyWorkspaceView context={f.context} />);
+    const card = await cardFor("meta@example.com");
+    expect(within(card).getByText("console.cooldowns:1")).toBeTruthy();
+    await user.click(within(card).getByText("console.cooldowns:1"));
+    expect(within(card).getByText("muse")).toBeTruthy();
+    const refresh = within(card).getByRole("button", { name: "console.refreshCredential meta@example.com" });
+    await user.click(refresh);
+    await waitFor(() => expect((refresh as HTMLButtonElement).disabled).toBe(false));
+    expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({ path: "/v8/management/credentials/refresh", method: "POST" }));
+    succeeds = false;
+    await user.click(refresh);
+    await waitFor(() => expect(f.context.ui.notify).toHaveBeenCalledWith(expect.objectContaining({ error: expect.any(Error) })));
+    await screen.findByText("console.refreshCredentialFailed");
+  });
+
+  it.each([
+    ["gemini-cli", "browserFlow", "provider=gemini-cli"],
+    ["codex", "browserFlow", "provider=codex&is_webui=true"],
+    ["claude", "browserFlow", "provider=claude&is_webui=true"],
+    ["antigravity", "browserFlow", "provider=antigravity&is_webui=true"],
+    ["kimi", "deviceFlow", "provider=kimi"],
+    ["xai", "deviceFlow", "provider=xai"],
+    ["meta", "deviceFlow", "provider=meta"],
+    ["devin", "browserFlow", "provider=devin"],
+    ["kimi-ai", "deviceFlow", "provider=kimi-ai"],
+  ])("starts and cancels %s authorization through the v8 OAuth contract", async (provider, flow, query) => {
+    const f = fixture();
+    const user = userEvent.setup();
+    render(<ProxyWorkspaceView context={f.context} />);
+    await user.click(await screen.findByRole("button", { name: "console.addAccount" }));
+    await user.click(await screen.findByRole("button", { name: `provider.${provider} setup.${flow}` }));
+    await screen.findByText("setup.oauthWaiting");
+    expect(f.context.services.request).toHaveBeenCalledWith("proxy", expect.objectContaining({
+      path: `/v8/management/oauth/auth-url?${query}`, credentialId: "management-key",
+    }));
+    expect(f.openExternal).toHaveBeenCalledWith("https://accounts.example.com/oauth");
+    await user.click(screen.getByRole("button", { name: "setup.cancel" }));
+    expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
+      method: "DELETE", path: "/v8/management/oauth/session?state=state-1",
+    }));
+  });
+
   it("quotes token limits in the base the vendor published them in", () => {
     // Decimal limits stay decimal; binary limits stay binary. One divisor cannot do both.
     expect(formatTokens(200_000)).toBe("200K");
@@ -107,7 +167,7 @@ describe("CLIProxyAPI console", () => {
     const dialog = await screen.findByRole("dialog");
     await within(dialog).findByText("gemini-test");
     expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
-      path: "/v0/management/auth-files/models?name=gemini-user.json"
+      path: "/v8/management/credentials/models?name=gemini-user.json"
     }));
 
     fireEvent.keyDown(window, { key: "Escape" });
@@ -122,7 +182,7 @@ describe("CLIProxyAPI console", () => {
     const card = await cardFor("user@example.com");
     fireEvent.click(within(card).getByRole("switch"));
     await waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
-      path: "/v0/management/auth-files/status",
+      path: "/v8/management/credentials/status",
       method: "PATCH",
       body: { name: "gemini-user.json", disabled: true }
     })));
@@ -136,7 +196,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
     const picker = await screen.findByRole("dialog");
     const icons = Array.from(picker.querySelectorAll("[data-provider-icon]"), (el) => el.getAttribute("data-provider-icon"));
-    expect(icons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai"]);
+    expect(icons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]);
 
     expect(f.openExternal).not.toHaveBeenCalled();
     fireEvent.click(within(picker).getByRole("button", { name: "provider.kimi setup.deviceFlow" }));
@@ -144,7 +204,7 @@ describe("CLIProxyAPI console", () => {
     expect(f.openExternal).toHaveBeenCalledWith("https://accounts.example.com/oauth");
 
     f.handle.mockImplementation(async (request: { path: string }) =>
-      request.path.includes("get-auth-status") ? { status: "ok" }
+      request.path.includes("/oauth/status") ? { status: "ok" }
         : request.path === "/v1/models" ? { data: [{ id: "codex-test", owned_by: "codex" }] }
         : { files: [] });
     await screen.findByText("setup.oauthSuccess", {}, { timeout: 2500 });
@@ -162,7 +222,7 @@ describe("CLIProxyAPI console", () => {
 
     let resolvePoll!: (value: unknown) => void;
     f.handle.mockImplementation(async (request: { path: string }) =>
-      request.path.includes("get-auth-status") ? await new Promise((resolve) => { resolvePoll = resolve; }) : { status: "ok" });
+      request.path.includes("/oauth/status") ? await new Promise((resolve) => { resolvePoll = resolve; }) : { status: "ok" });
     await waitFor(() => expect(resolvePoll).toBeTypeOf("function"), { timeout: 2500 });
     fireEvent.click(screen.getByRole("button", { name: "setup.cancel" }));
     await act(async () => { resolvePoll({ status: "ok" }); });
@@ -170,7 +230,7 @@ describe("CLIProxyAPI console", () => {
     expect(screen.queryByText("setup.oauthSuccess")).toBeNull();
     expect(f.replaceOwnedProviders).not.toHaveBeenCalled();
     expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
-      method: "DELETE", path: "/v0/management/oauth-session?state=state-1"
+      method: "DELETE", path: "/v8/management/oauth/session?state=state-1"
     }));
   });
 
@@ -185,7 +245,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(within(card).getByRole("button", { name: "setup.confirmRemove" }));
 
     await waitFor(() => expect(f.handle).toHaveBeenCalledWith(expect.objectContaining({
-      method: "DELETE", path: "/v0/management/auth-files?name=gemini-user.json"
+      method: "DELETE", path: "/v8/management/credentials?name=gemini-user.json"
     })));
   });
 
@@ -280,14 +340,14 @@ describe("CLIProxyAPI console", () => {
     let reads = 0;
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         reads += 1;
         return reads < 3 ? { files: [] } : { files: [{
           auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi",
           email: "late@example.com", disabled: false, success: 0, failed: 0
         }] };
       }
-      if (request.path.includes("get-auth-status")) return { status: "ok" };
+      if (request.path.includes("/oauth/status")) return { status: "ok" };
       return original(request);
     });
 
@@ -308,7 +368,7 @@ describe("CLIProxyAPI console", () => {
     }];
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) return { files: accounts };
+      if (request.path === "/v8/management/credentials" && request.method === undefined) return { files: accounts };
       if (request.path.includes("name=gemini-user.json")) return { models: [{ id: "gemini-test" }] };
       if (request.path.includes("name=kimi-user.json")) return { models: [{ id: "kimi-new" }] };
       return original(request);
@@ -340,7 +400,7 @@ describe("CLIProxyAPI console", () => {
     const f = fixture();
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [{
           auth_index: "cx-1", name: "codex.json", provider: "codex", email: "user@example.com",
           disabled: false, unavailable: true, success: 0, failed: 1,
@@ -376,7 +436,7 @@ describe("CLIProxyAPI console", () => {
     const f = fixture();
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [
           { auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli", email: "first@example.com", disabled: false, success: 0, failed: 0 },
           { auth_index: "cx-1", name: "codex-user.json", provider: "codex", email: "second@example.com", disabled: false, unavailable: true, success: 0, failed: 0 }
@@ -401,10 +461,10 @@ describe("CLIProxyAPI console", () => {
     const f = fixture();
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [{ auth_index: "cx-1", name: "codex-user.json", provider: "codex", email: "broken@example.com", disabled: false, success: 0, failed: 0 }] };
       }
-      if (request.path.includes("/auth-files/models")) throw new Error("upstream refused");
+      if (request.path.includes("/credentials/models")) throw new Error("upstream refused");
       return original(request);
     });
 
@@ -420,10 +480,10 @@ describe("CLIProxyAPI console", () => {
     let attempts = 0;
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [{ auth_index: "cx-1", name: "codex.json", provider: "codex", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
       }
-      if (request.path === "/v0/management/api-call") {
+      if (request.path === "/v8/management/requests/api-call") {
         attempts += 1;
         // The gateway answers only once the credential is fully registered.
         if (attempts === 1) throw new Error("credential not ready");
@@ -450,7 +510,7 @@ describe("CLIProxyAPI console", () => {
     let reads = 0;
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         reads += 1;
         return reads < 2 ? { files: [] } : { files: [{
           auth_index: "kimi-1", name: "kimi-user.json", provider: "kimi", email: "late@example.com",
@@ -461,8 +521,8 @@ describe("CLIProxyAPI console", () => {
       if (request.path === "/v1/models") {
         return { data: reads < 4 ? [] : [{ id: "kimi-k2", owned_by: "kimi" }] };
       }
-      if (request.path.includes("get-auth-status")) return { status: "ok" };
-      if (request.path.includes("/auth-files/models")) return { models: reads < 4 ? [] : [{ id: "kimi-k2" }] };
+      if (request.path.includes("/oauth/status")) return { status: "ok" };
+      if (request.path.includes("/credentials/models")) return { models: reads < 4 ? [] : [{ id: "kimi-k2" }] };
       return original(request);
     });
 
@@ -488,7 +548,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
     fireEvent.click(await screen.findByRole("button", { name: "provider.kimi setup.deviceFlow" }));
     f.handle.mockImplementation(async (request: { path: string }) =>
-      request.path.includes("get-auth-status") ? { status: "ok" }
+      request.path.includes("/oauth/status") ? { status: "ok" }
         : request.path === "/v1/models" ? { data: [{ id: "gemini-test", owned_by: "google" }, { id: "other", owned_by: "google" }] }
         : { files: [] });
 
@@ -506,10 +566,10 @@ describe("CLIProxyAPI console", () => {
     let reads = 0;
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [{ auth_index: "ag-1", name: "ag.json", provider: "antigravity", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
       }
-      if (request.path.includes("/auth-files/models")) {
+      if (request.path.includes("/credentials/models")) {
         reads += 1;
         // Restarting the gateway leaves the credential listed while its routes
         // are rebuilt: the first reads land in that window and see nothing.
@@ -533,10 +593,10 @@ describe("CLIProxyAPI console", () => {
     let phase = "up";
     const original = f.handle.getMockImplementation()!;
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
-      if (request.path === "/v0/management/auth-files" && request.method === undefined) {
+      if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [{ auth_index: "ag-1", name: "ag.json", provider: "antigravity", email: "user@example.com", disabled: false, success: 0, failed: 0 }] };
       }
-      if (request.path.includes("/auth-files/models")) {
+      if (request.path.includes("/credentials/models")) {
         return { models: phase === "down" ? [] : [{ id: "gemini-a" }, { id: "gemini-b" }] };
       }
       return original(request);

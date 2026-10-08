@@ -37,7 +37,7 @@ describe("provider quota probe", () => {
     const quota = await probeAccountQuota(request as never, "management-key", account());
 
     const [path, options] = request.mock.calls[0] as [string, { credentialId: string; body: Record<string, unknown> }];
-    expect(path).toBe("/v0/management/api-call");
+    expect(path).toBe("/v8/management/requests/api-call");
     expect(options.credentialId).toBe("management-key");
     expect(options.body).toMatchObject({ auth_index: "idx-1", url: "https://chatgpt.com/backend-api/wham/usage" });
     // The plugin names a credential; the gateway substitutes the secret.

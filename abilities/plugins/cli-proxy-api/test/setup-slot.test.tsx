@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ProxySetupSlot } from "../src/setup-slot";
+import { ProxySetupSlot } from "../src/features/service/components/proxy-setup-slot";
 import { fixture } from "./helpers";
 
 vi.mock("@vetta-org/plugin-sdk", () => {

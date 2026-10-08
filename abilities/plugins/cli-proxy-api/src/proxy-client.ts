@@ -2,6 +2,9 @@ import { MODEL_DEFINITION_CHANNELS, isProtocolGroup, protocolGroupFor, type Prot
 import { reconcileModels } from "./model-reconciler";
 import { selectModels, type ModelSelection } from "./model-selection";
 import type { ManagedPluginContext } from "./runtime-contract";
+import { readModelCapabilities, readHostInput, type UpstreamModelCapabilities } from "./domain/model-capabilities";
+import { readCooldowns, type CredentialCooldown } from "./domain/credential-capabilities";
+import type { QuotaSummaryMetric } from "./domain/normalized-quota";
 
 export const SERVICE_ID = "proxy";
 export const MANAGER_CREDENTIAL = "management-key";
@@ -14,7 +17,7 @@ export type JsonRecord = Record<string, unknown>;
  * and guessing is worse than the host default: a wrong context window makes the
  * agent compact too early or overflow the upstream request.
  */
-export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean; reasoningLevels?: string[] };
+export type ModelMetadata = { contextWindow?: number; maxTokens?: number; reasoning?: boolean; reasoningLevels?: string[]; input?: ("text" | "image")[] } & UpstreamModelCapabilities;
 export type ProxyModel = { id: string; ownedBy: string } & ModelMetadata;
 
 /** Fallback for older catalogs that omit structured output modalities. */
@@ -26,7 +29,7 @@ export function isImageOnlyModelId(id: string): boolean {
 export type PublishedModel = ProxyModel & { group: ProtocolGroup };
 
 /** One model as the upstream channel catalog describes it, before any account is connected. */
-export type ChannelModel = { id: string; displayName?: string } & ModelMetadata;
+export type ChannelModel = { id: string; displayName?: string; ownedBy?: string } & ModelMetadata;
 
 export type ImageModelRoute = {
   id: string;
@@ -46,7 +49,7 @@ export type ModelCatalog = {
   imageModels?: readonly ImageModelRoute[];
 };
 
-/** A ten-minute request bucket as reported by `/v0/management/auth-files`. */
+/** A ten-minute request bucket as reported by `/v8/management/credentials`. */
 export type UsageBucket = { time: string; success: number; failed: number };
 
 /**
@@ -70,6 +73,7 @@ export type QuotaGroup = { name?: string; description?: string; windows: QuotaWi
 
 /** What is known about a credential's subscription and its limits. */
 export type AccountQuota = {
+  summary?: QuotaSummaryMetric[];
   plan?: string;
   observedAt?: string;
   subscriptionUntil?: string;
@@ -84,6 +88,10 @@ export type AccountQuota = {
 };
 
 export type ProxyAccount = {
+  cooldowns?: CredentialCooldown[];
+  supportsQuota?: boolean;
+  quotaProvider?: string;
+  hasDeclarativeQuotaProbe?: boolean;
   key: string;
   provider: string;
   displayName: string;
@@ -198,7 +206,7 @@ export function positiveInteger(value: unknown): number | undefined {
   return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
-/** Reads one `/v0/management/model-definitions` entry. Absent figures stay absent. */
+/** Reads one `/v8/management/routing/model-definitions` entry. Absent figures stay absent. */
 function readModelMetadata(entry: JsonRecord, channel: string): ModelMetadata {
   const contextWindow = positiveInteger(entry.context_length);
   const maxTokens = positiveInteger(entry.max_completion_tokens);
@@ -210,6 +218,7 @@ function readModelMetadata(entry: JsonRecord, channel: string): ModelMetadata {
   const reasoningLevels = Array.isArray(levels) && levels.length > 0 && levels.every((level) => typeof level === "string" && level.trim().length > 0)
     ? [...new Set(levels.map((level: string) => level.trim()))] : undefined;
   return {
+    ...readModelCapabilities(entry),
     ...(contextWindow === undefined ? {} : { contextWindow }),
     ...(maxTokens === undefined ? {} : { maxTokens }),
     // A `thinking` block is upstream's own statement that the model reasons.
@@ -272,7 +281,7 @@ async function serviceRequest<T>(path: string, options: {
 }
 
 /**
- * Builds the capability catalog from `/v0/management/model-definitions`.
+ * Builds the capability catalog from `/v8/management/routing/model-definitions`.
  *
  * `/v1/models` is an OpenAI-shaped list — it carries `id` and `owned_by` and
  * nothing else — so publishing straight from it left every model without a
@@ -288,13 +297,13 @@ async function serviceRequest<T>(path: string, options: {
 async function fetchModelCatalog(): Promise<ModelCatalog> {
   const perChannel = await Promise.all(MODEL_DEFINITION_CHANNELS.map(async (channel) => {
     try {
-      const payload = await serviceRequest<unknown>(`/v0/management/model-definitions/${channel}`, {
+      const payload = await serviceRequest<unknown>(`/v8/management/routing/model-definitions/${channel}`, {
         credentialId: MANAGER_CREDENTIAL
       });
       const models = record(payload)?.models;
       return { channel, models: Array.isArray(models) ? models : [] };
     } catch {
-      // One unavailable channel must not cost the other seven their metadata.
+      // One unavailable channel must not cost the other supported channels their metadata.
       return { channel, models: [] as unknown[] };
     }
   }));
@@ -318,7 +327,7 @@ async function fetchModelCatalog(): Promise<ModelCatalog> {
       }
       const metadata = readModelMetadata(entry, channel);
       const displayName = textField(entry, "display_name", "name");
-      listing.push({ id, ...(displayName ? { displayName } : {}), ...metadata });
+      listing.push({ id, ...(displayName ? { displayName } : {}), ...(textField(entry, "owned_by", "ownedBy") ? { ownedBy: textField(entry, "owned_by", "ownedBy") } : {}), ...metadata });
       // A listing entry without figures still belongs on the page, but it must not
       // shadow another channel that does know this model's limits.
       if (Object.keys(metadata).length === 0) continue;
@@ -353,14 +362,16 @@ function readModels(value: unknown, catalog?: ModelCatalog): ProxyModel[] {
     const routeKey = `${protocolGroupFor(ownedBy, id)}/${id}`;
     if (seen.has(routeKey)) continue;
     seen.add(routeKey);
-    models.push({ id, ownedBy, ...catalog?.lookup(id, ownedBy) });
+    models.push({ id, ownedBy, ...catalog?.lookup(id, ownedBy), ...readModelMetadata(entry!, ownedBy) });
   }
   return models.sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function readAccounts(value: unknown): ProxyAccount[] {
   const files = record(value)?.files;
-  if (!Array.isArray(files)) return [];
+  // A broken management response is not evidence that the user removed every
+  // account. Propagate it so readiness and model reconciliation retain state.
+  if (!Array.isArray(files)) throw new Error("Invalid credential list response");
   const accounts: ProxyAccount[] = [];
   for (const [index, item] of files.entries()) {
     const entry = record(item);
@@ -377,9 +388,14 @@ function readAccounts(value: unknown): ProxyAccount[] {
     const email = textField(entry, "email");
     const lastRefresh = textField(entry, "last_refresh", "updated_at");
     const quota = readQuota(entry);
+    const cooldowns = readCooldowns(entry.cooldowns);
     accounts.push({
       key: `${stableId}:${index}`,
       provider,
+      ...(cooldowns === undefined ? {} : { cooldowns }),
+      ...(entry.supports_quota === true ? { supportsQuota: true } : {}),
+      ...(textField(entry, "quota_provider") ? { quotaProvider: textField(entry, "quota_provider") } : {}),
+      ...(record(entry.quota_probe) ? { hasDeclarativeQuotaProbe: true } : {}),
       displayName,
       ...(deleteName ? { deleteName } : {}),
       active: entry.disabled !== true && entry.unavailable !== true,
@@ -444,6 +460,7 @@ async function publishModels(
           ...(model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow }),
           ...(model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens }),
           ...(model.reasoning === undefined ? {} : { reasoning: model.reasoning }),
+          ...(model.input === undefined ? {} : { input: [...model.input] }),
           ...(model.reasoningLevels === undefined ? {} : { reasoningLevels: [...model.reasoningLevels] })
         }))
       }]];
@@ -474,7 +491,7 @@ async function loadImageModels(): Promise<ImageModelRoute[]> {
 /**
  * Reads the routable model list already enriched with upstream capabilities, and
  * hands back the catalog it used: the workspace view also needs the full
- * per-channel listing, and fetching eight channels twice would be wasteful.
+ * per-channel listing, and fetching the channels twice would be wasteful.
  */
 async function loadModels(): Promise<{ models: ProxyModel[]; catalog: ModelCatalog }> {
   const [payload, catalog] = await Promise.all([
@@ -501,6 +518,7 @@ async function readPublishedModels(): Promise<PublishedModel[] | undefined> {
     for (const model of provider.models ?? []) {
       models.push({
         id: model.id,
+        ...readHostInput(model),
         // Only the group survives a publish, and the group is all the reconciler needs.
         ownedBy: "",
         group,
@@ -533,7 +551,7 @@ async function loadPublishableModels(): Promise<{
 }> {
   const [{ models: routable, catalog }, accountPayload, published] = await Promise.all([
     loadModels(),
-    serviceRequest<unknown>("/v0/management/auth-files", { credentialId: MANAGER_CREDENTIAL }),
+    serviceRequest<unknown>("/v8/management/credentials", { credentialId: MANAGER_CREDENTIAL }),
     // A failed read-back must not degrade into a destructive publish: let it
     // throw so the caller retries instead of replacing the namespace blind.
     readPublishedModels()
@@ -547,7 +565,7 @@ async function loadPublishableModels(): Promise<{
 async function setAccountDisabled(account: ProxyAccount, disabled: boolean): Promise<void> {
   const name = account.deleteName ?? account.authIndex;
   if (!name) throw new Error("This credential cannot be switched from here");
-  await serviceRequest("/v0/management/auth-files/status", {
+  await serviceRequest("/v8/management/credentials/status", {
     method: "PATCH",
     credentialId: MANAGER_CREDENTIAL,
     body: { name, disabled }
@@ -557,11 +575,22 @@ async function setAccountDisabled(account: ProxyAccount, disabled: boolean): Pro
 /** Clears the quota and cooldown state that parks a credential after a rejection. */
 async function resetAccountQuota(account: ProxyAccount): Promise<void> {
   if (!account.authIndex) throw new Error("This credential has no runtime index to reset");
-  await serviceRequest("/v0/management/reset-quota", {
+  await serviceRequest("/v8/management/routing/cooldown/reset", {
     method: "POST",
     credentialId: MANAGER_CREDENTIAL,
     body: { auth_index: account.authIndex }
   });
+}
+
+async function refreshAccountCredential(account: ProxyAccount): Promise<void> {
+  if (!account.deleteName || !account.authIndex) throw new Error("This credential cannot be refreshed from here");
+  // The refresh response contains auth data. Only use the completion flag; never
+  // return the credential body to a component or persist it in plugin storage.
+  const response = await serviceRequest<unknown>("/v8/management/credentials/refresh", {
+    method: "POST", credentialId: MANAGER_CREDENTIAL,
+    body: { name: account.deleteName, auth_index: account.authIndex },
+  });
+  if (record(response)?.ok !== true) throw new Error("Credential refresh did not complete");
 }
 
 /**
@@ -575,7 +604,7 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
   const name = account.deleteName ?? account.authIndex;
   if (!name) return [];
   const payload = await serviceRequest<unknown>(
-    `/v0/management/auth-files/models?name=${encodeURIComponent(name)}`,
+    `/v8/management/credentials/models?name=${encodeURIComponent(name)}`,
     { credentialId: MANAGER_CREDENTIAL }
   );
   const data = record(payload)?.models;
@@ -589,7 +618,7 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
     seen.add(id);
     const displayName = textField(entry, "display_name", "name");
     const owner = textField(entry, "owned_by", "ownedBy") ?? account.provider;
-    models.push({ id, ...(displayName ? { displayName } : {}), ...catalog?.lookup(id, owner) });
+    models.push({ id, ...(displayName ? { displayName } : {}), ...(textField(entry, "owned_by", "ownedBy") ? { ownedBy: owner } : {}), ...catalog?.lookup(id, owner), ...readModelMetadata(entry!, owner) });
   }
   return models.sort((left, right) => left.id.localeCompare(right.id));
 }
@@ -597,6 +626,6 @@ async function fetchAccountModels(account: ProxyAccount, catalog?: ModelCatalog)
 return {
   serviceRequest, readModels, readAccounts, publishModels, fetchModelCatalog, loadModels,
   readPublishedModels, loadPublishableModels,
-  setAccountDisabled, resetAccountQuota, fetchAccountModels, loadImageModels
+  setAccountDisabled, resetAccountQuota, refreshAccountCredential, fetchAccountModels, loadImageModels
 };
 }

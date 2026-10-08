@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "core": {
     "repository": "https://github.com/router-for-me/CLIProxyAPI",
-    "version": "7.2.147",
-    "revision": "17a65ee5470fbaf0e22fc219381e6a4ae9e07624"
+    "version": "8.0.17",
+    "revision": "57bde35179ecbdca176ca8923d39cc18805774f2"
   },
   "providerPlugins": {
     "gemini-cli": {
@@ -13,5 +13,5 @@
       "coreBuildVersion": "7.2.24"
     }
   },
-  "updatePolicy": "A bot opens a plugin patch PR after verifying all six platform assets, rebuilding the plugin, and running marketplace checks. Cross-platform runtime and protocol canaries remain required before merge. Runtime installation never resolves latest."
+  "updatePolicy": "A daily read-only workflow reports newer stable releases. Reviewed source PRs update fixed runtime locks after verifying all twelve assets. Major upgrades require an explicit updater flag. Six-platform binary and protocol canaries plus account-backed acceptance tests are required before release. Runtime installation never resolves latest."
 }

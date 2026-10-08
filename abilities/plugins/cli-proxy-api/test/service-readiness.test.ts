@@ -5,6 +5,22 @@ import { fixture } from "./helpers";
 afterEach(() => vi.useRealTimers());
 
 describe("CLIProxyAPI semantic service readiness", () => {
+  it("keeps the service starting when the v8 credential response is invalid", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const f = fixture();
+    f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase: "starting" }));
+    const original = f.handle.getMockImplementation()!;
+    f.handle.mockImplementation(async (request) => request.path === "/v8/management/credentials"
+      ? { error: "management unavailable" } : original(request));
+    const readiness = maintainServiceReadiness(f.context);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(f.reportReady).not.toHaveBeenCalled();
+    f.handle.mockImplementation(original);
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(f.reportReady).toHaveBeenCalledWith("proxy", true);
+    await readiness.dispose();
+  });
+
   it("reports ready only after the host exposes transport access", async () => {
     const f = fixture();
     f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase: "starting" }));
@@ -21,7 +37,7 @@ describe("CLIProxyAPI semantic service readiness", () => {
     let modelReads = 0;
     f.context.services.getStatus = vi.fn(async () => ({ ...f.ready, phase: "starting" }));
     f.handle.mockImplementation(async (request: { path: string }) => {
-      if (request.path === "/v0/management/auth-files") {
+      if (request.path === "/v8/management/credentials") {
         return { files: [{ provider: "google", name: "user.json", email: "user@example.com" }] };
       }
       if (request.path === "/v1/models") {

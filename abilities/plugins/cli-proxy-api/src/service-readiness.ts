@@ -43,7 +43,7 @@ export function maintainServiceReadiness(context: ManagedPluginContext) {
     pending = pending.then(async () => {
       if (!active || current !== generation || phase !== "starting") return;
       try {
-        const accountsResponse = await client.serviceRequest("/v0/management/auth-files", {
+        const accountsResponse = await client.serviceRequest("/v8/management/credentials", {
           credentialId: MANAGER_CREDENTIAL,
         });
         const accounts = client.readAccounts(accountsResponse);
