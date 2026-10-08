@@ -33,5 +33,11 @@
 	"settings.options.autoStartServer.title": "打开面板时自动启动预览",
 	"settings.options.autoStartServer.description": "关闭后需要在面板里手动启动，适合不希望后台常驻进程的场景。",
 	"settings.footer.credit": "模拟器预览由 serve-sim（Apache-2.0）提供，OpenAI Codex 使用的也是它。仅支持 Apple Silicon。在 Xcode 27 上，键盘输入需要 Device Hub 中的模拟器窗口可见，并在「隐私与安全性 → 辅助功能」中允许 Vetta。",
-	"settings.footer.agent": "Agent 侧由内置 Skill 驱动，只使用 xcrun simctl 与 xcodebuild 操作模拟器，并按需展开 SwiftUI 组件、Liquid Glass 与性能审计指南。"
+	"settings.footer.agent": "Agent 侧由内置 Skill 驱动，只使用 xcrun simctl 与 xcodebuild 操作模拟器，并按需展开 SwiftUI 组件、Liquid Glass 与性能审计指南。",
+	"keyboard.title": "键盘输入无法送达模拟器。",
+	"keyboard.accessibility": "Xcode 27 的键盘输入要经 Device Hub 转发，需要在「系统设置 → 隐私与安全性 → 辅助功能」中允许 Vetta。允许后在插件设置页重启预览。点击和滑动不受影响。",
+	"keyboard.device-hub": "Xcode 27 的键盘输入要经 Device Hub 转发。请打开 Device Hub 并显示 {{device}} 的窗口（放在后台即可）。点击和滑动不受影响。",
+	"keyboard.window": "Xcode 27 的键盘输入要经 Device Hub 中 {{device}} 的窗口转发。请打开这个窗口，并保持它是 Device Hub 的当前窗口（放在后台即可）。如果窗口已经开着，这是 serve-sim 在 macOS 27 + Xcode 27 上的已知问题（找不到 Device Hub 进程），上游修复发布、插件跟进后即可打字。点击和滑动不受影响。",
+	"keyboard.other": "按键无法经 Device Hub 转发。点击和滑动不受影响。",
+	"keyboard.dismiss": "关闭提示"
 }

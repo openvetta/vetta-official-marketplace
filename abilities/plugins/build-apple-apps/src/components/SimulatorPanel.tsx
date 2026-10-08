@@ -5,6 +5,7 @@ import { getRuntimeController } from "../runtime/runtime-instance.js";
 import { buildPreviewUrl } from "../runtime/serve-url.js";
 import { getSettingsStore } from "../runtime/settings-instance.js";
 import type { RuntimeState } from "../runtime/simulator-runtime.js";
+import { KeyboardIssueBanner } from "./KeyboardIssueBanner.js";
 import { SimulatorWebview } from "./SimulatorWebview.js";
 
 function CenteredNotice({
@@ -42,6 +43,8 @@ export function SimulatorPanel(): JSX.Element {
 	const store = getSettingsStore();
 	const [state, setState] = useState<RuntimeState>(() => controller.current());
 	const [settings, setSettings] = useState<PanelSettings>(() => store.current());
+	/** 用户已关掉的键盘问题。只按原因比较：原因变了说明是新问题，要再提示。 */
+	const [dismissedReason, setDismissedReason] = useState<string | null>(null);
 
 	useEffect(() => controller.subscribe(setState), [controller]);
 	useEffect(() => store.subscribe(setSettings), [store]);
@@ -91,9 +94,13 @@ export function SimulatorPanel(): JSX.Element {
 	}
 
 	const url = buildPreviewUrl(state.port ?? 0);
+	const keyboardIssue = state.keyboardIssue?.reason === dismissedReason ? undefined : state.keyboardIssue;
 	// 面板只放预览页本身：重启与「在浏览器中打开」在设置页里，失败时面板另有重试。
 	return (
 		<div className="flex h-full min-h-0 flex-col bg-background text-foreground">
+			{keyboardIssue ? (
+				<KeyboardIssueBanner issue={keyboardIssue} onDismiss={() => setDismissedReason(keyboardIssue.reason)} />
+			) : null}
 			{/* key 绑端口：服务重启后重新挂载 guest。 */}
 			<SimulatorWebview key={url} url={url} />
 		</div>

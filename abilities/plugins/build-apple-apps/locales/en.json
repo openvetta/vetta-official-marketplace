@@ -33,5 +33,11 @@
 	"settings.options.autoStartServer.title": "Start the preview when the panel opens",
 	"settings.options.autoStartServer.description": "When off, start it manually from the panel — useful if you would rather not keep a background process running.",
 	"settings.footer.credit": "The simulator preview is provided by serve-sim (Apache-2.0), the same mirror OpenAI's Codex uses. Apple Silicon only. With Xcode 27, keyboard input needs the simulator window visible in Device Hub and Vetta allowed under Privacy & Security → Accessibility.",
-	"settings.footer.agent": "On the agent side a built-in Skill drives the simulator with xcrun simctl and xcodebuild only, and pulls in the SwiftUI component, Liquid Glass and performance-audit guides on demand."
+	"settings.footer.agent": "On the agent side a built-in Skill drives the simulator with xcrun simctl and xcodebuild only, and pulls in the SwiftUI component, Liquid Glass and performance-audit guides on demand.",
+	"keyboard.title": "Typing doesn't reach the simulator.",
+	"keyboard.accessibility": "With Xcode 27, keys are forwarded through Device Hub, which needs Vetta allowed under System Settings → Privacy & Security → Accessibility. Allow it, then restart the preview from the plugin settings. Taps and swipes still work.",
+	"keyboard.device-hub": "With Xcode 27, keys are forwarded through Device Hub. Open Device Hub and show the {{device}} window (it can stay in the background). Taps and swipes still work.",
+	"keyboard.window": "With Xcode 27, keys are forwarded through the {{device}} window in Device Hub. Open that window and keep it Device Hub's current window (it can stay in the background). If it is already open, this is a known serve-sim issue with Xcode 27 on macOS 27 (it cannot find Device Hub's process); typing will work once a fixed serve-sim is released and this plugin updates to it. Taps and swipes still work.",
+	"keyboard.other": "Keys could not be forwarded through Device Hub. Taps and swipes still work.",
+	"keyboard.dismiss": "Dismiss"
 }
