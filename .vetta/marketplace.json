@@ -68,7 +68,7 @@
       "slug": "cli-proxy-api",
       "name": "CLIProxyAPI",
       "description": "Run a managed local gateway for Gemini CLI, Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
-      "version": "1.10.3",
+      "version": "1.11.0",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta / Router For Me",
@@ -143,6 +143,26 @@
           "artifact": {
             "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-cli-proxy-api/cli-proxy-api-1.10.3.vettapkg",
             "sha256": "b19f7e6bc86793545023dbb5d94cc95c2cd6304629f05a1ad544b3b735035a41"
+          }
+        },
+        {
+          "version": "1.11.0",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.4.0",
+          "permissions": [
+            "ui.slot.ability-detail",
+            "ui.slot.workspace-view",
+            "storage.read",
+            "storage.write",
+            "shell.openExternal",
+            "models.manage",
+            "media.provider.register",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-cli-proxy-api/cli-proxy-api-1.11.0.vettapkg",
+            "sha256": "b8957898fba700a0c04af11562979ce462e11cf673ea828af1e0239dbe63e0e6"
           }
         }
       ]
@@ -761,5 +781,5 @@
       ]
     }
   ],
-  "marketplaceVersion": "2026.10.08-1"
+  "marketplaceVersion": "2026.10.08-2"
 }
