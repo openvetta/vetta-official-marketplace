@@ -11,23 +11,19 @@ const { values: options } = parseArgs({ options: {
   write: { type: "boolean", default: false },
   "allow-major": { type: "boolean", default: false },
   "core-version": { type: "string" },
-  "gemini-version": { type: "string" },
 } });
 const write = options.write;
 const token = process.env.GITHUB_TOKEN?.trim();
 
-const repositories = {
-  core: "router-for-me/CLIProxyAPI",
-  gemini: "router-for-me/cpa-plugin-gemini-cli",
-};
+const repository = "router-for-me/CLIProxyAPI";
 
 const platforms = {
-  "win32-x64": { core: "windows_amd64.zip", gemini: "windows_amd64.zip", coreArchive: "zip" },
-  "win32-arm64": { core: "windows_aarch64.zip", gemini: "windows_arm64.zip", coreArchive: "zip" },
-  "darwin-x64": { core: "darwin_amd64.tar.gz", gemini: "darwin_amd64.zip", coreArchive: "tar.gz" },
-  "darwin-arm64": { core: "darwin_aarch64.tar.gz", gemini: "darwin_arm64.zip", coreArchive: "tar.gz" },
-  "linux-x64": { core: "linux_amd64.tar.gz", gemini: "linux_amd64.zip", coreArchive: "tar.gz" },
-  "linux-arm64": { core: "linux_aarch64.tar.gz", gemini: "linux_arm64.zip", coreArchive: "tar.gz" },
+  "win32-x64": { asset: "windows_amd64.zip", archive: "zip" },
+  "win32-arm64": { asset: "windows_aarch64.zip", archive: "zip" },
+  "darwin-x64": { asset: "darwin_amd64.tar.gz", archive: "tar.gz" },
+  "darwin-arm64": { asset: "darwin_aarch64.tar.gz", archive: "tar.gz" },
+  "linux-x64": { asset: "linux_amd64.tar.gz", archive: "tar.gz" },
+  "linux-arm64": { asset: "linux_aarch64.tar.gz", archive: "tar.gz" },
 };
 
 function headers() {
@@ -117,12 +113,8 @@ async function writeJson(path, value) {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-const [coreRelease, geminiRelease] = await Promise.all([
-  selectRelease(repositories.core, options["core-version"]),
-  selectRelease(repositories.gemini, options["gemini-version"]),
-]);
+const coreRelease = await selectRelease(repository, options["core-version"]);
 const coreVersion = versionFromTag(coreRelease.tag_name);
-const geminiVersion = versionFromTag(geminiRelease.tag_name);
 const pluginPath = resolve(pluginDirectory, "plugin.json");
 const plugin = await readJson(pluginPath);
 const service = plugin.providers.services[0];
@@ -130,34 +122,25 @@ const runtimeLockPath = resolve(pluginDirectory, "runtime-lock.json");
 const runtimeLock = await readJson(runtimeLockPath);
 const currentRuntimeVersion = service.runtime.version;
 const currentPlatforms = stableJson(runtimeLock.platforms);
-const nextRuntimeVersion = `${coreVersion}+gemini.${geminiVersion}`;
+const nextRuntimeVersion = coreVersion;
 const upstreamPath = resolve(pluginDirectory, "upstream.json");
 const upstream = await readJson(upstreamPath);
 const previousCoreVersion = upstream.core.version;
-const previousGeminiVersion = upstream.providerPlugins["gemini-cli"].version;
 if (write) {
   assertRuntimeUpgrade("CLIProxyAPI", previousCoreVersion, coreVersion, { allowMajor: options["allow-major"] });
-  assertRuntimeUpgrade("Gemini CLI", previousGeminiVersion, geminiVersion, { allowMajor: options["allow-major"] });
 }
 
 const selectedAssets = [];
 const nextPlatforms = {};
 for (const [platform, names] of Object.entries(platforms)) {
-  const core = assetBySuffix(coreRelease, "CLIProxyAPI", names.core);
-  const gemini = assetBySuffix(geminiRelease, "gemini-cli", names.gemini);
-  selectedAssets.push(core, gemini);
+  const core = assetBySuffix(coreRelease, "CLIProxyAPI", names.asset);
+  selectedAssets.push(core);
   nextPlatforms[platform] = [
     {
       url: core.browser_download_url,
       sha256: core.digest.slice("sha256:".length),
-      archive: names.coreArchive,
+      archive: names.archive,
       destination: "core",
-    },
-    {
-      url: gemini.browser_download_url,
-      sha256: gemini.digest.slice("sha256:".length),
-      archive: "zip",
-      destination: "plugins",
     },
   ];
   service.runtime.platforms[platform].artifacts = nextPlatforms[platform].map(({ url: _url, ...artifact }) => artifact);
@@ -181,10 +164,7 @@ for (const asset of new Map(selectedAssets.map((asset) => [asset.id, asset])).va
   await verifyAsset(asset);
 }
 
-const [coreRevision, geminiRevision] = await Promise.all([
-  releaseCommit(repositories.core, coreRelease.tag_name),
-  releaseCommit(repositories.gemini, geminiRelease.tag_name),
-]);
+const coreRevision = await releaseCommit(repository, coreRelease.tag_name);
 // Keep the existing pending release version across dependency updates. The
 // author assigns a next version once per unpublished batch, not per script run.
 service.runtime.version = nextRuntimeVersion;
@@ -195,15 +175,13 @@ await writeJson(runtimeLockPath, runtimeLock);
 
 upstream.core.version = coreVersion;
 upstream.core.revision = coreRevision;
-upstream.providerPlugins["gemini-cli"].version = geminiVersion;
-upstream.providerPlugins["gemini-cli"].revision = geminiRevision;
-if (previousGeminiVersion !== geminiVersion) delete upstream.providerPlugins["gemini-cli"].coreBuildVersion;
+delete upstream.providerPlugins;
 await writeJson(upstreamPath, upstream);
 
 for (const name of ["detail.json", "detail.zh.json"]) {
   const path = resolve(pluginDirectory, name);
   const original = await readFile(path, "utf8");
-  await writeFile(path, original.replaceAll(previousCoreVersion, coreVersion).replaceAll(previousGeminiVersion, geminiVersion));
+  await writeFile(path, original.replaceAll(previousCoreVersion, coreVersion));
 }
 
 console.log(`Updated runtime lock; plugin version remains ${plugin.version}. Reuse an existing pending release version; assign a next version once if this starts a new unpublished batch.`);

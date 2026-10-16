@@ -252,7 +252,8 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.equal(service.id, "proxy");
   const upstream = readJson(packageFile(directory, "upstream.json"));
   const runtimeLock = readJson(packageFile(directory, "runtime-lock.json"));
-  assert.equal(service.runtime.version, `${upstream.core.version}+gemini.${upstream.providerPlugins["gemini-cli"].version}`);
+  assert.equal(service.runtime.version, upstream.core.version);
+  assert.equal(upstream.providerPlugins, undefined);
   assert.equal(runtimeLock.version, service.runtime.version);
   assert.equal(service.templates[0].mode, "render");
   assert.deepEqual(service.health.readiness, { mode: "plugin" });
@@ -266,9 +267,9 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     "win32-x64",
   ]);
   for (const [platform, definition] of Object.entries(service.runtime.platforms)) {
-    assert.equal(definition.artifacts.length, 2, platform);
-    assert.equal(new Set(definition.artifacts.map((artifact) => artifact.destination)).size, 2, platform);
-    assert.equal(runtimeLock.platforms[platform].length, 2, platform);
+    assert.equal(definition.artifacts.length, 1, platform);
+    assert.equal(definition.artifacts[0].destination, "core", platform);
+    assert.equal(runtimeLock.platforms[platform].length, 1, platform);
     for (const [index, artifact] of definition.artifacts.entries()) {
       assert.equal("url" in artifact, false, platform);
       assert.match(artifact.sha256, /^[a-f0-9]{64}$/u, platform);
@@ -299,18 +300,18 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
     }
     const productionCode = productionModules.map((path) => readFileSync(path, "utf8")).join("\n");
     assert.doesNotMatch(productionCode, /["']\/assets\/(?:gemini-cli|codex|claude|antigravity|kimi|xai)-/u);
-    // plugin-vite 0.2.0 起小体积资源在生产构建内联成 data URL，六个 provider 图标因此不再
+    // plugin-vite 0.2.0 起小体积资源在生产构建内联成 data URL，五个 provider 图标因此不再
     // 落成独立 .svg 文件。这条断言要保的是「图标不经过任何 URL 解析、不会落到宿主 origin」，
     // 内联比原先的 new URL(..., import.meta.url) 更彻底地满足它。
     const inlinedProviderIcons = Array.from(
       productionCode.matchAll(/data:image\/svg\+xml,%3csvg[^"`]*?viewBox='0%200%2024%2024'/gu),
       (match) => match[0],
     );
-    assert.ok(inlinedProviderIcons.length >= 6, `expected the provider icons to be inlined, got ${inlinedProviderIcons.length}`);
+    assert.ok(inlinedProviderIcons.length >= 5, `expected the provider icons to be inlined, got ${inlinedProviderIcons.length}`);
     const iconProvenance = readJson(packageFile(directory, "dist/assets/providers/lobe-icons.json"));
     assert.equal(iconProvenance.package, "@lobehub/icons-static-svg");
     assert.equal(iconProvenance.version, "1.94.0");
-    assert.equal(Object.keys(iconProvenance.icons).length, 6);
+    assert.equal(Object.keys(iconProvenance.icons).length, 5);
     assert.match(readFileSync(packageFile(directory, "dist/assets/providers/LOBE-ICONS-LICENSE"), "utf8"), /MIT License/u);
     for (const detail of ["detail.json", "detail.zh.json"]) {
       assert.deepEqual(readJson(packageFile(directory, `dist/assets/${detail}`)), readJson(packageFile(directory, detail)));
@@ -329,11 +330,12 @@ test("CLIProxyAPI keeps service-specific behavior in the marketplace plugin and 
   assert.match(template, /routing:[\s\S]*session-affinity-subagents: true/u);
   assert.match(template, /oauth:[\s\S]*antigravity-credits: false/u);
   assert.doesNotMatch(template, /quota-exceeded|remote-management/u);
-  assert.match(template, /plugins:[\s\S]*gemini-cli:/u);
+  assert.match(template, /plugins:[\s\S]*enabled: false/u);
+  assert.doesNotMatch(template, /gemini-cli/u);
   assert.doesNotMatch(template, /0\.0\.0\.0/u);
 
   const providerContract = readFileSync(packageFile(directory, "src/provider-contract.ts"), "utf8");
-  for (const provider of ["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]) {
+  for (const provider of ["codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]) {
     assert.ok(providerContract.includes(`/v8/management/oauth/auth-url?provider=${provider}`));
   }
 

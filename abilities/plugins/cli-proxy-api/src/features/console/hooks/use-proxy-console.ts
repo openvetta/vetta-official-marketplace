@@ -20,7 +20,6 @@ export type OAuthFlow = {
 export function accountMatchesProvider(account: ProxyAccount, provider: OAuthProviderId): boolean {
   const value = account.provider.trim().toLowerCase();
   if (provider === "claude") return value === "claude" || value === "anthropic";
-  if (provider === "gemini-cli") return value === "gemini-cli" || value === "gemini";
   return value === provider;
 }
 

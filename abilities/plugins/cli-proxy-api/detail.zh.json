@@ -23,12 +23,12 @@
         {
           "icon": "solar:shield-check-bold",
           "title": "不 Fork 也能持续升级",
-          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 8.0.17 与 Gemini Provider 1.0.5。组合验证后只发布插件补丁即可推进版本，无需修改 Desktop。"
+          "description": "市场按 Release URL 和 SHA-256 锁定 CLIProxyAPI 8.0.31。审核后发布插件补丁即可推进版本，无需修改 Desktop。"
         },
         {
           "icon": "solar:login-3-bold",
-          "title": "九种账号登录入口",
-          "description": "通过浏览器连接 Gemini CLI、Codex、Claude Code、Antigravity 和 Devin；通过设备码连接 Kimi Code（kimi.com）、xAI、Meta Muse Code 和 Kimi Code（kimi.ai）。需要相应账号及模型使用权限。"
+          "title": "八种账号登录入口",
+          "description": "通过浏览器连接 Codex、Claude Code、Antigravity 和 Devin；通过设备码连接 Kimi Code（kimi.com）、xAI、Meta Muse Code 和 Kimi Code（kimi.ai）。Antigravity 内置在锁定的核心里。需要相应账号及模型使用权限。"
         },
         {
           "icon": "solar:server-minimalistic-bold",

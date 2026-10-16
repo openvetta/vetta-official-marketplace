@@ -1,4 +1,4 @@
-export type OAuthProviderId = "gemini-cli" | "codex" | "claude" | "antigravity" | "kimi" | "xai" | "meta" | "devin" | "kimi-ai";
+export type OAuthProviderId = "codex" | "claude" | "antigravity" | "kimi" | "xai" | "meta" | "devin" | "kimi-ai";
 export type ProtocolGroup = "google" | "anthropic" | "responses" | "completions";
 
 export interface OAuthProviderDefinition {
@@ -8,7 +8,6 @@ export interface OAuthProviderDefinition {
 }
 
 export const OAUTH_PROVIDERS: readonly OAuthProviderDefinition[] = [
-  { id: "gemini-cli", authPath: "/v8/management/oauth/auth-url?provider=gemini-cli", deviceFlow: false },
   { id: "codex", authPath: "/v8/management/oauth/auth-url?provider=codex&is_webui=true", deviceFlow: false },
   { id: "claude", authPath: "/v8/management/oauth/auth-url?provider=claude&is_webui=true", deviceFlow: false },
   { id: "antigravity", authPath: "/v8/management/oauth/auth-url?provider=antigravity&is_webui=true", deviceFlow: false },
@@ -53,11 +52,9 @@ export const MODEL_DEFINITION_CHANNELS = [
 
 /**
  * Which model-definition channel backs each OAuth provider, so a connected
- * account can be shown with the models its channel actually routes. Gemini CLI
- * authenticates the `gemini` channel — the route has no `gemini-cli` key.
+ * account can be shown with the models its channel actually routes.
  */
 export const MODEL_CHANNEL_BY_PROVIDER: Record<OAuthProviderId, string> = {
-  "gemini-cli": "gemini",
   codex: "codex",
   claude: "claude",
   antigravity: "antigravity",

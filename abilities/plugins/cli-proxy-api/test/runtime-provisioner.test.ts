@@ -12,7 +12,7 @@ afterEach(() => {
 describe("CLIProxyAPI runtime provisioning", () => {
   it("downloads and verifies its own runtime before handing archives to the service host", async () => {
     const f = fixture();
-    const payloads = [Buffer.from("core"), Buffer.from("provider")];
+    const payloads = [Buffer.from("core")];
     runtimeAssets["win32-x64"] = runtimeAssets["win32-x64"].map((asset, index) => ({
       ...asset,
       sha256: createHash("sha256").update(payloads[index]).digest("hex")
@@ -25,13 +25,12 @@ describe("CLIProxyAPI runtime provisioning", () => {
       headers: {},
       body: payloads.shift()?.toString("base64") ?? ""
     }));
-    f.context.services.install = vi.fn(async (_id, artifacts) => ({ ...f.ready, phase: "stopped", installed: artifacts.length === 2 }));
+    f.context.services.install = vi.fn(async (_id, artifacts) => ({ ...f.ready, phase: "stopped", installed: artifacts.length === 1 }));
 
     await expect(ensureServiceStarted(f.context)).resolves.toEqual(f.ready);
-    expect(f.context.network.request).toHaveBeenCalledTimes(2);
+    expect(f.context.network.request).toHaveBeenCalledTimes(1);
     expect(f.context.services.install).toHaveBeenCalledWith("proxy", [
-      { destination: "core", data: Buffer.from("core").toString("base64") },
-      { destination: "plugins", data: Buffer.from("provider").toString("base64") }
+      { destination: "core", data: Buffer.from("core").toString("base64") }
     ]);
     expect(f.context.services.start).toHaveBeenCalledWith("proxy");
   });

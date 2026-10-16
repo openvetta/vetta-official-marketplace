@@ -22,7 +22,6 @@ export type ProviderPool = {
 function canonicalProvider(account: ProxyAccount): { id: string; provider?: OAuthProviderId } {
   const value = account.provider.trim().toLowerCase();
   if (value === "anthropic") return { id: "claude", provider: "claude" };
-  if (value === "gemini") return { id: "gemini-cli", provider: "gemini-cli" };
   const known = OAUTH_PROVIDERS.map((provider) => provider.id);
   return known.includes(value as OAuthProviderId)
     ? { id: value, provider: value as OAuthProviderId }

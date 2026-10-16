@@ -1,88 +1,52 @@
 {
-  "version": "8.0.17+gemini.1.0.5",
+  "version": "8.0.31",
   "platforms": {
     "win32-x64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_windows_amd64.zip",
-        "sha256": "fbac0be6fd4ac72e0df91c5fd9eac39246d0d8e356d1d624b2603bdf5859dea0",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_windows_amd64.zip",
+        "sha256": "28bde34eb33a1b03884bac1e8c1a402a25ae4eadd3c60df7ae0df53f8b281318",
         "archive": "zip",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_windows_amd64.zip",
-        "sha256": "e712e4f2a6972b7a692c32fbc8cdf839fcde29428acc9ad98e26ff7212ac24ee",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ],
     "win32-arm64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_windows_aarch64.zip",
-        "sha256": "3246eb72ca172e82f5f13756b1b73fd1827d65ada4d7b4fc7cb226513ee0c229",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_windows_aarch64.zip",
+        "sha256": "51a0b8d0ca2452340a73a18ad7c7eda7a349ea7a608a525f2f62148373b5ec57",
         "archive": "zip",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_windows_arm64.zip",
-        "sha256": "80b229c61d10cb34c0279beb93190411d48b055c9bd6f67248c4069ee4f08caa",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ],
     "darwin-x64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_darwin_amd64.tar.gz",
-        "sha256": "540148a4f01ee297dcb5c6c99df8dc9be68c011ead4ff0751dc8c41b5485ad80",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_darwin_amd64.tar.gz",
+        "sha256": "4a3b17a82856260c67ef2c246538075e41e553591b21a7681314d309ceed8922",
         "archive": "tar.gz",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_darwin_amd64.zip",
-        "sha256": "575c8c5663df54dd6f9132f69795e5297967b5cee0ff500b585f866b1a5cd710",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ],
     "darwin-arm64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_darwin_aarch64.tar.gz",
-        "sha256": "d4952068c413060e3a8c082cc616fee707c701a01bebec59c45903bce402be9d",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_darwin_aarch64.tar.gz",
+        "sha256": "36e193a737c4821aa122cf35c293c13f2b16c10d56d4ac4b19ced197fab19a79",
         "archive": "tar.gz",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_darwin_arm64.zip",
-        "sha256": "3c771ff57e607b40bf95753e0ad2fb01127a296fe4cbff79b49116cd2327b5bb",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ],
     "linux-x64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_linux_amd64.tar.gz",
-        "sha256": "b121a58ee643a7a76b1bf3f757bef75a99660d17fe5afe089bf8a5c1afcd90d3",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_linux_amd64.tar.gz",
+        "sha256": "c00a2df9a75513ea23feec4e4b0c4d3ee76a15cd14e80b896e000586914b69b9",
         "archive": "tar.gz",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_linux_amd64.zip",
-        "sha256": "b0b202ff9466c6e1f7170577b9a0eb6bd1f5d8069747fce215583faebd3fab73",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ],
     "linux-arm64": [
       {
-        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.17/CLIProxyAPI_8.0.17_linux_aarch64.tar.gz",
-        "sha256": "b90e3ad0868cc45624dd0a259a1ebcc23ea7c7ba87426656bafeb4bd738dd7f4",
+        "url": "https://github.com/router-for-me/CLIProxyAPI/releases/download/v8.0.31/CLIProxyAPI_8.0.31_linux_aarch64.tar.gz",
+        "sha256": "3a535ddb2000e5cdc7b25e0765f1538d68708faec4272cf98327c11d2af2ad14",
         "archive": "tar.gz",
         "destination": "core"
-      },
-      {
-        "url": "https://github.com/router-for-me/cpa-plugin-gemini-cli/releases/download/v1.0.5/gemini-cli_1.0.5_linux_arm64.zip",
-        "sha256": "4e792bd079c2e1bae0134ee5e009317dbff8439d8fbed808aefb84dc44eb098c",
-        "archive": "zip",
-        "destination": "plugins"
       }
     ]
   }

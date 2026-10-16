@@ -208,8 +208,7 @@ api-keys:
             else:
                 raise AssertionError("CPA did not register the loopback model")
             plugins = request("/v8/management/plugins")["plugins"]
-            gemini = next(item for item in plugins if item["id"] == "gemini-cli")
-            assert gemini["registered"] and gemini["effective_enabled"] and gemini["supports_oauth"]
+            assert not any(item.get("id") == "gemini-cli" and item.get("effective_enabled") for item in plugins)
             cfg = request("/v8/management/config")
             assert cfg["routing"]["retry"] == {"request-retry": 0, "max-retry-credentials": 1, "max-retry-interval": 0}
             assert cfg["routing"]["session-affinity-subagents"] is True

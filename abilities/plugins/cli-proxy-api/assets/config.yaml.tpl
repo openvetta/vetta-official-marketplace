@@ -29,13 +29,9 @@ observability:
 requests:
   passthrough-headers: true
 
+# Antigravity ships inside the pinned core. Dynamic library plugins stay off.
 plugins:
-  enabled: true
-  dir: '${VETTA_SERVICE_RUNTIME_DIR}/plugins'
-  configs:
-    gemini-cli:
-      enabled: true
-      priority: 10
+  enabled: false
 
 routing:
   # Vetta owns retries, backoff, cancellation, and user-visible errors.

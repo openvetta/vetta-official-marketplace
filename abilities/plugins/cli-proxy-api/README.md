@@ -4,7 +4,7 @@ This marketplace plugin runs pinned CLIProxyAPI release assets as a Vetta-manage
 CLIProxyAPI-specific management routes, OAuth provider definitions, account aggregation and model protocol mapping
 live in this package; the Desktop host only provides generic service and owned-model APIs.
 
-The plugin supports OAuth for Gemini CLI, OpenAI Codex, Claude Code, Google Antigravity, Kimi Code (kimi.com), xAI, Meta Muse Code, Devin and Kimi Code (kimi.ai). It
+The plugin supports OAuth for OpenAI Codex, Claude Code, Google Antigravity, Kimi Code (kimi.com), xAI, Meta Muse Code, Devin and Kimi Code (kimi.ai). Antigravity is part of the pinned core. It
 discovers live routes from `/v1/models` and publishes Google, Anthropic, Responses and compatible Completions model
 providers in the plugin-owned namespace. The model picker groups credentials into supplier pools: one route is shown
 once per supplier and protocol, while every matching enabled credential remains available to CPA for balancing and
@@ -22,28 +22,27 @@ the lock and `plugin.json`, rebuilding `dist/`,
 and releasing a new plugin patch after the six-platform combined canary passes. Runtime installation never follows
 `latest`, and no upstream binaries are stored in this marketplace repository.
 
-See [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) and the separately versioned
-[Gemini CLI provider](https://github.com/router-for-me/cpa-plugin-gemini-cli).
+See [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI).
 
 From the repository root, `node scripts/update-cli-proxy-api.mjs` reports newer stable upstream releases (exit 2 means
 an update is available). `check-cli-proxy-api-upstream.yml` runs this read-only check daily. It does not create a PR.
-`--write` downloads and verifies all twelve platform assets and updates the runtime lock and provenance.
+`--write` downloads and verifies all six platform assets and updates the runtime lock and provenance.
 It preserves the plugin version and all package/catalog identity versions. For a new batch of distribution changes,
 advance the plugin version once if it still matches the published version; otherwise keep the existing pending version.
 Reuse that version for all further edits, tests and local installs until the batch is published. The distribution version remains
-CI-owned. Explicit `--core-version` and `--gemini-version` select a reviewed stable release; a major upgrade also requires
+CI-owned. Explicit `--core-version` selects a reviewed stable release; a major upgrade also requires
 `--allow-major`. Downgrades and changed hashes at unchanged asset URLs are rejected. For example:
 
 ```bash
-node scripts/update-cli-proxy-api.mjs --core-version 8.0.17 --gemini-version 1.0.5 --allow-major --write
+node scripts/update-cli-proxy-api.mjs --core-version 8.0.31 --write
 ```
 
 Runtime updates go through a normal source PR into `main`. `cli-proxy-api-runtime.yml` runs plugin checks and the real
-core/Gemini combination on all six supported platforms. It never merges or publishes a PR automatically.
+core on all six supported platforms. It never merges or publishes a PR automatically.
 
 ### CPA 8 integration
 
-The current development source pins CPA 8.0.17 and Gemini CLI 1.0.5. Core management calls use `/v8/management`, including the shared
+The current development source pins CPA 8.0.31. Dynamic provider plugins stay disabled. Core management calls use `/v8/management`, including the shared
 `oauth/auth-url?provider=...` route. Codex, Claude and Antigravity retain `is_webui=true` for callback forwarding; Devin uses CPA's direct loopback callback. Meta and Kimi.ai use device authorization.
 The config template uses the v8 sections: `server`, `management`, `access`, `oauth`, `requests`, `observability`, and
 `routing.retry`. Client keys belong to `access.api-keys`, not the upstream-provider `api-keys` groups. Retries remain

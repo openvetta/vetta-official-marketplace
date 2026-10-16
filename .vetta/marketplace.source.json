@@ -51,8 +51,8 @@
       "type": "plugin",
       "slug": "cli-proxy-api",
       "name": "CLIProxyAPI",
-      "description": "Run a managed local gateway for Gemini CLI, Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
-      "version": "1.11.0",
+      "description": "Run a managed local gateway for Codex, Claude, Antigravity, Kimi and xAI accounts, then use its models in Vetta.",
+      "version": "1.11.1",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta / Router For Me",
@@ -73,7 +73,7 @@
         "i18n": {
           "zh": {
             "name": "CLIProxyAPI",
-            "description": "运行受管的本地模型网关，连接 Gemini CLI、Codex、Claude、Antigravity、Kimi 与 xAI 账号，并在 Vetta 中使用动态发现的模型。",
+            "description": "运行受管的本地模型网关，连接 Codex、Claude、Antigravity、Kimi 与 xAI 账号，并在 Vetta 中使用动态发现的模型。",
             "tags": [
               "模型",
               "OAuth",

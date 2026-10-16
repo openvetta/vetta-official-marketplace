@@ -22,7 +22,7 @@ function withAccounts(f: ReturnType<typeof fixture>): void {
         {
           auth_index: "gem-1",
           name: "gemini-user.json",
-          provider: "gemini-cli",
+          provider: "antigravity",
           email: "user@example.com",
           status: "ready",
           disabled: false,
@@ -97,7 +97,6 @@ describe("CLIProxyAPI console", () => {
   });
 
   it.each([
-    ["gemini-cli", "browserFlow", "provider=gemini-cli"],
     ["codex", "browserFlow", "provider=codex&is_webui=true"],
     ["claude", "browserFlow", "provider=claude&is_webui=true"],
     ["antigravity", "browserFlow", "provider=antigravity&is_webui=true"],
@@ -196,7 +195,7 @@ describe("CLIProxyAPI console", () => {
     fireEvent.click(await screen.findByRole("button", { name: "console.addAccount" }));
     const picker = await screen.findByRole("dialog");
     const icons = Array.from(picker.querySelectorAll("[data-provider-icon]"), (el) => el.getAttribute("data-provider-icon"));
-    expect(icons).toEqual(["gemini-cli", "codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]);
+    expect(icons).toEqual(["codex", "claude", "antigravity", "kimi", "xai", "meta", "devin", "kimi-ai"]);
 
     expect(f.openExternal).not.toHaveBeenCalled();
     fireEvent.click(within(picker).getByRole("button", { name: "provider.kimi setup.deviceFlow" }));
@@ -363,7 +362,7 @@ describe("CLIProxyAPI console", () => {
   it("keeps a custom selection stable when a newly authorized credential brings models", async () => {
     const f = fixture();
     let accounts = [{
-      auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli",
+      auth_index: "gem-1", name: "gemini-user.json", provider: "antigravity",
       email: "user@example.com", disabled: false, success: 0, failed: 0
     }];
     const original = f.handle.getMockImplementation()!;
@@ -438,7 +437,7 @@ describe("CLIProxyAPI console", () => {
     f.handle.mockImplementation(async (request: { path: string; method?: string }) => {
       if (request.path === "/v8/management/credentials" && request.method === undefined) {
         return { files: [
-          { auth_index: "gem-1", name: "gemini-user.json", provider: "gemini-cli", email: "first@example.com", disabled: false, success: 0, failed: 0 },
+          { auth_index: "gem-1", name: "gemini-user.json", provider: "antigravity", email: "first@example.com", disabled: false, success: 0, failed: 0 },
           { auth_index: "cx-1", name: "codex-user.json", provider: "codex", email: "second@example.com", disabled: false, unavailable: true, success: 0, failed: 0 }
         ] };
       }

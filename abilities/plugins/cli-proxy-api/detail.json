@@ -23,12 +23,12 @@
         {
           "icon": "solar:shield-check-bold",
           "title": "Upgradeable without a fork",
-          "description": "The marketplace pins CLIProxyAPI 8.0.17 and Gemini provider 1.0.5 by release URL and SHA-256. A plugin patch can move both locks after review, without a Desktop code change."
+          "description": "The marketplace pins CLIProxyAPI 8.0.31 by release URL and SHA-256. A plugin patch can move the lock after review, without a Desktop code change."
         },
         {
           "icon": "solar:login-3-bold",
-          "title": "Nine account sign-in options",
-          "description": "Connect Gemini CLI, Codex, Claude Code, Antigravity and Devin in your browser; use device codes for Kimi Code (kimi.com), xAI, Meta Muse Code and Kimi Code (kimi.ai). A provider account and model access are required."
+          "title": "Eight account sign-in options",
+          "description": "Connect Codex, Claude Code, Antigravity and Devin in your browser; use device codes for Kimi Code (kimi.com), xAI, Meta Muse Code and Kimi Code (kimi.ai). Antigravity is built into the pinned core. A provider account and model access are required."
         },
         {
           "icon": "solar:server-minimalistic-bold",
