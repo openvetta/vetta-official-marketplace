@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "slug": "baizhi-agent-toolkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "server": {
     "type": "http",
     "url": "https://agent-toolkit.app.baizhi.cloud/mcp"

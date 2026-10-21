@@ -63,6 +63,10 @@
     {
       "type": "markdown",
       "content": "开源[集成仓库](https://github.com/chaitin/baizhi-agent-toolkit)提供客户端配置与文档，不含托管后端源码。未经组织允许，不要发送私密文档、个人信息或保密链接，也不要把 API Key 粘贴到聊天提示词或共享日志。"
+    },
+    {
+      "type": "markdown",
+      "content": "由百智云（长亭科技）提供服务。本能力市场条目由 [@ct-jaryn](https://github.com/ct-jaryn) 贡献。"
     }
   ]
 }

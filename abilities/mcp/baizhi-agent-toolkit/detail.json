@@ -63,6 +63,10 @@
     {
       "type": "markdown",
       "content": "The open-source [integration repository](https://github.com/chaitin/baizhi-agent-toolkit) provides client configuration and documentation, not the hosted backend. Avoid sending private documents, personal data or confidential links unless your organization permits it. Never paste an API key into a chat prompt or shared log."
+    },
+    {
+      "type": "markdown",
+      "content": "Provided by Baizhi Cloud (Chaitin). The Vetta marketplace listing was contributed by [@ct-jaryn](https://github.com/ct-jaryn)."
     }
   ]
 }
