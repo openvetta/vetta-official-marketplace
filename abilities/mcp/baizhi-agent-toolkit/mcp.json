@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "slug": "baizhi-agent-toolkit",
+  "version": "1.0.0",
+  "server": {
+    "type": "http",
+    "url": "https://agent-toolkit.app.baizhi.cloud/mcp"
+  },
+  "parameters": [
+    {
+      "key": "Authorization",
+      "label": "Baizhi Cloud API Key",
+      "required": true,
+      "secret": true,
+      "placeholder": "Paste your API key",
+      "helpUrl": "https://agent-toolkit.app.baizhi.cloud/",
+      "valueTemplate": "Bearer {value}"
+    }
+  ],
+  "browserAuth": false
+}
