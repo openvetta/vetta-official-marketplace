@@ -1,0 +1,80 @@
+{
+  "id": "rea",
+  "name": "%plugin.name%",
+  "version": "1.0.0",
+  "icon": "assets/icon.png",
+  "defaultLocale": "en",
+  "pluginApiVersion": "^2.4.0",
+  "entry": "dist/mf-manifest.json",
+  "moduleFederation": {
+    "remoteName": "rea",
+    "expose": "./plugin"
+  },
+  "permissions": [
+    "ui.file-explorer.context-menu",
+    "agent.mcp.control",
+    "agent.tools.register",
+    "agent.toolHandler.execute",
+    "agent.hooks.register",
+    "agent.hookHandler.execute",
+    "agent.skills.control",
+    "agent.command.run",
+    "agent.session.write",
+    "storage.read",
+    "storage.write",
+    "fs.read"
+  ],
+  "commands": [
+    "node",
+    "npm",
+    "java",
+    "rea"
+  ],
+  "agent": {
+    "skillPaths": [
+      "agent/skills/rea-investigation"
+    ],
+    "skillPresentation": {
+      "defaultVisibility": "hidden",
+      "skills": {
+        "rea-investigation": {
+          "defaultVisibility": "visible",
+          "displayName": "%skill.investigation.name%",
+          "displayDescription": "%skill.investigation.description%"
+        }
+      }
+    },
+    "mcpServers": {
+      "rea": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "rea-agents@latest",
+          "mcp"
+        ],
+        "startupTimeout": 180000,
+        "displayName": "REA",
+        "description": "Reverse engineering tools: inspect applications, disassemble binaries, trace JavaScript and Electron IPC, read prototypes and network captures."
+      }
+    },
+    "agents": [
+      {
+        "id": "rea-investigator",
+        "name": "%agent.investigator.name%",
+        "description": "%agent.investigator.description%",
+        "mentionHandle": "rea",
+        "avatar": "agent/agents/rea-investigator.png",
+        "systemPromptPath": "agent/agents/rea-investigator.md",
+        "abilities": "own"
+      }
+    ]
+  },
+  "guidingWords": [
+    "%guidingWords.understand%",
+    "%guidingWords.trace%",
+    "%guidingWords.spec%"
+  ],
+  "description": "%plugin.description%",
+  "author": "Vetta / REA"
+}

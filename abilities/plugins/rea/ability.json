@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "rea",
+  "version": "1.0.0",
+  "icon": "assets/icon.png",
+  "name": "REA",
+  "description": "Investigate how any app, binary, website or package works, with every finding kept on a case that cites its evidence.",
+  "configVersion": 1,
+  "license": "MIT",
+  "author": "Vetta / REA",
+  "category": "Development",
+  "categoryI18n": {
+    "zh": "开发",
+    "en": "Development"
+  },
+  "tags": [
+    "reverse-engineering",
+    "app-analysis",
+    "binary",
+    "electron",
+    "apk",
+    "evidence"
+  ],
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "repository",
+        "value": "https://github.com/morluto/rea"
+      },
+      {
+        "key": "docs",
+        "value": "https://github.com/morluto/rea/tree/main/docs"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "REA",
+        "description": "本机逆向任何应用、二进制、网站或资源包，每条结论连同证据留在案件里。"
+      }
+    }
+  }
+}
