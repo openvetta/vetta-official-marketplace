@@ -627,3 +627,85 @@ for (const slug of ["zhihu-research", "zhihu-search", "zhihu-search-mcp"]) {
     }
   });
 }
+
+test("REA refuses to repackage upstream and keeps the conversation as its only surface", () => {
+  const ability = bySlug.get("rea");
+  assert.equal(ability?.type, "plugin");
+  const directory = packageFile(root, ability.source.path);
+  const plugin = readJson(packageFile(directory, "plugin.json"));
+  const presentation = readJson(packageFile(directory, "ability.json"));
+
+  // Upstream stays upstream: the server is launched from npm, never vendored.
+  const server = plugin.agent?.mcpServers?.rea;
+  assert.ok(server, "the bundled REA MCP server is what makes the plugin useful");
+  assert.equal(server.command, "npx");
+  assert.deepEqual(server.args, ["-y", "rea-agents@latest", "mcp"]);
+  assert.equal(server.type, "stdio");
+
+  // The differentiator is the case: tools to write it, hooks to fill it, a report
+  // to take away. No page competes with the agent that already owns that flow.
+  for (const permission of [
+    "agent.tools.register",
+    "agent.toolHandler.execute",
+    "agent.hooks.register",
+    "agent.hookHandler.execute",
+  ]) {
+    assert.ok(plugin.permissions.includes(permission), permission);
+  }
+  // The conversation is the interface. No page of its own: no workspace view, no
+  // detail slot, no URL opening, no filesystem writes — the agent does those.
+  for (const absent of ["ui.slot.workspace-view", "ui.slot.ability-detail", "shell.openExternal", "fs.write"]) {
+    assert.equal(plugin.permissions.includes(absent), false, absent);
+  }
+  assert.equal(existsSync(resolve(directory, "src/features/case-board")), false);
+  assert.equal(existsSync(resolve(directory, "src/features/readiness")), false);
+  assert.equal(existsSync(resolve(directory, "src/shared")), false);
+  assert.deepEqual(plugin.agent.skillPaths, ["agent/skills/rea-investigation"]);
+  const skillPresentation = plugin.agent.skillPresentation;
+  assert.equal(skillPresentation.skills["rea-investigation"].displayName, "%skill.investigation.name%");
+  assert.equal(readJson(packageFile(directory, "locales/zh.json"))["skill.investigation.name"], "REA");
+  packageFile(directory, "agent/skills/rea-investigation/SKILL.md");
+  assert.equal(plugin.agent.agents?.[0]?.id, "rea-investigator");
+  assert.equal(plugin.agent.agents[0].abilities, "own");
+  packageFile(directory, plugin.agent.agents[0].avatar);
+  packageFile(directory, plugin.agent.agents[0].systemPromptPath);
+
+  // Only local probes: a reverse-engineering plugin must not ask for a shell.
+  assert.deepEqual([...plugin.commands].sort(), ["java", "node", "npm", "rea"]);
+  assert.equal("network" in plugin, false);
+  for (const tool of ["case-open", "case-record", "case-status", "case-report"]) {
+    packageFile(directory, `src/tools/${tool}.ts`);
+  }
+
+  // File-tree intake must cover bundle directories, or `.app` never matches.
+  const intake = readFileSync(
+    packageFile(directory, "src/features/target-intake/services/investigate-command.ts"),
+    "utf8",
+  );
+  assert.match(intake, /resourceType: "file"/u);
+  assert.match(intake, /resourceType: "directory"/u);
+  assert.match(intake, /DIRECTORY_TARGET_EXTENSIONS = \[[\s\S]*?"app"/u);
+  // Over-broad suffixes would put the entry on unrelated files.
+  assert.doesNotMatch(intake, /"zip"|"dat"|"db"/u);
+
+  // Card and plugin identity share the REA artwork, and nothing else declares an
+  // icon: with no navigation entry there is no second glyph to keep in sync.
+  assert.equal(presentation.icon, "assets/icon.png");
+  assert.equal(plugin.icon, "assets/icon.png");
+  const icon = readFileSync(packageFile(directory, plugin.icon));
+  assert.equal(icon.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  const entry = readFileSync(packageFile(directory, "src/index.ts"), "utf8");
+  assert.doesNotMatch(entry, /registerWorkspaceView|registerAbilityDetailSlot|style\.css/u);
+  // No components, no stylesheet, no Tailwind: nothing to render means nothing to ship.
+  assert.equal(existsSync(resolve(directory, "src/style.css")), false);
+  assert.equal("styles" in plugin, false);
+
+  for (const [path, markers] of [
+    ["detail.json", [/REA/u, /evidence/u, /authoris|authoriz/u]],
+    ["detail.zh.json", [/REA/u, /证据/u, /授权/u]],
+  ]) {
+    const text = JSON.stringify(readJson(packageFile(directory, path)));
+    for (const marker of markers) assert.match(text, marker, `${path} ${marker}`);
+    assert.doesNotMatch(text, /README/iu);
+  }
+});
