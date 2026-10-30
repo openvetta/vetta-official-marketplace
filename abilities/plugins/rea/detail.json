@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Reverse engineering",
+      "title": "Understand how anything works — with evidence",
+      "description": "REA inspects desktop applications, native binaries, websites, Android packages and asset archives on your machine. Ask in a conversation; the plugin keeps what each probe proved, so a conclusion can be checked a week later instead of dying in a chat log.",
+      "badges": [
+        "Runs locally",
+        "Apps, binaries, websites, APKs",
+        "Evidence kept per case"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "code",
+        "user_prompt": "Understand how Export to PDF works in this app, and show me the evidence.",
+        "assistant_reply": "The renderer sends `export:pdf` to the main process, which calls `exportPDF()` in app.asar (src/export.ts:1188) and hands the print job to PDFKit. Confirmed: the IPC handler and the module import. Inferred: the cover page comes from a bundled template — still open, and recorded as an open question on the case. The report with its evidence appendix is in your workspace — ask for it any time with case_report."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "title": "One case per conversation",
+          "description": "The investigation survives the session: target, route, goal, evidence and open questions come back when you continue in that workspace.",
+          "icon": "solar:folder-with-files-linear"
+        },
+        {
+          "title": "Evidence captured as it happens",
+          "description": "Every REA tool call is recorded with its pointers, size and fingerprint — no reliance on the agent remembering to write things down.",
+          "icon": "solar:document-add-linear"
+        },
+        {
+          "title": "Confirmed, inferred, unknown",
+          "description": "Findings keep their grade, so a guess never looks like a proof. Gaps stay visible until evidence closes them.",
+          "icon": "solar:checklist-minimalistic-linear"
+        },
+        {
+          "title": "Engine gaps named up front",
+          "description": "Before the first probe the agent knows which route the target needs and which analysis engine is missing, so it can tell you instead of failing quietly.",
+          "icon": "solar:route-linear"
+        },
+        {
+          "title": "Report and spec on request",
+          "description": "Ask for the result and the agent writes a report with an evidence appendix, or a behaviour spec, into your workspace.",
+          "icon": "solar:document-text-linear"
+        },
+        {
+          "title": "Investigate from the file tree",
+          "description": "Right-click an app bundle, binary, APK or archive to start the investigation with that path already in context.",
+          "icon": "solar:square-share-line-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Install the plugin",
+          "description": "REA's own MCP server ships with the plugin, so nothing needs to be registered by hand. Node.js 22.23.4+, 24.22.1+ or 26.12.1+ is required."
+        },
+        {
+          "title": "Name the target and the behaviour",
+          "description": "Ask in a conversation, or right-click a target in the file tree. Say which behaviour you want to understand — one concrete question beats a whole product."
+        },
+        {
+          "title": "Leave with evidence, not just an answer",
+          "description": "Ask for the report or the spec when you are done. It lands in your workspace as Markdown, with the open questions still listed."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "Only analyse software you own or are authorised to inspect. REA observes statically by default; runtime instrumentation, attaching to a running process or driving an authenticated site needs your explicit go-ahead. Analysis runs on your machine and nothing is uploaded by this plugin."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "label": "REA project",
+          "href": "https://github.com/morluto/rea"
+        },
+        {
+          "label": "REA documentation",
+          "href": "https://github.com/morluto/rea/blob/main/docs/installation.md"
+        }
+      ]
+    }
+  ]
+}
