@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "发布为链接",
+      "title": "把 Vetta 做好的页面变成可以发出去的链接",
+      "description": "把 HTML 报告、原型或小型静态站点发布到公开的 deed.page 地址。开始使用不需要账号或 API Key。",
+      "badges": ["无需注册", "可更新或删除", "可设到期"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "brand_name": "Vetta",
+        "user_prompt": "把你刚做好的总结页发布出来，我要发给团队，一周后自动失效。",
+        "assistant_reply": "我会把 index.html 发布到 deed.page 地址并设置七天有效期，然后给你链接，以及之后更新或删除所需的所有者令牌。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "可以让 Vetta 做什么",
+      "items": [
+        { "title": "分享成品页面", "description": "发布单个 HTML 文件或保留路径的多个文件，并拿到可访问的地址。", "icon": "solar:upload-linear" },
+        { "title": "原地修改", "description": "修改后更新同一个 slug，列出自己的站点，或恢复到之前的版本。", "icon": "solar:refresh-linear" },
+        { "title": "随时下线", "description": "用所有者令牌删除站点，或在发布时设置到期时间。", "icon": "solar:trash-bin-minimalistic-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "在 Vetta 中开始",
+      "items": [
+        { "title": "安装连接", "description": "首次使用时，可选的令牌字段留空即可。" },
+        { "title": "让 Vetta 发布", "description": "说明要发布的内容，也可以指定 slug 或有效期。" },
+        { "title": "保存令牌", "description": "把首次发布返回的所有者令牌私密保存，或填入连接设置中重复使用。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "title": "已发布页面是公开的",
+      "content": "任何拿到链接的人都能打开已发布页面，请不要发布密钥或隐私数据。免费站点有大小和数量限制，并会显示一个小的 deed.page 链接。"
+    },
+    {
+      "type": "links",
+      "title": "相关资源",
+      "items": [
+        { "label": "deed.page 文档", "href": "https://deed.page/docs" },
+        { "label": "deed.page Agent 技能（MIT）", "href": "https://github.com/f-o-x11/deed-page-skill" },
+        { "label": "技术说明", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/deed-page/README.zh.md" }
+      ]
+    }
+  ]
+}

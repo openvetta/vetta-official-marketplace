@@ -499,6 +499,45 @@
       }
     },
     {
+      "type": "mcp",
+      "slug": "deed-page",
+      "name": "deed.page",
+      "description": "Publish HTML pages and small static sites that Vetta builds to a public URL, then update or delete them. No account or API key needed.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "author": "deed.page (Avatar 8 LLC)",
+      "category": "Development",
+      "categoryI18n": {
+        "zh": "开发",
+        "en": "Development"
+      },
+      "tags": [
+        "deed-page",
+        "publishing",
+        "static-hosting",
+        "html",
+        "remote-mcp"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "deed.page",
+            "description": "把 Vetta 生成的 HTML 页面和小型静态站点发布到公开地址，之后可更新或删除。无需账号或 API Key。",
+            "tags": [
+              "deed.page",
+              "发布",
+              "静态托管",
+              "HTML",
+              "远端 MCP"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/mcp/deed-page"
+      }
+    },
+    {
       "type": "bundle",
       "slug": "zhihu-research",
       "name": "Zhihu Research",
