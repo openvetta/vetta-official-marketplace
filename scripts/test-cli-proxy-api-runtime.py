@@ -111,7 +111,8 @@ class Upstream(http.server.BaseHTTPRequestHandler):
                         self.wfile.write(("data: " + json.dumps(chunks[0]) + "\n\n").encode())
                         self.wfile.flush()
                         time.sleep(0.02)
-                except (BrokenPipeError, ConnectionResetError):
+                # Windows reports a dropped client as ConnectionAbortedError (WinError 10053).
+                except ConnectionError:
                     self.canceled.set()
                 return
             for chunk in chunks:
