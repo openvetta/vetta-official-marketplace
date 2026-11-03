@@ -14,7 +14,7 @@
         "template": "chat-thread",
         "brand_name": "Vetta",
         "user_prompt": "把你刚做好的总结页发布出来，我要发给团队，一周后自动失效。",
-        "assistant_reply": "我会把 index.html 发布到 deed.page 地址并设置七天有效期，然后给你链接，以及之后更新或删除所需的所有者令牌。"
+        "assistant_reply": "我会把 index.html 发布到 deed.page 地址并设置七天有效期，然后把链接发给你。这次发布返回的所有者令牌请私密保存，或填入连接设置，因为持有它的人可以更新或删除你的站点。"
       }
     },
     {
@@ -40,6 +40,12 @@
       "tone": "warning",
       "title": "已发布页面是公开的",
       "content": "任何拿到链接的人都能打开已发布页面，请不要发布密钥或隐私数据。免费站点有大小和数量限制，并会显示一个小的 deed.page 链接。"
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "付款和公开发布由你确认",
+      "content": "使用 deed.page 时可能出现第三方付款或推广链接，例如达到免费版限制时的升级链接。任何付款或公开发布都请你自己确认。"
     },
     {
       "type": "links",
