@@ -35,7 +35,7 @@ CI-owned. Explicit `--core-version` and `--gemini-version` select a reviewed sta
 `--allow-major`. Downgrades and changed hashes at unchanged asset URLs are rejected. For example:
 
 ```bash
-node scripts/update-cli-proxy-api.mjs --core-version 8.0.17 --gemini-version 1.0.5 --allow-major --write
+node scripts/update-cli-proxy-api.mjs --core-version 8.0.52 --gemini-version 1.0.5 --allow-major --write
 ```
 
 Runtime updates go through a normal source PR into `main`. `cli-proxy-api-runtime.yml` runs plugin checks and the real
@@ -43,7 +43,7 @@ core/Gemini combination on all six supported platforms. It never merges or publi
 
 ### CPA 8 integration
 
-The current development source pins CPA 8.0.17 and Gemini CLI 1.0.5. Core management calls use `/v8/management`, including the shared
+The current development source pins CPA 8.0.52 and Gemini CLI 1.0.5. Core management calls use `/v8/management`, including the shared
 `oauth/auth-url?provider=...` route. Codex, Claude and Antigravity retain `is_webui=true` for callback forwarding; Devin uses CPA's direct loopback callback. Meta and Kimi.ai use device authorization.
 The config template uses the v8 sections: `server`, `management`, `access`, `oauth`, `requests`, `observability`, and
 `routing.retry`. Client keys belong to `access.api-keys`, not the upstream-provider `api-keys` groups. Retries remain
@@ -109,7 +109,7 @@ manifest digest again, atomically installs the version, and supervises the proce
 
 ### Local validation (2026-10-07)
 
-The darwin-arm64 core 8.0.17 + Gemini 1.0.5 combination passed the isolated canary, including all eleven model channels,
+The darwin-arm64 core 8.0.52 + Gemini 1.0.5 combination passed the isolated canary, including all eleven model channels,
 four text protocol adapters, SSE cancellation, image input forwarding, tools, single-attempt errors and restart persistence.
 The darwin-x64 combination **failed under Rosetta** at `GeminiCLIPluginCall`, with Go runtime
 `unexpected return pc for runtime.cgocallback`. Reproduced with and without `GODEBUG=asyncpreemptoff=1`.

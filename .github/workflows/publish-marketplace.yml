@@ -19,11 +19,11 @@ jobs:
     outputs:
       tooling: ${{ steps.tooling.outputs.commit }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22.21.1
       - run: node scripts/marketplace.mjs check
@@ -40,7 +40,7 @@ jobs:
       - name: Resolve publication tool revision
         id: tooling
         run: echo "commit=$(node -p 'require("./.vetta/publish.json").toolingCommit')" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: openvetta/open-vetta
           ref: ${{ steps.tooling.outputs.commit }}
@@ -63,17 +63,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22.21.1
       - uses: actions/download-artifact@v4
         with:
           name: marketplace-candidate
           path: .marketplace-build
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: openvetta/open-vetta
           ref: ${{ needs.build.outputs.tooling }}
