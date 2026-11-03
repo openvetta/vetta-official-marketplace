@@ -2,7 +2,7 @@
   "id": "cli-proxy-api",
   "name": "%name%",
   "icon": "assets/nav-icon.png",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "pluginApiVersion": "^2.4.0",
   "entry": "dist/mf-manifest.json",
   "styles": [
@@ -33,13 +33,13 @@
       {
         "id": "proxy",
         "runtime": {
-          "version": "8.0.17+gemini.1.0.5",
+          "version": "8.0.52+gemini.1.0.5",
           "platforms": {
             "win32-x64": {
               "executable": "core/cli-proxy-api.exe",
               "artifacts": [
                 {
-                  "sha256": "fbac0be6fd4ac72e0df91c5fd9eac39246d0d8e356d1d624b2603bdf5859dea0",
+                  "sha256": "395324dd124bd657bccd5fdf06119587cd7c87bddacff191d5f45431e8f08d23",
                   "archive": "zip",
                   "destination": "core"
                 },
@@ -54,7 +54,7 @@
               "executable": "core/cli-proxy-api.exe",
               "artifacts": [
                 {
-                  "sha256": "3246eb72ca172e82f5f13756b1b73fd1827d65ada4d7b4fc7cb226513ee0c229",
+                  "sha256": "a487322a50ecf83b8184b4fb07ec87b686d3211ea89f9baffe0498be8cb2a999",
                   "archive": "zip",
                   "destination": "core"
                 },
@@ -69,7 +69,7 @@
               "executable": "core/cli-proxy-api",
               "artifacts": [
                 {
-                  "sha256": "540148a4f01ee297dcb5c6c99df8dc9be68c011ead4ff0751dc8c41b5485ad80",
+                  "sha256": "a9f91c8ae68536b43a6e34178bcc9bd3233c4f684e4b83015ca331eebf5292bb",
                   "archive": "tar.gz",
                   "destination": "core"
                 },
@@ -84,7 +84,7 @@
               "executable": "core/cli-proxy-api",
               "artifacts": [
                 {
-                  "sha256": "d4952068c413060e3a8c082cc616fee707c701a01bebec59c45903bce402be9d",
+                  "sha256": "2294797c40ca0dffb89984e88efb242378cd538f3086ab301ad733c7c0c151c9",
                   "archive": "tar.gz",
                   "destination": "core"
                 },
@@ -99,7 +99,7 @@
               "executable": "core/cli-proxy-api",
               "artifacts": [
                 {
-                  "sha256": "b121a58ee643a7a76b1bf3f757bef75a99660d17fe5afe089bf8a5c1afcd90d3",
+                  "sha256": "4f8855647b3107b83e6b4a2d9418f95d8c53c57827b7f0910cf5ee9c849ff88b",
                   "archive": "tar.gz",
                   "destination": "core"
                 },
@@ -114,7 +114,7 @@
               "executable": "core/cli-proxy-api",
               "artifacts": [
                 {
-                  "sha256": "b90e3ad0868cc45624dd0a259a1ebcc23ea7c7ba87426656bafeb4bd738dd7f4",
+                  "sha256": "1f231e6a76f1324b48f9712066b88e81f6de3fe21b29ce897069c36242510eb7",
                   "archive": "tar.gz",
                   "destination": "core"
                 },

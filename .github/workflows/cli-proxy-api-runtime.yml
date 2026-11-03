@@ -28,10 +28,10 @@ jobs:
           - { platform: win32-x64, runner: windows-2025 }
           - { platform: win32-arm64, runner: windows-11-arm }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22.21.1
       - uses: actions/setup-python@v5
