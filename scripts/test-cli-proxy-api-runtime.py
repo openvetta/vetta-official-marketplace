@@ -169,8 +169,10 @@ api-keys:
     config_path = runtime / "config.yaml"
     config_path.write_text(config)
     config_path.chmod(0o600)
-    env = {key: value for key, value in os.environ.items() if key in {
-        "PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "LANG", "LC_ALL"
+    # Windows env var names are case-insensitive and Python upper-cases them,
+    # so compare upper-cased names (SYSTEMROOT is required for Winsock).
+    env = {key: value for key, value in os.environ.items() if key.upper() in {
+        "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "LANG", "LC_ALL"
     }}
 
     local_http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
