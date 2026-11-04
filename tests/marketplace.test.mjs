@@ -398,7 +398,7 @@ test("Notion uses the official hosted endpoint with user browser authorization o
 test("deed.page uses its hosted endpoint, a bundled icon and an optional secret owner token", () => {
   const ability = bySlug.get("deed-page");
   assert.equal(ability?.type, "mcp");
-  assert.equal(ability.author, "deed.page (Avatar 8 LLC)");
+  assert.equal(ability.author, "Avatar 8 LLC / @f-o-x11");
   const directory = packageFile(root, ability.source.path);
   const presentation = readJson(packageFile(directory, "ability.json"));
   assert.equal(presentation.icon, "assets/icon.svg");

@@ -11,10 +11,14 @@
     "meta": [
       {
         "label": "Author",
-        "value": "deed.page (Avatar 8 LLC)"
+        "value": "Avatar 8 LLC / @f-o-x11"
       },
       {
         "key": "homepage",
+        "value": "https://deed.page"
+      },
+      {
+        "key": "docs",
         "value": "https://deed.page/docs"
       },
       {
@@ -28,10 +32,14 @@
         "meta": [
           {
             "label": "作者",
-            "value": "deed.page（Avatar 8 LLC）"
+            "value": "Avatar 8 LLC / @f-o-x11"
           },
           {
             "key": "homepage",
+            "value": "https://deed.page"
+          },
+          {
+            "key": "docs",
             "value": "https://deed.page/docs"
           },
           {
