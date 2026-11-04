@@ -46,15 +46,6 @@
       "tone": "info",
       "title": "You confirm payments and public posts",
       "content": "A third-party payment or promotional link may appear while you use deed.page, for example an upgrade link when a Free plan limit is reached. Confirm any payment or public post yourself."
-    },
-    {
-      "type": "links",
-      "title": "Resources",
-      "items": [
-        { "label": "deed.page documentation", "href": "https://deed.page/docs" },
-        { "label": "deed.page agent skill (MIT)", "href": "https://github.com/f-o-x11/deed-page-skill" },
-        { "label": "Technical setup", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/deed-page/README.md" }
-      ]
     }
   ]
 }
