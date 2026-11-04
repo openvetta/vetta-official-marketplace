@@ -46,15 +46,6 @@
       "tone": "info",
       "title": "付款和公开发布由你确认",
       "content": "使用 deed.page 时可能出现第三方付款或推广链接，例如达到免费版限制时的升级链接。任何付款或公开发布都请你自己确认。"
-    },
-    {
-      "type": "links",
-      "title": "相关资源",
-      "items": [
-        { "label": "deed.page 文档", "href": "https://deed.page/docs" },
-        { "label": "deed.page Agent 技能（MIT）", "href": "https://github.com/f-o-x11/deed-page-skill" },
-        { "label": "技术说明", "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/mcp/deed-page/README.zh.md" }
-      ]
     }
   ]
 }
