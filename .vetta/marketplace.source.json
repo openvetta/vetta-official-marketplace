@@ -503,7 +503,7 @@
       "slug": "deed-page",
       "name": "deed.page",
       "description": "Publish HTML pages and small static sites that Vetta builds to a public URL, then update or delete them. No account or API key needed.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "configVersion": 1,
       "author": "Avatar 8 LLC / @f-o-x11",
       "category": "Development",
