@@ -395,6 +395,50 @@ test("Notion uses the official hosted endpoint with user browser authorization o
   }
 });
 
+test("deed.page uses its hosted endpoint, a bundled icon and an optional secret owner token", () => {
+  const ability = bySlug.get("deed-page");
+  assert.equal(ability?.type, "mcp");
+  assert.equal(ability.author, "Avatar 8 LLC / @f-o-x11");
+  const directory = packageFile(root, ability.source.path);
+  const presentation = readJson(packageFile(directory, "ability.json"));
+  assert.equal(presentation.icon, "assets/icon.svg");
+  const icon = readFileSync(packageFile(directory, presentation.icon), "utf8");
+  assert.match(icon, /^<svg[\s>]/u);
+  assert.doesNotMatch(icon, /<script|\bon\w+=|href=/iu);
+
+  const mcp = readJson(packageFile(directory, "mcp.json"));
+  assert.deepEqual(mcp.server, {
+    type: "http",
+    url: "https://deed.page/mcp",
+  });
+  assert.equal(mcp.parameters.length, 1);
+  const [token] = mcp.parameters;
+  assert.equal(token.key, "Authorization");
+  assert.equal(token.required, false);
+  assert.equal(token.secret, true);
+  assert.equal(token.valueTemplate, "Bearer {value}");
+  assert.equal(mcp.browserAuth, false);
+  assert.equal("runtime" in mcp, false);
+  assert.equal("autoApprove" in mcp.server, false);
+
+  for (const path of ["README.md", "README.zh.md"]) {
+    const text = readFileSync(packageFile(directory, path), "utf8");
+    assert.doesNotMatch(text, /permanent|长期保留|永久/u, path);
+    assert.match(text, /no scheduled expiry|没有预定到期时间/u, path);
+  }
+
+  for (const path of ["detail.json", "detail.zh.json"]) {
+    const { blocks } = readJson(packageFile(directory, path));
+    const text = JSON.stringify(blocks);
+    assert.match(text, /public|公开/u);
+    assert.match(text, /payment|付款/u);
+    assert.match(text, /confirm|确认/u);
+    const showcase = blocks.find((block) => block.type === "showcase");
+    assert.match(showcase.showcase.assistant_reply, /private|私密/u);
+    assert.match(showcase.showcase.assistant_reply, /connection settings|连接设置/u);
+  }
+});
+
 test("Cloudflare is one listed bundle with five independently installable members", () => {
   const bundle = bySlug.get("cloudflare-developer-platform");
   assert.equal(bundle?.type, "bundle");

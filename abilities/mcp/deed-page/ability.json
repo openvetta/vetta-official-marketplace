@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "type": "mcp",
+  "slug": "deed-page",
+  "version": "1.0.0",
+  "icon": "assets/icon.svg",
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "fallback": "README.md",
+    "meta": [
+      {
+        "label": "Author",
+        "value": "Avatar 8 LLC / @f-o-x11"
+      },
+      {
+        "key": "homepage",
+        "value": "https://deed.page"
+      },
+      {
+        "key": "docs",
+        "value": "https://deed.page/docs"
+      },
+      {
+        "key": "repository",
+        "value": "https://github.com/f-o-x11/deed-page-skill"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "meta": [
+          {
+            "label": "作者",
+            "value": "Avatar 8 LLC / @f-o-x11"
+          },
+          {
+            "key": "homepage",
+            "value": "https://deed.page"
+          },
+          {
+            "key": "docs",
+            "value": "https://deed.page/docs"
+          },
+          {
+            "key": "repository",
+            "value": "https://github.com/f-o-x11/deed-page-skill"
+          }
+        ]
+      }
+    }
+  }
+}

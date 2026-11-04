@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "slug": "deed-page",
+  "version": "1.0.0",
+  "server": {
+    "type": "http",
+    "url": "https://deed.page/mcp"
+  },
+  "parameters": [
+    {
+      "key": "Authorization",
+      "label": "deed.page owner token (optional)",
+      "required": false,
+      "secret": true,
+      "placeholder": "deed_tok_…",
+      "helpUrl": "https://deed.page/docs",
+      "valueTemplate": "Bearer {value}"
+    }
+  ],
+  "browserAuth": false
+}
