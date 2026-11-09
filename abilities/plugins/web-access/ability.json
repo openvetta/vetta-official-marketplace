@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "web-access",
+  "version": "1.0.0",
+  "icon": "assets/icon.png",
+  "name": "Web Access",
+  "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",
+  "configVersion": 1,
+  "license": "MIT",
+  "author": "Vetta",
+  "category": "Research",
+  "categoryI18n": {
+    "zh": "研究",
+    "en": "Research"
+  },
+  "tags": [
+    "web-search",
+    "search",
+    "fetch",
+    "research",
+    "exa",
+    "brave",
+    "tavily",
+    "searxng"
+  ],
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "docs",
+        "value": "https://github.com/openvetta/vetta-official-marketplace/tree/main/abilities/plugins/web-access"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "网页访问",
+        "description": "在对话里搜索网页、读取页面与 PDF——默认免密钥可用，也可以填自己的搜索与阅读服务密钥。",
+        "tags": [
+          "网页搜索",
+          "搜索",
+          "抓取",
+          "研究",
+          "Exa",
+          "Brave",
+          "Tavily",
+          "SearXNG"
+        ]
+      }
+    }
+  }
+}
