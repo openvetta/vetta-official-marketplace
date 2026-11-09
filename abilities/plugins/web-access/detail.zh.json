@@ -13,12 +13,6 @@
       ]
     },
     {
-      "type": "image",
-      "src": "assets/settings-preview.png",
-      "alt": "搜索、读页、密钥与真实连接的测试都在同一页。",
-      "caption": "搜索、读页、密钥与真实连接的测试都在同一页。"
-    },
-    {
       "type": "showcase",
       "showcase": {
         "template": "chat-thread",
