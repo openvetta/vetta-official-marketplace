@@ -52,9 +52,9 @@ The settings page is a workspace view with `sidebar: false`, so it lives under
 that page; the surrounding story in `detail.json` / `detail.zh.json` ships with the marketplace
 distribution (a local `vetta-plugin-cli add` install only loads the packaged runtime card).
 
-`assets/settings-preview.png` is the product screenshot used by the detail page. It is rendered from
-the plugin's own components through `dist/style.css`, not hand-drawn — regenerate it when the layout
-changes.
+The detail page is text and layout blocks only. It carries no screenshots on purpose: the runtime
+card above is the live half of that page, and a static picture of the settings screen would be stale
+the first time the layout changes.
 
 ## Safety boundaries
 

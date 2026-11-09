@@ -13,12 +13,6 @@
       ]
     },
     {
-      "type": "image",
-      "src": "assets/settings-preview.png",
-      "alt": "One page for search, page reading, keys and a live connection test.",
-      "caption": "One page for search, page reading, keys and a live connection test."
-    },
-    {
       "type": "showcase",
       "showcase": {
         "template": "chat-thread",
