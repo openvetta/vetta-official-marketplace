@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "联网访问",
+      "title": "拿到当下的答案，还留着出处",
+      "description": "网页访问给 agent 两项能力：搜索公开网页，以及把页面或 PDF 读到正文。装完即用——默认的免费搜索不需要密钥；想用自己的额度或索引时，可以换成自己的服务或私有 SearXNG 实例。",
+      "badges": [
+        "默认免费",
+        "搜索与读页",
+        "可填自己的密钥或实例"
+      ]
+    },
+    {
+      "type": "image",
+      "src": "assets/settings-preview.png",
+      "alt": "搜索、读页、密钥与真实连接的测试都在同一页。",
+      "caption": "搜索、读页、密钥与真实连接的测试都在同一页。"
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "从这三个笔记应用的官网比较它们当前的定价。",
+        "assistant_reply": "我先找到各自的价格页，然后三篇都读了。两家公布月付价格，第三家只有年付方案，所以我按年报价而不是替你换算成月。来源：app-one.com/pricing、app-two.com/plans、app-three.com/billing——数字取自今天的页面，不是缓存摘要。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "title": "不用配置就能搜",
+          "description": "免费的 Exa 接口开箱可用，新装的插件立刻能查资料，不需要账号或密钥。",
+          "icon": "solar:magnifier-linear"
+        },
+        {
+          "title": "读正文，而不只是摘要",
+          "description": "web_fetch 把文章、文档页或 PDF 转成干净的 Markdown，长度由你设定。",
+          "icon": "solar:document-text-linear"
+        },
+        {
+          "title": "接自己的服务",
+          "description": "可以填 Exa、Brave、Tavily、博查的密钥，也可以指向你自己搭的 SearXNG 实例。",
+          "icon": "solar:key-linear"
+        },
+        {
+          "title": "自动回退",
+          "description": "先试已配置的服务；返回空结果或密钥被拒时会继续往后走，而不是让这一轮直接失败。",
+          "icon": "solar:routing-2-linear"
+        },
+        {
+          "title": "默认收住本机与内网",
+          "description": "localhost 与局域网地址默认禁止读取，托管读取可以关掉。页面无法直连时，插件会说明是哪个读取服务看到了地址。",
+          "icon": "solar:shield-check-linear"
+        },
+        {
+          "title": "一页就能验证",
+          "description": "「设置 → 更多选项 → 网页访问」会用屏幕上的配置真实搜一次，密钥不对时当场看到服务返回的原因。",
+          "icon": "solar:settings-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "安装插件",
+          "description": "默认的免费搜索直接可用，不需要注册任何东西。"
+        },
+        {
+          "title": "直接提问，或丢一个链接",
+          "description": "「最近这个版本改了什么？」会让 agent 去搜；「读一下这个页面，把数字和出处给我」会让它读你贴的链接。"
+        },
+        {
+          "title": "只有想用自己的服务时才填密钥",
+          "description": "在「设置 → 更多选项 → 网页访问」里填服务密钥、换成 SearXNG、关闭托管读取，或允许读取本机地址。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "默认的免费搜索会把关键词发给 Exa。读页通常从你的机器直接发出；如果页面依赖 JavaScript、拦截机器人或是 PDF，地址会交给 Exa 的读取服务（配置了 Jina 时也会尝试它），除非你关闭回退。页面内容、密钥和设置都留在本机。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "label": "接入与排错说明",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/tree/main/abilities/plugins/web-access"
+        },
+        {
+          "label": "Exa",
+          "href": "https://exa.ai"
+        },
+        {
+          "label": "SearXNG",
+          "href": "https://docs.searxng.org"
+        }
+      ]
+    }
+  ]
+}

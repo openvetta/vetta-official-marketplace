@@ -996,7 +996,76 @@
           }
         }
       ]
+    },
+    {
+      "type": "plugin",
+      "slug": "web-access",
+      "name": "Web Access",
+      "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",
+      "version": "1.0.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Research",
+      "categoryI18n": {
+        "zh": "研究",
+        "en": "Research"
+      },
+      "tags": [
+        "web-search",
+        "search",
+        "fetch",
+        "research",
+        "exa",
+        "brave",
+        "tavily",
+        "searxng"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "网页访问",
+            "description": "在对话里搜索网页、读取页面与 PDF——默认免密钥可用，也可以填自己的搜索与阅读服务密钥。",
+            "tags": [
+              "网页搜索",
+              "搜索",
+              "抓取",
+              "研究",
+              "Exa",
+              "Brave",
+              "Tavily",
+              "SearXNG"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/web-access"
+      },
+      "releases": [
+        {
+          "version": "1.0.0",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.4.0",
+          "permissions": [
+            "agent.tools.register",
+            "agent.toolHandler.execute",
+            "ui.slot.workspace-view",
+            "ui.slot.ability-detail",
+            "storage.read",
+            "storage.write",
+            "secrets.read",
+            "secrets.write",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-web-access/web-access-1.0.0.vettapkg",
+            "sha256": "9a4022df49b48913091c8be9ad30d743830bdf464bff4a789a46c161fca2221f"
+          }
+        }
+      ]
     }
   ],
-  "marketplaceVersion": "2026.11.04-2"
+  "marketplaceVersion": "2026.11.09-1"
 }

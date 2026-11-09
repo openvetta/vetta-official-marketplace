@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Web access",
+      "title": "Current answers, with the sources still attached",
+      "description": "Web Access gives the agent two abilities: search the public web, and read a page or PDF down to the paragraph. It works the moment you install it — the free default needs no key — and you can point it at your own provider or private SearXNG instance when you want your own quota or index.",
+      "badges": [
+        "Free by default",
+        "Search and page reading",
+        "Your own keys or instance"
+      ]
+    },
+    {
+      "type": "image",
+      "src": "assets/settings-preview.png",
+      "alt": "One page for search, page reading, keys and a live connection test.",
+      "caption": "One page for search, page reading, keys and a live connection test."
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "user_prompt": "Compare the current pricing of these three note-taking apps from their official pages.",
+        "assistant_reply": "I searched for each product's pricing page, then read all three. Two publish a monthly price; the third only lists an annual plan, so I am quoting it per year instead of converting it. Sources: app-one.com/pricing, app-two.com/plans, app-three.com/billing — the numbers are from today's pages, not from a cached snippet."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "title": "Search without setup",
+          "description": "The free Exa endpoint answers immediately, so a fresh install can already look things up. No account, no key.",
+          "icon": "solar:magnifier-linear"
+        },
+        {
+          "title": "Read the page, not just the snippet",
+          "description": "web_fetch turns an article, docs page or PDF into clean Markdown, with the character budget you set.",
+          "icon": "solar:document-text-linear"
+        },
+        {
+          "title": "Bring your own provider",
+          "description": "Add an Exa, Brave, Tavily or Bocha key, or point the plugin at a SearXNG instance you run yourself.",
+          "icon": "solar:key-linear"
+        },
+        {
+          "title": "Automatic fallback",
+          "description": "Configured providers are tried first; an empty result or a rejected key falls through to the free one instead of ending the turn.",
+          "icon": "solar:routing-2-linear"
+        },
+        {
+          "title": "Private by default, with a switch",
+          "description": "localhost and LAN addresses are blocked, and hosted readers are opt-out. When a page cannot be read directly, the plugin tells you which reader saw the URL.",
+          "icon": "solar:shield-check-linear"
+        },
+        {
+          "title": "One page to test it",
+          "description": "Settings → More options → Web Access runs a real query with the values on screen, so a bad key shows its own error before you rely on it.",
+          "icon": "solar:settings-linear"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Install the plugin",
+          "description": "Search and page reading work with the free default. Nothing to register."
+        },
+        {
+          "title": "Ask, or hand it a URL",
+          "description": "“What changed in the latest release?” makes the agent search. “Read this page and give me the numbers, with sources” makes it fetch the page you pasted."
+        },
+        {
+          "title": "Add a key only if you want one",
+          "description": "Open Settings → More options → Web Access to add a provider key, switch to SearXNG, turn off hosted readers, or allow local addresses."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "The free default search sends your query to Exa. Reading a page normally goes straight from your machine; if the page is JavaScript-heavy, blocks bots, or is a PDF, the URL is sent to Exa's reader (and to Jina when you configured it) unless you turn the fallback off. Page content, keys and settings stay on this machine."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "label": "Setup and provider notes",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/tree/main/abilities/plugins/web-access"
+        },
+        {
+          "label": "Exa",
+          "href": "https://exa.ai"
+        },
+        {
+          "label": "SearXNG",
+          "href": "https://docs.searxng.org"
+        }
+      ]
+    }
+  ]
+}
