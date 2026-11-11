@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Long-term memory",
+      "title": "An AI that remembers you between conversations",
+      "description": "Memory keeps your preferences, decisions and project conventions, a daily work log and a checklist of follow-ups. They reach the AI at the start of every turn, so you stop repeating yourself.",
+      "badges": [
+        "Stays on your device",
+        "Per-project memories",
+        "Undo any deletion",
+        "No setup"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "docs",
+        "user_prompt": "Remember that I always use pnpm in this repo, never npm.",
+        "assistant_reply": "Saved as a project memory: \"Always use pnpm in this repo, never npm.\" It will be there in every new conversation here. You can review, edit or pin it on the Memory page."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:brain-linear",
+          "title": "Long-term memory",
+          "description": "Preferences, facts, decisions and lessons. Global, or tied to one project. Pin the ones that must always apply."
+        },
+        {
+          "icon": "solar:notebook-bookmark-linear",
+          "title": "Daily log",
+          "description": "What was done and decided each day. A short summary is added when a session ends, and open work is handed off before the context is compacted."
+        },
+        {
+          "icon": "solar:checklist-minimalistic-linear",
+          "title": "Checklist",
+          "description": "Unfinished work and follow-ups. Open items are shown to the AI every turn so nothing slips."
+        },
+        {
+          "icon": "solar:magnifer-linear",
+          "title": "Search that finds it",
+          "description": "Keyword search over memories, past logs and the checklist, by word, #tag or [[link]], in English or Chinese."
+        },
+        {
+          "icon": "solar:history-linear",
+          "title": "Safe to delete",
+          "description": "Anything you or the AI forgets goes to Recently deleted and can be restored."
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "Private by design",
+          "description": "Stored locally. Passwords, keys and tokens are refused. Automatic learning is off by default."
+        }
+      ]
+    },
+    {
+      "type": "markdown",
+      "content": "## How to use it\n\nJust talk to the AI. Memory tools run automatically.\n\n| You say | What happens |\n| --- | --- |\n| \"Remember that…\" | Saved to long-term memory |\n| \"What do you remember about me?\" | The AI reads and summarizes your memories |\n| \"Forget what I said about npm\" | Deleted, and can be restored from Recently deleted |\n| \"Add *review the release notes* to my checklist\" | Added to the checklist |\n| \"What did we do yesterday?\" | The AI reads the daily log |\n| \"Log it: we chose PostgreSQL\" | Added to today's log |\n\n**Daily log** is the diary of what happened. **Checklist** is what still needs doing. **Long-term memory** is what stays true. Open the Memory page (sidebar, under More) to browse, search, edit, pin and restore, or to change settings."
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "Install and enable Memory",
+          "description": "Grant the permissions it asks for. No account or key is needed."
+        },
+        {
+          "title": "Tell the AI what to remember",
+          "description": "Say \"remember that…\" in any conversation, or add memories on the Memory page."
+        },
+        {
+          "title": "Start a new conversation",
+          "description": "The AI already knows what you saved. Manage everything on the Memory page."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "Memories are added to the prompt, so the AI provider you chat with sees the ones that are included. Automatic learning and session summaries are optional and use your own model quota."
+    },
+    {
+      "type": "callout",
+      "tone": "success",
+      "content": "Inspired by pi-memory, the memory extension for the pi coding agent: durable memory, a daily log, a scratchpad, recoverable deletion and a cache-stable prompt. Memory adapts these ideas to Vetta and adds project scope, pinning and a management page. Search is keyword-based; there is no semantic search."
+    },
+    {
+      "type": "links",
+      "title": "Learn more",
+      "items": [
+        {
+          "label": "pi-memory on npm (the plugin that inspired this one)",
+          "href": "https://www.npmjs.com/package/pi-memory"
+        },
+        {
+          "label": "How Memory maps to pi-memory, and what differs",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
+        }
+      ]
+    }
+  ]
+}
