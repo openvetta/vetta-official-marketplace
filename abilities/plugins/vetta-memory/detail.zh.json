@@ -87,20 +87,6 @@
       "type": "callout",
       "tone": "success",
       "content": "设计参考了 pi 编程助手的记忆扩展 pi-memory:长期记忆、每日日志、待办、可恢复的删除和缓存稳定的提示词。本插件把这些思路适配到 Vetta,并加入按项目记忆、置顶和管理页面。检索基于关键词,没有语义搜索。"
-    },
-    {
-      "type": "links",
-      "title": "了解更多",
-      "items": [
-        {
-          "label": "npm 上的 pi-memory(本插件的灵感来源)",
-          "href": "https://www.npmjs.com/package/pi-memory"
-        },
-        {
-          "label": "本插件与 pi-memory 的对应关系和差异",
-          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
-        }
-      ]
     }
   ]
 }
