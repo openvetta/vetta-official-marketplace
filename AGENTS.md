@@ -56,8 +56,9 @@ npm run build                      # v3 本地预检可打包；正式 .vettapkg
 SDK 手册随 `@vetta-org/plugin-sdk` 装进各插件自己的 `node_modules`，因此读到的合同与该插件
 实际编译的版本一致。**不要硬编码 node_modules 路径**，用上面的命令解析。
 
-> 现状：四个插件钉的都是 `^0.1.1` / `^0.2.0`，**早于手册随包发布的 0.3.1**，所以 `docs` 现在
-> 都报找不到。升到 `^0.3.1` 才能用上，但那是跨 0.3.0 破坏性变更的升级，需要逐个插件评估。
+> 现状：8 个插件统一钉 `@vetta-org/plugin-sdk@^0.3.11`、`@vetta-org/plugin-cli@^0.1.7`、
+> `@vetta-org/plugin-vite@^0.2.4`，手册随包装好，`docs` 可直接用。升级 SDK 后用
+> `npx vetta-plugin-cli docs --check-latest` 核对手册是否落后；落后就按它打印的命令升级再重读。
 
 新建插件工程（仓库根没有 `node_modules`，用全名）：
 

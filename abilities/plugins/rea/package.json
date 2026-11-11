@@ -16,7 +16,7 @@
   "devDependencies": {
     "@types/node": "^22.10.5",
     "@vetta-org/plugin-cli": "^0.1.7",
-    "@vetta-org/plugin-sdk": "^0.3.7",
+    "@vetta-org/plugin-sdk": "^0.3.11",
     "@vetta-org/plugin-vite": "^0.2.4",
     "happy-dom": "^20.11.1",
     "typescript": "^5.9.2",
