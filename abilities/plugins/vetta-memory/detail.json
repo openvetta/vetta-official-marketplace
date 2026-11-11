@@ -87,20 +87,6 @@
       "type": "callout",
       "tone": "success",
       "content": "Inspired by pi-memory, the memory extension for the pi coding agent: durable memory, a daily log, a scratchpad, recoverable deletion and a cache-stable prompt. Memory adapts these ideas to Vetta and adds project scope, pinning and a management page. Search is keyword-based; there is no semantic search."
-    },
-    {
-      "type": "links",
-      "title": "Learn more",
-      "items": [
-        {
-          "label": "pi-memory on npm (the plugin that inspired this one)",
-          "href": "https://www.npmjs.com/package/pi-memory"
-        },
-        {
-          "label": "How Memory maps to pi-memory, and what differs",
-          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
-        }
-      ]
     }
   ]
 }
