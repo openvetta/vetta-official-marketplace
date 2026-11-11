@@ -10,8 +10,28 @@
     "fallback": "README.md",
     "i18n": {
       "zh": {
-        "path": "detail.zh.json"
+        "path": "detail.zh.json",
+        "meta": [
+          {
+            "label": "设计参考",
+            "value": "https://www.npmjs.com/package/pi-memory"
+          },
+          {
+            "label": "文档",
+            "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
+          }
+        ]
       }
-    }
+    },
+    "meta": [
+      {
+        "label": "Inspired by",
+        "value": "https://www.npmjs.com/package/pi-memory"
+      },
+      {
+        "label": "Docs",
+        "value": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
+      }
+    ]
   }
 }
