@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "长期记忆",
+      "title": "跨对话记住你的 AI",
+      "description": "记忆会保存你的偏好、决定和项目约定,还有每日工作日志和待办清单。每轮对话开始时这些内容会提供给 AI,你不用再重复交代。",
+      "badges": [
+        "保存在本机",
+        "按项目记忆",
+        "删除可撤销",
+        "无需配置"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "docs",
+        "user_prompt": "记住:这个仓库我一直用 pnpm,从不用 npm。",
+        "assistant_reply": "已记为项目记忆:“这个仓库一直用 pnpm,从不用 npm。”之后在这里开的每个新对话都会带上它。你可以在“记忆”页面查看、编辑或置顶。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        {
+          "icon": "solar:brain-linear",
+          "title": "长期记忆",
+          "description": "偏好、事实、决定和经验。对所有项目生效,或只属于某个项目。必须始终生效的可以置顶。"
+        },
+        {
+          "icon": "solar:notebook-bookmark-linear",
+          "title": "每日日志",
+          "description": "记录每天做了什么、定了什么。会话结束时补一段总结,上下文压缩前自动交接未完成的事。"
+        },
+        {
+          "icon": "solar:checklist-minimalistic-linear",
+          "title": "待办清单",
+          "description": "没做完的工作和后续事项。未完成条目每轮都会提供给 AI,不会被遗忘。"
+        },
+        {
+          "icon": "solar:magnifer-linear",
+          "title": "找得到",
+          "description": "按关键词、#标签或 [[链接]] 搜索记忆、过往日志和待办,中英文都支持。"
+        },
+        {
+          "icon": "solar:history-linear",
+          "title": "放心删",
+          "description": "你或 AI 忘记的内容都进入“最近删除”,可随时恢复。"
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "默认保护隐私",
+          "description": "保存在本机。密码、密钥和令牌会被拒绝保存。自动学习默认关闭。"
+        }
+      ]
+    },
+    {
+      "type": "markdown",
+      "content": "## 怎么用\n\n直接和 AI 说话就行,记忆工具会自动调用。\n\n| 你说 | 会发生什么 |\n| --- | --- |\n| “记住……” | 存入长期记忆 |\n| “你记得我哪些事?” | AI 读取并总结你的记忆 |\n| “忘掉我说过的 npm” | 删除,可在“最近删除”恢复 |\n| “把*检查发布说明*加到待办” | 加入待办清单 |\n| “我们昨天做了什么?” | AI 读取每日日志 |\n| “记一下:我们选了 PostgreSQL” | 写入今天的日志 |\n\n**每日日志**是发生过什么的流水账,**待办**是还要做什么,**长期记忆**是长期成立的事。从侧边栏(“更多”里)打开“记忆”页面,可以浏览、搜索、编辑、置顶、恢复,也能调整设置。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        {
+          "title": "安装并启用记忆",
+          "description": "授予它请求的权限即可,不需要账号或密钥。"
+        },
+        {
+          "title": "告诉 AI 要记住什么",
+          "description": "在任意对话里说“记住……”,或在“记忆”页面手动添加。"
+        },
+        {
+          "title": "开一个新对话",
+          "description": "AI 已经知道你保存的内容。所有记忆都能在“记忆”页面管理。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "记忆会被加入提示词,因此你所用的 AI 服务商能看到被带上的那部分记忆。自动学习和会话总结是可选的,会使用你自己的模型额度。"
+    },
+    {
+      "type": "callout",
+      "tone": "success",
+      "content": "设计参考了 pi 编程助手的记忆扩展 pi-memory:长期记忆、每日日志、待办、可恢复的删除和缓存稳定的提示词。本插件把这些思路适配到 Vetta,并加入按项目记忆、置顶和管理页面。检索基于关键词,没有语义搜索。"
+    },
+    {
+      "type": "links",
+      "title": "了解更多",
+      "items": [
+        {
+          "label": "npm 上的 pi-memory(本插件的灵感来源)",
+          "href": "https://www.npmjs.com/package/pi-memory"
+        },
+        {
+          "label": "本插件与 pi-memory 的对应关系和差异",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/vetta-memory/README.md"
+        }
+      ]
+    }
+  ]
+}
