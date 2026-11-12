@@ -1,0 +1,9 @@
+{
+  "plugin.name": "Vetta Ego",
+  "plugin.description": "让智能体使用 ego 浏览器（包括你已登录的网站），并让它成为浏览器操作与 Web 应用测试的默认选择。",
+  "skill.browser.name": "Vetta Ego",
+  "skill.browser.description": "在 ego 浏览器中打开并操作网站、填写表单、登录、截图、提取页面数据、测试 Web 应用。",
+  "guidingWords.test": "用 ego 打开我本地的开发服务，端到端测一遍注册流程。",
+  "guidingWords.login": "用我已登录的会话，把这个后台最近 10 笔订单整理出来。",
+  "guidingWords.extract": "给这个页面截图，并提取其中的价格表。"
+}

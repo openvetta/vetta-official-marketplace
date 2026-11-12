@@ -717,6 +717,47 @@
     },
     {
       "type": "plugin",
+      "slug": "ego",
+      "name": "Vetta Ego",
+      "description": "Let the agent use the ego browser — your own logged-in sites included — and make it the default for browser work and web app testing.",
+      "version": "0.1.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Browser",
+      "categoryI18n": {
+        "zh": "浏览器",
+        "en": "Browser"
+      },
+      "tags": [
+        "browser",
+        "automation",
+        "testing",
+        "qa",
+        "ego"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Vetta Ego",
+            "description": "让智能体使用 ego 浏览器（包括你已登录的网站），并让它成为浏览器操作与 Web 应用测试的默认选择。",
+            "tags": [
+              "浏览器",
+              "自动化",
+              "测试",
+              "QA",
+              "ego"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/ego"
+      },
+      "minAppVersion": "0.5.60"
+    },
+    {
+      "type": "plugin",
       "slug": "web-access",
       "name": "Web Access",
       "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",
