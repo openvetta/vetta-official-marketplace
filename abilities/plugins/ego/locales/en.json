@@ -1,0 +1,9 @@
+{
+  "plugin.name": "Vetta Ego",
+  "plugin.description": "Let the agent use the ego browser — your own logged-in sites included — and make it the default for browser work and web app testing.",
+  "skill.browser.name": "Vetta Ego",
+  "skill.browser.description": "Open and operate websites, fill forms, sign in, take screenshots, extract page data and test web apps in the ego browser.",
+  "guidingWords.test": "Open my local dev server in ego and test the sign-up flow end to end.",
+  "guidingWords.login": "Using my logged-in session, collect the last 10 orders from this dashboard.",
+  "guidingWords.extract": "Take a screenshot of this page and extract its pricing table."
+}

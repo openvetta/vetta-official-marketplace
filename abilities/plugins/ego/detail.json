@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Vetta Ego",
+      "title": "A browser your agent can really use",
+      "description": "Ego is a Chromium browser built for people and agents together. With this plugin, Vetta reaches for it whenever a task needs a real browser — your signed-in sites, rendered pages, forms and screenshots included.",
+      "badges": ["Your signed-in sites", "Default for browser tasks", "Web app testing"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "canvas": "generic",
+        "user_prompt": "I changed the checkout form. Open the dev server in ego and make sure it still works.",
+        "assistant_reply": "Opened localhost:3000 in ego and ran the checkout with a test card. Verified: totals update, and an empty email shows a validation error. Broken: the Pay button stays disabled after fixing a bad card number — screenshot attached. Not tested: the 3-D Secure step."
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        { "title": "Default for browser work", "description": "Whenever a task needs a real browser, Vetta uses ego first and falls back only when it must.", "icon": "solar:global-linear" },
+        { "title": "Works with your signed-in sites", "description": "The agent uses your existing sessions instead of asking you for passwords.", "icon": "solar:user-check-rounded-linear" },
+        { "title": "Fills, clicks and captures", "description": "Open pages, fill forms, click through flows, take screenshots and pull data out of rendered pages.", "icon": "solar:cursor-square-linear" },
+        { "title": "Tests your web app", "description": "Point it at a local dev server or a staging site and have it walk a flow like a user would.", "icon": "solar:bug-minimalistic-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "Install ego lite", "description": "Download it from lite.ego.app and finish its first-run setup. If it is missing, the agent will walk you through it." },
+        { "title": "Install this plugin", "description": "Nothing to configure." },
+        { "title": "Ask for browser work", "description": "Describe the site or flow in a conversation." }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "Ego acts inside your real, signed-in browser profile. Start with read-only checks, and tell the agent to ask you first before it submits, buys or deletes anything."
+    },
+    {
+      "type": "links",
+      "title": "Ego browser",
+      "items": [
+        { "label": "Ego lite — https://lite.ego.app/", "href": "https://lite.ego.app/" }
+      ]
+    }
+  ]
+}
