@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Vetta Ego",
+      "title": "智能体真正能用的浏览器",
+      "description": "Ego 是一款人和智能体共用的 Chromium 浏览器。装上本插件后,只要任务需要真实浏览器——你已登录的网站、渲染后的页面、表单与截图——Vetta 就会优先用它。",
+      "badges": ["沿用你已登录的网站", "浏览器任务的默认选择", "Web 应用测试"]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-thread",
+        "canvas": "generic",
+        "user_prompt": "我改了结算表单,用 ego 打开开发服务,确认它还能正常用。",
+        "assistant_reply": "已在 ego 中打开 localhost:3000,用测试卡走完一遍结算。已验证:金额随选择更新;邮箱为空时显示校验错误。有问题:修正错误卡号后「支付」按钮仍是禁用状态,截图见附件。未测试:3-D Secure 步骤。"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "items": [
+        { "title": "浏览器任务的默认选择", "description": "任务需要真实浏览器时,Vetta 先用 ego,实在不行才退回别的方式。", "icon": "solar:global-linear" },
+        { "title": "沿用你已登录的网站", "description": "智能体直接使用你现有的登录状态,不用向你要密码。", "icon": "solar:user-check-rounded-linear" },
+        { "title": "填写、点击、截图", "description": "打开页面、填表单、走流程、截图,并从渲染后的页面里提取数据。", "icon": "solar:cursor-square-linear" },
+        { "title": "测试你的 Web 应用", "description": "指向本地开发服务或测试环境,让它像用户一样走一遍流程。", "icon": "solar:bug-minimalistic-linear" }
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        { "title": "安装 ego lite", "description": "从 lite.ego.app 下载并完成首次启动设置;若尚未安装,智能体会带你完成。" },
+        { "title": "安装本插件", "description": "无需任何配置。" },
+        { "title": "直接提需求", "description": "在对话里描述网站或流程即可。" }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "warning",
+      "content": "Ego 运行在你真实的、已登录的浏览器资料中。建议先从只读检查开始;涉及提交、付款、删除的操作,请提前要求智能体先向你确认。"
+    },
+    {
+      "type": "links",
+      "title": "Ego 浏览器",
+      "items": [
+        { "label": "Ego lite — https://lite.ego.app/", "href": "https://lite.ego.app/" }
+      ]
+    }
+  ]
+}

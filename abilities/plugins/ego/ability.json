@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "type": "plugin",
+  "slug": "ego",
+  "version": "0.1.0",
+  "icon": "assets/icon.png",
+  "name": "Vetta Ego",
+  "description": "Let the agent use the ego browser — your own logged-in sites included — and make it the default for browser work and web app testing.",
+  "configVersion": 1,
+  "license": "MIT",
+  "author": "Vetta",
+  "category": "Browser",
+  "categoryI18n": {
+    "zh": "浏览器",
+    "en": "Browser"
+  },
+  "tags": [
+    "browser",
+    "automation",
+    "testing",
+    "qa",
+    "ego"
+  ],
+  "detail": {
+    "format": "blocks",
+    "path": "detail.json",
+    "meta": [
+      {
+        "key": "homepage",
+        "value": "https://lite.ego.app/"
+      }
+    ],
+    "i18n": {
+      "zh": {
+        "path": "detail.zh.json",
+        "name": "Vetta Ego",
+        "description": "让智能体使用 ego 浏览器（包括你已登录的网站），并让它成为浏览器操作与 Web 应用测试的默认选择。",
+        "tags": [
+          "浏览器",
+          "自动化",
+          "测试",
+          "QA",
+          "ego"
+        ]
+      }
+    }
+  }
+}
