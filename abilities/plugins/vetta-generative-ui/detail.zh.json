@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "生成式 UI",
+      "title": "可点击、可填写、可探索的回答",
+      "description": "当界面比一段文字更清楚时，AI 会直接在对话里生成它：对比矩阵、表单、看板或小型交互工具。样式跟随你的主题，你的操作会回到对话里继续交给 AI。",
+      "badges": [
+        "风格与 Vetta 一致",
+        "表单直接回复 AI",
+        "Chart.js 图表",
+        "沙箱运行自定义界面"
+      ]
+    },
+    {
+      "type": "stats",
+      "title": "能做什么",
+      "items": [
+        {
+          "value": "2",
+          "label": "个 AI 工具",
+          "description": "现成组件拼界面，或完全自定义界面"
+        },
+        {
+          "value": "13",
+          "label": "种表单控件",
+          "description": "文本、下拉、日期、标签、开关、滑块等"
+        },
+        {
+          "value": "8",
+          "label": "种图表",
+          "description": "柱状、折线、饼图、环形、雷达等"
+        }
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "generic",
+        "user_prompt": "帮我对比一下 Rust 和 Go，用在新的后端服务上。",
+        "assistant_reply": "我做了一个 12 个维度的并排对比矩阵，附带代码对照页，以及能按你的约束条件给出倾向的选型助手。点开任意一行可以看理由。"
+      }
+    },
+    {
+      "type": "comparison",
+      "title": "从一大段文字，到可以直接使用的界面",
+      "left": {
+        "title": "纯文字回复",
+        "tone": "neutral",
+        "items": [
+          "长列表和 Markdown 表格",
+          "下一条消息还要自己重新打字",
+          "数字没有图表",
+          "没有可以动手试的东西"
+        ]
+      },
+      "right": {
+        "title": "使用 Vetta生成式UI",
+        "tone": "accent",
+        "items": [
+          "卡片、分栏和标签页把回答分好组",
+          "表单和按钮：你的选择直接回到 AI",
+          "指标卡和图表呈现数字与趋势",
+          "计算器、假设推演工具可以直接试"
+        ]
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "AI 可以生成什么",
+      "items": [
+        {
+          "icon": "solar:document-add-linear",
+          "title": "表单",
+          "description": "文本、数字、日期、下拉、多选标签、单选、复选框、开关和滑块。提交前会检查必填项。"
+        },
+        {
+          "icon": "solar:cursor-linear",
+          "title": "快捷回复",
+          "description": "把几个选项做成按钮，点一下就把你的选择作为下一条消息发出。"
+        },
+        {
+          "icon": "solar:chart-2-linear",
+          "title": "数据视图",
+          "description": "指标卡、表格、属性列表、进度条和 Chart.js 图表。"
+        },
+        {
+          "icon": "solar:widget-4-linear",
+          "title": "布局",
+          "description": "卡片、可设比例的分栏和标签页，最多嵌套三层，适合看板和主从视图。"
+        },
+        {
+          "icon": "solar:magic-stick-3-linear",
+          "title": "自定义界面",
+          "description": "计算器、模拟器、示意图，控件自带 Vetta 风格，可选内置 Tailwind 与 Chart.js。"
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "隔离运行",
+          "description": "自定义界面在沙箱中运行，无法访问 Vetta、你的文件或发起网络请求；它想发送的内容会先给你确认。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "开始使用",
+      "items": [
+        {
+          "title": "安装并启用",
+          "description": "授予它请求的权限，无需账号或密钥。"
+        },
+        {
+          "title": "用你自己的话提需求",
+          "description": "比如「用表格对比一下」「用表单问我」「做一个计算器」。遇到适合直观展示的回答，AI 也会自己选择界面。"
+        },
+        {
+          "title": "直接在回答里操作",
+          "description": "在回复中填写表单、点击按钮，你的回答会作为下一条消息发回；提交过的表单会保持“已提交”状态。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "界面在普通对话和项目对话中可用，自动化和聊天网关里不会出现。自定义界面可以从网络加载脚本和图片，但不能请求数据，所以 AI 会把数据直接写进页面。"
+    },
+    {
+      "type": "links",
+      "title": "了解更多",
+      "items": [
+        {
+          "label": "开发说明与组件参考",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/tree/main/abilities/plugins/vetta-generative-ui/README.md"
+        }
+      ]
+    }
+  ]
+}

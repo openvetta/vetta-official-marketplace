@@ -1185,7 +1185,68 @@
           }
         }
       ]
+    },
+    {
+      "type": "plugin",
+      "slug": "vetta-generative-ui",
+      "name": "Vetta Generative UI",
+      "description": "Lets the AI answer with interactive views: forms, quick replies, KPI cards, tables, Chart.js charts and layouts that match the app, plus custom HTML in a secure sandbox.",
+      "version": "0.1.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Productivity",
+      "categoryI18n": {
+        "zh": "效率",
+        "en": "Productivity"
+      },
+      "tags": [
+        "generative ui",
+        "forms",
+        "charts",
+        "dashboard",
+        "html"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "Vetta生成式UI",
+            "description": "让 AI 用可交互的界面回答：表单、快捷回复、指标卡、表格、Chart.js 图表与布局，风格与应用一致；也能在安全沙箱中运行自定义 HTML。",
+            "tags": [
+              "生成式UI",
+              "表单",
+              "图表",
+              "看板",
+              "HTML"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/vetta-generative-ui"
+      },
+      "releases": [
+        {
+          "version": "0.1.0",
+          "minAppVersion": "0.5.59",
+          "pluginApiVersion": "^2.0.0",
+          "permissions": [
+            "ui.slot.tool-call",
+            "agent.tools.register",
+            "agent.toolHandler.execute",
+            "agent.systemPrompt.write",
+            "agent.session.write",
+            "storage.read",
+            "storage.write"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-vetta-generative-ui/vetta-generative-ui-0.1.0.vettapkg",
+            "sha256": "308ba2c66b0276c38b2f078c120820955bdd8ea32940219cd839d521d58ad24c"
+          }
+        }
+      ]
     }
   ],
-  "marketplaceVersion": "2026.11.12-1"
+  "marketplaceVersion": "2026.11.16-1"
 }
