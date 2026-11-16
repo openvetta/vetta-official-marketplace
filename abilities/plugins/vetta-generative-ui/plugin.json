@@ -1,0 +1,32 @@
+{
+  "id": "vetta-generative-ui",
+  "name": "%name%",
+  "version": "0.1.0",
+  "pluginApiVersion": "^2.0.0",
+  "entry": "dist/mf-manifest.json",
+  "moduleFederation": {
+    "remoteName": "vetta_generative_ui",
+    "expose": "./plugin"
+  },
+  "styles": [
+    "dist/style.css"
+  ],
+  "permissions": [
+    "ui.slot.tool-call",
+    "agent.tools.register",
+    "agent.toolHandler.execute",
+    "agent.systemPrompt.write",
+    "agent.session.write",
+    "storage.read",
+    "storage.write"
+  ],
+  "guidingWords": [
+    "%guidingWords.form%",
+    "%guidingWords.dashboard%",
+    "%guidingWords.html%"
+  ],
+  "description": "%description%",
+  "author": "Vetta",
+  "icon": "assets/icon.png",
+  "defaultLocale": "en"
+}

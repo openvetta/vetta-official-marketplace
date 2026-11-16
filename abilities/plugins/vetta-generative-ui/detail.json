@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "GENERATIVE UI",
+      "title": "Answers you can click, fill in and explore",
+      "description": "When a view says more than a paragraph, the AI builds it right in the conversation: a comparison matrix, a form, a dashboard or a small interactive tool. It follows your theme and replies to the AI when you act.",
+      "badges": [
+        "Matches Vetta",
+        "Forms reply to the AI",
+        "Chart.js charts",
+        "Sandboxed custom views"
+      ]
+    },
+    {
+      "type": "stats",
+      "title": "What you get",
+      "items": [
+        {
+          "value": "2",
+          "label": "AI tools",
+          "description": "Ready-made components, or a fully custom view"
+        },
+        {
+          "value": "13",
+          "label": "form controls",
+          "description": "Text, dropdown, date, chips, switch, slider and more"
+        },
+        {
+          "value": "8",
+          "label": "chart types",
+          "description": "Bar, line, pie, doughnut, radar and more"
+        }
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "generic",
+        "user_prompt": "Compare Rust and Go for a new backend service.",
+        "assistant_reply": "Here is a side-by-side matrix scored across 12 dimensions, with a code comparison tab and a picker that weighs your own constraints. Open any row for the reasoning."
+      }
+    },
+    {
+      "type": "comparison",
+      "title": "From a wall of text to something you can use",
+      "left": {
+        "title": "Plain text reply",
+        "tone": "neutral",
+        "items": [
+          "Long lists and tables as Markdown",
+          "You re-type your answers in the next message",
+          "Numbers without a chart",
+          "Nothing to play with"
+        ]
+      },
+      "right": {
+        "title": "With Vetta Generative UI",
+        "tone": "accent",
+        "items": [
+          "Cards, columns and tabs that group the answer",
+          "Forms and buttons: your choice goes back to the AI",
+          "KPI tiles and charts for numbers and trends",
+          "Calculators and what-if tools you can try"
+        ]
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "What the AI can build",
+      "items": [
+        {
+          "icon": "solar:document-add-linear",
+          "title": "Forms",
+          "description": "Text, number, date, dropdown, multi-choice chips, radio, checkbox, switch and slider. Required fields are checked before anything is sent."
+        },
+        {
+          "icon": "solar:cursor-linear",
+          "title": "Quick replies",
+          "description": "Offer a few options as buttons. One click sends your pick as the next message."
+        },
+        {
+          "icon": "solar:chart-2-linear",
+          "title": "Data views",
+          "description": "KPI tiles, tables, property lists, progress bars and Chart.js charts."
+        },
+        {
+          "icon": "solar:widget-4-linear",
+          "title": "Layouts",
+          "description": "Cards, weighted columns and tabs, nested up to three levels, for dashboards and master-detail views."
+        },
+        {
+          "icon": "solar:magic-stick-3-linear",
+          "title": "Custom views",
+          "description": "Calculators, simulators and diagrams, with Vetta-styled controls and optional Tailwind and Chart.js built in."
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "Isolated by design",
+          "description": "Custom views run in a sandbox with no access to Vetta, your files or network requests. Anything they want to send is shown to you first."
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Get started",
+      "items": [
+        {
+          "title": "Install and enable",
+          "description": "Grant the permissions it asks for. No account or key is needed."
+        },
+        {
+          "title": "Ask in your own words",
+          "description": "Say \"compare these in a table\", \"ask me in a form\" or \"build a calculator\". The AI also picks a view by itself for visual answers."
+        },
+        {
+          "title": "Use it in place",
+          "description": "Fill in forms and click buttons right in the reply. Your answer goes back as your next message, and a submitted form stays marked as submitted."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "content": "Views appear in regular and project conversations, not in automations or chat gateways. Custom views can load scripts and images from the web but cannot fetch data, so the AI writes the data into the page."
+    },
+    {
+      "type": "links",
+      "title": "Learn more",
+      "items": [
+        {
+          "label": "Developer notes and component reference",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/tree/main/abilities/plugins/vetta-generative-ui/README.md"
+        }
+      ]
+    }
+  ]
+}
