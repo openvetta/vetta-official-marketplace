@@ -49,6 +49,15 @@ describe("render_ui schema", () => {
         expect(JSON.stringify(uiToolParameters())).not.toContain('"additionalProperties":false');
     });
 
+    it("accepts card-shaped columns with blocks and keeps their heading and description", () => {
+        const parsed = uiDocumentSchema.parse({ blocks: [{ type: "columns", columns: [
+            { type: "card", title: "建议", description: "按场景选择", blocks: [{ type: "text", text: "内容" }] },
+            { blocks: [{ type: "text", text: "另一个列" }] },
+        ] }] });
+        const column = (parsed.blocks[0] as any).columns[0];
+        expect(column.blocks[0]).toMatchObject({ type: "card", title: "建议", description: "按场景选择" });
+    });
+
     it("gives the model a compact, ref-free schema", () => {
         const text = JSON.stringify(uiToolParameters());
         expect(text).not.toContain("$ref");

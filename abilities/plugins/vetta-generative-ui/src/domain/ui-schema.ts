@@ -230,9 +230,20 @@ export const leafBlockSchema = z.discriminatedUnion("type", [
  * Containers nest up to three levels (e.g. tabs > columns > card > content). The levels are built
  * explicitly rather than with z.lazy so the inferred types stay concrete and the depth is bounded.
  */
-/** Models sometimes write a column as a bare block instead of `{ blocks: [...] }`; wrap it rather than fail the view. */
+/** Accept a block directly as a column, including cards that already have their own blocks. */
 function wrapBareColumn(value: unknown): unknown {
-    if (value && typeof value === "object" && !Array.isArray(value) && "type" in value && !("blocks" in value)) return { blocks: [value] };
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    const column = value as Record<string, unknown>;
+    // A column with a card already inside it sometimes repeats the card's type/description.
+    // Keep its content and meaningful metadata without introducing a fourth container level.
+    if (column.type === "card" && Array.isArray(column.blocks) && column.blocks.some(child =>
+        child && typeof child === "object" && ["card", "columns", "tabs"].includes(child.type))) {
+        const prefix = [];
+        if (typeof column.title === "string" && column.title) prefix.push({ type: "heading", text: column.title, level: 3 });
+        if (typeof column.description === "string" && column.description) prefix.push({ type: "text", text: column.description, muted: true });
+        return { blocks: [...prefix, ...column.blocks] };
+    }
+    if (typeof column.type === "string") return { blocks: [column] };
     return value;
 }
 

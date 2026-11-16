@@ -7,8 +7,8 @@ export function TabsBlock({ tabs, path, env }: { tabs: Array<{ label: string; bl
     const [active, setActive] = useState(0);
     const id = useId();
     return (
-        <div>
-            <div role="tablist" className="mb-3.5 inline-flex max-w-full gap-0.5 overflow-x-auto rounded-lg bg-muted p-0.5">
+        <div className="flex flex-col items-stretch gap-4">
+            <div role="tablist" className="inline-flex max-w-full self-start gap-0.5 overflow-x-auto rounded-lg bg-muted p-0.5">
                 {tabs.map((tab, index) => (
                     <button
                         key={`${tab.label}-${index}`}

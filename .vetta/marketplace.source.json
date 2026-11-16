@@ -849,7 +849,7 @@
       "slug": "vetta-generative-ui",
       "name": "Vetta Generative UI",
       "description": "Lets the AI answer with interactive views: forms, quick replies, KPI cards, tables, Chart.js charts and layouts that match the app, plus custom HTML in a secure sandbox.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
