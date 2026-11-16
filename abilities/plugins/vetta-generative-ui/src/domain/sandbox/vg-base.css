@@ -1,0 +1,146 @@
+/*
+ * Vetta base styles for model-written views. Everything sits in `@layer base` with zero-specificity
+ * selectors, so the model's own CSS and Tailwind utilities (later layers / unlayered) always win,
+ * while bare HTML elements already look like Vetta: filled, borderless, soft.
+ * Theme values arrive as --vg-* variables (see THEME_VARIABLES) and follow light/dark switches.
+ */
+@layer vg-base, theme, base, components, utilities;
+
+:root {
+    --vg-fill: color-mix(in srgb, var(--vg-fg) 6%, transparent);
+    --vg-fill-hover: color-mix(in srgb, var(--vg-fg) 10%, transparent);
+    --vg-ring: color-mix(in srgb, var(--vg-primary) 30%, transparent);
+}
+
+@layer vg-base {
+    *, *::before, *::after { box-sizing: border-box; scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { margin: 0; background: transparent; color: var(--vg-fg); font: 14px/1.55 var(--vg-font); -webkit-font-smoothing: antialiased; }
+    body { padding: 2px; }
+
+    :where(h1, h2, h3, h4) { margin: 0 0 .5em; line-height: 1.25; font-weight: 600; letter-spacing: -.01em; }
+    :where(h1) { font-size: 22px; }
+    :where(h2) { font-size: 18px; }
+    :where(h3) { font-size: 15px; }
+    :where(h4) { font-size: 14px; }
+    :where(p, ul, ol, dl) { margin: 0 0 .75em; }
+    :where(a) { color: var(--vg-primary); text-underline-offset: 3px; }
+    :where(hr) { height: 1px; margin: 16px 0; border: 0; background: color-mix(in srgb, var(--vg-fg) 12%, transparent); }
+    :where(code, kbd, samp) { padding: .1em .4em; border-radius: 6px; background: var(--vg-fill); font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    :where(pre) { margin: 0 0 .75em; padding: 12px 14px; overflow: auto; border-radius: var(--vg-radius); background: var(--vg-fill); font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    :where(pre code) { padding: 0; background: transparent; }
+    :where(blockquote) { margin: 0 0 .75em; padding: 2px 0 2px 14px; border-left: 3px solid color-mix(in srgb, var(--vg-fg) 15%, transparent); color: var(--vg-muted); }
+    :where(small) { color: var(--vg-muted); }
+    :where(label) { font-size: 13px; font-weight: 500; }
+
+    /* Text-like fields */
+    :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"]), select, textarea, .vg-input) {
+        width: 100%; height: 36px; padding: 0 12px; border: 0; border-radius: var(--vg-radius);
+        background: var(--vg-fill); color: inherit; font: inherit; outline: none; transition: background .15s, box-shadow .15s;
+    }
+    :where(textarea, textarea.vg-input) { height: auto; min-height: 84px; padding: 8px 12px; resize: vertical; line-height: 1.5; }
+    :where(input, select, textarea, .vg-input):where(:hover:not(:disabled)) { background: var(--vg-fill-hover); }
+    :where(input, select, textarea, .vg-input):where(:focus-visible) { box-shadow: 0 0 0 2px var(--vg-ring); }
+    :where(input, select, textarea, button):where(:disabled) { opacity: .55; cursor: not-allowed; }
+    :where(input)::placeholder, :where(textarea)::placeholder { color: var(--vg-muted); opacity: .75; }
+    :where(input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"])::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+    :where(input[type="number"])::-webkit-inner-spin-button { opacity: .4; }
+
+    /* Native dropdown arrow; vg-enhance.js upgrades single selects to a styled menu */
+    :where(select:not([multiple]):not([size])) {
+        appearance: none; padding-right: 34px; cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238a8a93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 11px center;
+    }
+    :where(select[multiple]) { height: auto; padding: 6px; }
+
+    /* Checkbox, radio, switch */
+    :where(input[type="checkbox"], input[type="radio"]) {
+        appearance: none; flex: none; width: 18px; height: 18px; margin: 0 6px 0 0; vertical-align: -4px; cursor: pointer;
+        border-radius: 6px; background: color-mix(in srgb, var(--vg-fg) 12%, transparent); outline: none; transition: background .15s, box-shadow .15s;
+    }
+    :where(input[type="radio"]) { border-radius: 50%; }
+    :where(input[type="checkbox"], input[type="radio"]):where(:focus-visible) { box-shadow: 0 0 0 2px var(--vg-ring); }
+    :where(input[type="checkbox"]:checked) {
+        background: var(--vg-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3.8 8.4 2.6 2.6 5.8-5.9'/%3E%3C/svg%3E") center / 14px no-repeat;
+    }
+    :where(input[type="radio"]:checked) { background: radial-gradient(circle, var(--vg-primary-fg) 0 30%, var(--vg-primary) 34%); }
+    :where(input[type="checkbox"][role="switch"], .vg-switch) { width: 34px; height: 20px; border-radius: 999px; }
+    :where(input[type="checkbox"][role="switch"], .vg-switch):where(:checked) { background: var(--vg-primary); }
+    :where(input[type="checkbox"][role="switch"], .vg-switch)::after { content: ""; display: block; width: 16px; height: 16px; margin: 2px; border-radius: 50%; background: var(--vg-bg); box-shadow: 0 1px 2px rgb(0 0 0 / .25); transition: transform .15s; }
+    :where(input[type="checkbox"][role="switch"], .vg-switch):where(:checked)::after { transform: translateX(14px); }
+
+    /* Range: filled track (vg-enhance.js sets --p) and a small round thumb */
+    :where(input[type="range"]) {
+        appearance: none; width: 100%; height: 6px; padding: 0; border-radius: 999px; cursor: pointer; outline: none;
+        background: linear-gradient(to right, var(--vg-primary) var(--p, 50%), color-mix(in srgb, var(--vg-fg) 15%, transparent) var(--p, 50%));
+    }
+    :where(input[type="range"])::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--vg-primary); box-shadow: 0 0 0 3px var(--vg-bg), 0 1px 3px rgb(0 0 0 / .3); transition: transform .12s; }
+    :where(input[type="range"]:active)::-webkit-slider-thumb { transform: scale(1.15); }
+    :where(input[type="range"])::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--vg-primary); box-shadow: 0 0 0 3px var(--vg-bg); }
+    :where(input[type="range"]:focus-visible) { box-shadow: 0 0 0 3px var(--vg-ring); }
+    :where(input[type="color"]) { width: 36px; height: 36px; padding: 4px; border: 0; border-radius: var(--vg-radius); background: var(--vg-fill); cursor: pointer; }
+
+    /* Buttons: secondary by default, primary for submit / .vg-btn-primary */
+    :where(button, input[type="button"], input[type="submit"], input[type="reset"], .vg-btn) {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; padding: 0 16px; border: 0; border-radius: var(--vg-radius);
+        background: color-mix(in srgb, var(--vg-fg) 8%, transparent); color: inherit; font: inherit; font-weight: 500; cursor: pointer; outline: none; transition: background .15s, transform .08s;
+    }
+    :where(button, input[type="button"], input[type="submit"], .vg-btn):where(:hover:not(:disabled)) { background: color-mix(in srgb, var(--vg-fg) 13%, transparent); }
+    :where(button, input[type="button"], input[type="submit"], .vg-btn):where(:active:not(:disabled)) { transform: translateY(1px); }
+    :where(button, .vg-btn):where(:focus-visible) { box-shadow: 0 0 0 2px var(--vg-ring); }
+    :where(button[type="submit"], input[type="submit"], .vg-btn-primary) { background: var(--vg-primary); color: var(--vg-primary-fg); }
+    :where(button[type="submit"], input[type="submit"], .vg-btn-primary):where(:hover:not(:disabled)) { background: color-mix(in srgb, var(--vg-primary) 88%, var(--vg-bg)); }
+
+    /* Tabs and chips: plain ARIA is enough */
+    :where([role="tablist"], .vg-tabs) { display: inline-flex; gap: 2px; padding: 3px; border-radius: calc(var(--vg-radius) + 2px); background: var(--vg-fill); }
+    :where([role="tablist"] > [role="tab"], .vg-tabs > button) { height: 30px; padding: 0 14px; background: transparent; color: var(--vg-muted); font-size: 13px; }
+    :where([role="tablist"] > [role="tab"], .vg-tabs > button):where(:hover:not(:disabled)) { background: transparent; color: var(--vg-fg); }
+    :where([role="tablist"] > [role="tab"][aria-selected="true"], .vg-tabs > button[aria-selected="true"]) { background: var(--vg-bg); color: var(--vg-fg); box-shadow: 0 1px 2px rgb(0 0 0 / .12); }
+    :where(.vg-chip) { height: 30px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--vg-muted); }
+    :where(.vg-chip[aria-pressed="true"], .vg-chip.is-active) { background: var(--vg-primary); color: var(--vg-primary-fg); }
+
+    /* Surfaces */
+    :where(.vg-card) { padding: 20px; border: 0; border-radius: calc(var(--vg-radius) + 4px); background: color-mix(in srgb, var(--vg-fg) 5%, transparent); }
+    :where(.vg-stat) { padding: 14px 16px; border-radius: calc(var(--vg-radius) + 2px); background: color-mix(in srgb, var(--vg-fg) 5%, transparent); }
+    :where(.vg-stat-label) { display: block; font-size: 12px; color: var(--vg-muted); }
+    :where(.vg-stat-value) { display: block; margin-top: 2px; font-size: 22px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    :where(.vg-muted) { color: var(--vg-muted); }
+    :where(.vg-grid) { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    :where(.vg-row) { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    :where(.vg-stack) { display: flex; flex-direction: column; gap: 12px; }
+    :where(.vg-label) { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+    :where(.vg-badge) { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; background: color-mix(in srgb, var(--vg-fg) 8%, transparent); }
+
+    :where(details) { padding: 12px 16px; border-radius: var(--vg-radius); background: var(--vg-fill); }
+    :where(details + details) { margin-top: 8px; }
+    :where(summary) { cursor: pointer; font-weight: 500; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+    :where(summary)::-webkit-details-marker { display: none; }
+    :where(summary)::after { content: ""; width: 14px; height: 14px; opacity: .5; transition: transform .15s; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238a8a93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") center / contain no-repeat; }
+    :where(details[open] > summary)::after { transform: rotate(180deg); }
+    :where(details[open] > summary) { margin-bottom: 8px; }
+
+    :where(progress, meter) { appearance: none; width: 100%; height: 8px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--vg-fg) 12%, transparent); overflow: hidden; }
+    :where(progress)::-webkit-progress-bar { background: transparent; }
+    :where(progress)::-webkit-progress-value { border-radius: 999px; background: var(--vg-primary); transition: width .3s; }
+    :where(progress)::-moz-progress-bar { background: var(--vg-primary); }
+
+    :where(table) { border-collapse: collapse; width: 100%; }
+    :where(th, td) { padding: 10px 12px; border: 0; text-align: left; }
+    :where(th) { font-size: 12px; font-weight: 500; color: var(--vg-muted); }
+    :where(tbody tr):where(:hover) { background: color-mix(in srgb, var(--vg-fg) 5%, transparent); }
+    :where(img, svg, canvas, video) { max-width: 100%; }
+    :where(img) { border-radius: var(--vg-radius); }
+
+    /* Custom dropdown created by vg-enhance.js */
+    .vg-select { position: relative; width: 100%; }
+    .vg-select > select { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+    .vg-select-button { justify-content: space-between; width: 100%; height: 36px; padding: 0 12px; font-weight: 400; background: var(--vg-fill); }
+    .vg-select-button[data-placeholder] { color: var(--vg-muted); }
+    .vg-select-button svg { flex: none; opacity: .55; }
+    .vg-select-menu { position: absolute; z-index: 50; left: 0; right: 0; top: calc(100% + 6px); max-height: 240px; overflow: auto; padding: 4px; border-radius: var(--vg-radius); background: var(--vg-bg); box-shadow: 0 8px 28px rgb(0 0 0 / .22), 0 0 0 1px color-mix(in srgb, var(--vg-fg) 8%, transparent); }
+    .vg-select-menu[hidden] { display: none; }
+    .vg-select-option { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 32px; padding: 0 10px; border-radius: 7px; background: transparent; font-weight: 400; text-align: left; }
+    .vg-select-option:hover, .vg-select-option[data-active] { background: var(--vg-fill-hover); }
+    .vg-select-option[aria-selected="true"] { color: var(--vg-primary); font-weight: 500; }
+}
