@@ -118,6 +118,17 @@ describe("render_ui view", () => {
     });
 });
 
+describe("unavailable view notice", () => {
+    it("is neutral, not an alert, and names the plugin", () => {
+        const { deps } = setup();
+        render(<RenderUiSlot toolCall={{ ...call("render_ui", {}, "error"), isError: true, result: "bad field" }} deps={deps} />);
+        expect(screen.queryByRole("alert")).toBeNull();
+        expect(screen.getByText("Vetta Generative UI")).toBeTruthy();
+        expect(screen.getByText("This view isn't available right now")).toBeTruthy();
+        expect(screen.getByText("bad field").closest("details")).toBeTruthy();
+    });
+});
+
 describe("render_ui layout", () => {
     it("renders nested containers and a multi-column form", async () => {
         const { deps } = setup();

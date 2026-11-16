@@ -11,12 +11,12 @@ export function RenderHtmlSlot({ toolCall, deps }: PluginToolCallSlotProps & { d
     const { t } = useTranslation();
     const parsed = useMemo(() => htmlDocumentSchema.safeParse(toolCall.args), [toolCall.args]);
 
-    if (toolCall.status === "cancelled") return <ToolNotice tone="muted" title={t("state.cancelled")} />;
-    if (toolCall.status === "error" || toolCall.isError) return <ToolNotice tone="error" title={t("error.invalidHtml")} detail={toolCall.result} />;
+    if (toolCall.status === "cancelled") return <ToolNotice title={t("state.cancelled")} />;
+    if (toolCall.status === "error" || toolCall.isError) return <ToolNotice title={t("error.invalidHtml")} detail={toolCall.result} />;
     if (toolCall.status === "pending") {
         const length = typeof toolCall.args.html === "string" ? toolCall.args.html.length : 0;
         return <ViewSkeleton label={length ? t("state.writingHtml", { count: length.toLocaleString() }) : t("state.generatingView")} />;
     }
-    if (!parsed.success) return <ToolNotice tone="error" title={t("error.invalidHtml")} />;
+    if (!parsed.success) return <ToolNotice title={t("error.invalidHtml")} />;
     return <HtmlView document={parsed.data} deps={deps} />;
 }
