@@ -1,7 +1,7 @@
 {
   "id": "vetta-memory",
   "name": "%name%",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "pluginApiVersion": "^2.0.0",
   "entry": "dist/mf-manifest.json",
   "moduleFederation": {
@@ -20,8 +20,7 @@
     "agent.systemPrompt.write",
     "agent.hooks.register",
     "agent.hookHandler.execute",
-    "ai.complete",
-    "ai.models.list"
+    "ai.complete"
   ],
   "guidingWords": [
     "%guidingWords.remember%",

@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button, Input } from "@vetta-org/ui";
+import { useState } from "react";
 import type { SearchOutcome } from "../../../domain/search-types";
 import type { WebAccessSettings } from "../../../domain/settings";
 import type { NetworkRequest } from "../../../services/network";
@@ -45,28 +46,25 @@ export function TestSearchPanel({ store, call, settings }: TestSearchPanelProps)
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <input
-            className="w-full rounded-lg border border-border/70 bg-background py-1.5 pl-2.5 pr-8 text-xs text-foreground outline-none transition-shadow placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
-            value={query}
-            placeholder={t("settings.test.query")}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !busy && query.trim()) void run();
-            }}
-          />
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/70">
-            ⏎
-          </span>
-        </div>
-        <button
+        <Input
+          aria-label={t("settings.test.query")}
+          className="flex-1"
+          value={query}
+          placeholder={t("settings.test.query")}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !busy && query.trim()) void run();
+          }}
+        />
+        <Button
           type="button"
+          variant="primary"
+          size="sm"
           disabled={busy || !query.trim()}
-          className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity disabled:opacity-40"
           onClick={() => void run()}
         >
           {busy ? t("settings.test.running") : t("settings.test.run")}
-        </button>
+        </Button>
       </div>
 
       {error ? (
@@ -93,7 +91,7 @@ export function TestSearchPanel({ store, call, settings }: TestSearchPanelProps)
               {result.outcome.results.map((hit, index) => (
                 <li
                   key={hit.url}
-                  className="group rounded-lg border border-transparent px-1.5 py-1 transition-colors hover:border-border/60 hover:bg-muted/40"
+                  className="group rounded-lg border border-transparent px-1.5 py-1 transition-colors hover:border-border/60 hover:bg-accent/40"
                 >
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-[10px] tabular-nums text-muted-foreground/60">{index + 1}</span>

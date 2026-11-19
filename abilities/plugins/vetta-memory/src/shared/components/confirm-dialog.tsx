@@ -1,5 +1,5 @@
+import { Button } from "@vetta-org/ui";
 import type { ReactElement } from "react";
-import { DANGER_BUTTON, SECONDARY_BUTTON } from "../styles/controls";
 import { ModalDialog } from "./modal-dialog";
 
 export function ConfirmDialog({
@@ -26,12 +26,12 @@ export function ConfirmDialog({
             onClose={onClose}
             footer={
                 <>
-                    <button type="button" className={SECONDARY_BUTTON} onClick={onClose}>
+                    <Button variant="outline" onClick={onClose}>
                         {cancelLabel}
-                    </button>
-                    <button type="button" className={DANGER_BUTTON} onClick={onConfirm}>
+                    </Button>
+                    <Button variant="destructive" onClick={onConfirm}>
                         {confirmLabel}
-                    </button>
+                    </Button>
                 </>
             }
         >

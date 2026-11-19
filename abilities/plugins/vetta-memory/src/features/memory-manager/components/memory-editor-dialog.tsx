@@ -1,10 +1,10 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch } from "@vetta-org/ui";
 import { useState, type ReactElement } from "react";
 import { looksSensitive } from "../../../domain/memory-text";
 import { MAX_MEMORY_CONTENT, MEMORY_KINDS, type MemoryKind, type MemoryRecord, type MemoryScope } from "../../../domain/memory-types";
 import { projectName } from "../../../domain/memory-text";
 import { ModalDialog } from "../../../shared/components/modal-dialog";
-import { INPUT, PRIMARY_BUTTON, SECONDARY_BUTTON } from "../../../shared/styles/controls";
 
 export interface MemoryDraft {
     content: string;
@@ -13,6 +13,9 @@ export interface MemoryDraft {
     projectKey: string | null;
     pinned: boolean;
 }
+
+/** Radix Select cannot carry an empty-string value, so "no project" travels as this sentinel. */
+const GLOBAL_SCOPE = "__global__";
 
 export function MemoryEditorDialog({
     initial,
@@ -56,12 +59,12 @@ export function MemoryEditorDialog({
             onClose={onClose}
             footer={
                 <>
-                    <button type="button" className={SECONDARY_BUTTON} onClick={onClose}>
+                    <Button variant="outline" onClick={onClose}>
                         {t("common.cancel")}
-                    </button>
-                    <button type="button" className={PRIMARY_BUTTON} disabled={saving} onClick={() => void submit()}>
+                    </Button>
+                    <Button variant="primary" disabled={saving} onClick={() => void submit()}>
                         {t("common.save")}
-                    </button>
+                    </Button>
                 </>
             }
         >
@@ -74,43 +77,52 @@ export function MemoryEditorDialog({
                         maxLength={MAX_MEMORY_CONTENT}
                         value={content}
                         onChange={(event) => setContent(event.target.value)}
-                        className={`${INPUT} resize-none`}
+                        className="w-full resize-none rounded-lg border border-border/60 bg-transparent px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring/60"
                     />
                     <span className="text-[11px] text-muted-foreground/70">
                         {t("editor.contentHint", { count: content.length, max: MAX_MEMORY_CONTENT })}
                     </span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                    <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                        {t("editor.kind")}
-                        <select value={kind} onChange={(event) => setKind(event.target.value as MemoryKind)} className={INPUT}>
-                            {MEMORY_KINDS.map((value) => (
-                                <option key={value} value={value}>
-                                    {t(`kind.${value}`)}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                        {t("editor.scope")}
-                        <select
-                            value={projectKey ?? ""}
-                            onChange={(event) => setProjectKey(event.target.value || null)}
-                            className={INPUT}
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                        <span>{t("editor.kind")}</span>
+                        <Select value={kind} onValueChange={(value) => setKind(value as MemoryKind)}>
+                            <SelectTrigger aria-label={t("editor.kind")} className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {MEMORY_KINDS.map((value) => (
+                                    <SelectItem key={value} value={value}>
+                                        {t(`kind.${value}`)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                        <span>{t("editor.scope")}</span>
+                        <Select
+                            value={projectKey ?? GLOBAL_SCOPE}
+                            onValueChange={(value) => setProjectKey(value === GLOBAL_SCOPE ? null : value)}
                         >
-                            <option value="">{t("scope.global")}</option>
-                            {options.map((key) => (
-                                <option key={key} value={key} title={key}>
-                                    {t("scope.projectNamed", { name: projectName(key) })}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                            <SelectTrigger aria-label={t("editor.scope")} className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={GLOBAL_SCOPE}>{t("scope.global")}</SelectItem>
+                                {options.map((key) => (
+                                    <SelectItem key={key} value={key}>
+                                        {t("scope.projectNamed", { name: projectName(key) })}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={pinned} onChange={(event) => setPinned(event.target.checked)} />
-                    {t("editor.pinned")}
-                </label>
+                <div className="flex items-center gap-2 text-sm">
+                    <Switch checked={pinned} onCheckedChange={setPinned} aria-label={t("editor.pinned")} />
+                    <span>{t("editor.pinned")}</span>
+                </div>
                 {error ? (
                     <p role="alert" className="m-0 text-xs text-destructive">
                         {error}

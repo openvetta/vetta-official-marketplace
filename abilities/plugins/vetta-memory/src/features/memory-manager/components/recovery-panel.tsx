@@ -1,11 +1,11 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta-org/ui";
 import type { ReactElement } from "react";
 import type { RecoveryEntry } from "../../../domain/memory-types";
 import { Badge } from "../../../shared/components/badge";
 import { EmptyState } from "../../../shared/components/empty-state";
 import { formatDateTime } from "../../../shared/formatters/format-time";
 import type { MemoryManagerDeps } from "../../../shared/state/manager-deps";
-import { SECONDARY_BUTTON } from "../../../shared/styles/controls";
 
 export function RecoveryPanel({ deps, entries }: { deps: MemoryManagerDeps; entries: readonly RecoveryEntry[] }): ReactElement {
     const { t, locale } = useTranslation();
@@ -25,25 +25,25 @@ export function RecoveryPanel({ deps, entries }: { deps: MemoryManagerDeps; entr
                         </span>
                         <span className="flex-1" />
                         {entry.restoredAt ? <Badge>{t("recovery.restored")}</Badge> : null}
-                        <button
-                            type="button"
-                            className={SECONDARY_BUTTON}
+                        <Button
+                            variant="outline"
+                            size="sm"
                             disabled={entry.restoredAt !== null}
                             onClick={() =>
                                 void services.restore(entry.id).catch((error: unknown) => notify({ message: t("error.restore"), error }))
                             }
                         >
                             {t("recovery.restore")}
-                        </button>
-                        <button
-                            type="button"
-                            className={SECONDARY_BUTTON}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() =>
                                 void services.recovery.discard(entry.id).catch((error: unknown) => notify({ message: t("error.delete"), error }))
                             }
                         >
                             {t("recovery.discard")}
-                        </button>
+                        </Button>
                     </div>
                     <ul className="m-0 list-none p-0 text-sm text-muted-foreground">
                         {entry.records.slice(0, 5).map((record) => (

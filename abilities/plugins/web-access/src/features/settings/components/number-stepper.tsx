@@ -1,3 +1,4 @@
+import { Button, Input } from "@vetta-org/ui";
 import { useId } from "react";
 
 interface NumberStepperProps {
@@ -22,17 +23,18 @@ export function NumberStepper({ label, hint, unit, value, min, max, step = 1, on
           {label}
         </label>
         <div className="flex items-center gap-1.5">
-          <div className="flex items-center rounded-lg border border-border/70 bg-background">
-            <button
+          <div className="flex items-center gap-0.5">
+            <Button
               type="button"
+              variant="outline"
+              size="icon-xs"
               aria-label={`${label} −`}
               disabled={value <= min}
               onClick={() => onChange(clamp(value - step))}
-              className="flex h-7 w-7 items-center justify-center rounded-l-lg text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
             >
-              −
-            </button>
-            <input
+              <span className="text-sm leading-none">−</span>
+            </Button>
+            <Input
               id={id}
               type="number"
               inputMode="numeric"
@@ -41,17 +43,18 @@ export function NumberStepper({ label, hint, unit, value, min, max, step = 1, on
               step={step}
               value={value}
               onChange={(event) => onChange(clamp(Number(event.target.value)))}
-              className="w-14 border-x border-border/70 bg-transparent py-1 text-center text-xs tabular-nums text-foreground outline-none [appearance:textfield] focus:bg-muted/40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-16 text-center tabular-nums"
             />
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-xs"
               aria-label={`${label} +`}
               disabled={value >= max}
               onClick={() => onChange(clamp(value + step))}
-              className="flex h-7 w-7 items-center justify-center rounded-r-lg text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent"
             >
-              +
-            </button>
+              <span className="text-sm leading-none">+</span>
+            </Button>
           </div>
           {unit ? <span className="text-[11px] text-muted-foreground">{unit}</span> : null}
         </div>

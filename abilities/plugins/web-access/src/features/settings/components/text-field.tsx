@@ -1,3 +1,4 @@
+import { Button, Input } from "@vetta-org/ui";
 import { useId, type ReactNode } from "react";
 
 interface TextFieldProps {
@@ -17,11 +18,9 @@ export function TextField({ label, hint, value, placeholder, onChange, trailing 
         {label}
       </label>
       <div className="relative">
-        <input
+        <Input
           id={id}
-          className={`w-full rounded-lg border border-border/70 bg-background px-3 py-2 text-xs text-foreground outline-none transition-shadow placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 ${
-            trailing ? "pr-9" : ""
-          }`}
+          className={trailing ? "pr-9" : undefined}
           placeholder={placeholder}
           spellCheck={false}
           value={value}
@@ -31,5 +30,14 @@ export function TextField({ label, hint, value, placeholder, onChange, trailing 
       </div>
       {hint ? <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
     </div>
+  );
+}
+
+/** Sits inside a `TextField`'s `trailing` slot: a host icon button that never leaves the field. */
+export function FieldAction({ label, onClick, children }: { label: string; onClick(): void; children: ReactNode }) {
+  return (
+    <Button type="button" variant="ghost" size="icon-xs" aria-label={label} title={label} onClick={onClick}>
+      {children}
+    </Button>
   );
 }

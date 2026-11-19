@@ -8,6 +8,8 @@ export default defineConfig({
         vettaPluginFederation({
             name: "vetta_memory",
             entry: "./src/index.tsx",
+            // Host design-system primitives (@vetta-org/ui) come from the app singleton.
+            hostUi: true,
         }),
     ],
     esbuild: { jsx: "automatic", jsxImportSource: "react" },

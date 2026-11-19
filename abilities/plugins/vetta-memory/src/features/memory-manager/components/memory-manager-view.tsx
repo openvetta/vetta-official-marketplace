@@ -1,6 +1,6 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Switch } from "@vetta-org/ui";
 import { useMemo, useState, type ReactElement } from "react";
-import { ToggleSwitch } from "../../../shared/components/toggle-switch";
 import { TabBar, type TabItem } from "../../../shared/components/tab-bar";
 import type { MemoryManagerDeps } from "../../../shared/state/manager-deps";
 import { useLoadedServices, useServicesRevision } from "../hooks/use-memory-data";
@@ -64,10 +64,10 @@ export function MemoryManagerView({ deps }: { deps: MemoryManagerDeps }): ReactE
                     {ready ? (
                         <label className="flex shrink-0 items-center gap-2 text-sm">
                             {t("view.enabled")}
-                            <ToggleSwitch
-                                label={t("view.enabled")}
+                            <Switch
+                                aria-label={t("view.enabled")}
                                 checked={settings.enabled}
-                                onChange={(enabled) =>
+                                onCheckedChange={(enabled) =>
                                     void services.memories
                                         .updateSettings({ enabled })
                                         .catch((reason: unknown) => notify({ message: t("error.save"), error: reason }))

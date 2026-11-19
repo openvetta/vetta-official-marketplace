@@ -1,11 +1,11 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@vetta-org/ui";
 import { useMemo, useState, type ReactElement } from "react";
 import { memoriesToMarkdown } from "../../../domain/memory-context";
 import { searchMemories } from "../../../domain/memory-search";
 import { MEMORY_KINDS, type MemoryKind, type MemoryRecord } from "../../../domain/memory-types";
 import { EmptyState } from "../../../shared/components/empty-state";
 import type { MemoryManagerDeps } from "../../../shared/state/manager-deps";
-import { INPUT_BASE, PRIMARY_BUTTON, SECONDARY_BUTTON } from "../../../shared/styles/controls";
 import { MemoryEditorDialog, type MemoryDraft } from "./memory-editor-dialog";
 import { MemoryRow } from "./memory-row";
 
@@ -70,43 +70,43 @@ export function MemoriesPanel({
     return (
         <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-                <input
+                <Input
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={t("memories.search")}
                     aria-label={t("memories.search")}
-                    className={`${INPUT_BASE} min-w-48 flex-1`}
+                    className="min-w-48 flex-1"
                 />
-                <select
-                    value={kind}
-                    onChange={(event) => setKind(event.target.value as MemoryKind | "")}
-                    aria-label={t("editor.kind")}
-                    className={`${INPUT_BASE} w-36 shrink-0`}
-                >
-                    <option value="">{t("memories.allKinds")}</option>
-                    {MEMORY_KINDS.map((value) => (
-                        <option key={value} value={value}>
-                            {t(`kind.${value}`)}
-                        </option>
-                    ))}
-                </select>
-                <button type="button" className={SECONDARY_BUTTON} disabled={shown.length === 0} onClick={() => void copyMarkdown()}>
+                <Select value={kind || "all"} onValueChange={(value) => setKind(value === "all" ? "" : (value as MemoryKind))}>
+                    <SelectTrigger aria-label={t("editor.kind")} className="w-36 shrink-0">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">{t("memories.allKinds")}</SelectItem>
+                        {MEMORY_KINDS.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {t(`kind.${value}`)}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button variant="outline" disabled={shown.length === 0} onClick={() => void copyMarkdown()}>
                     <span className="icon-[solar--copy-linear] size-4" />
                     {copied ? t("common.copied") : t("memories.copyMarkdown")}
-                </button>
-                <button type="button" className={PRIMARY_BUTTON} onClick={() => setEditing("new")}>
+                </Button>
+                <Button variant="primary" onClick={() => setEditing("new")}>
                     <span className="icon-[solar--add-circle-linear] size-4" />
                     {t("memories.add")}
-                </button>
+                </Button>
             </div>
 
             {undo ? (
                 <div role="status" className="flex items-center justify-between gap-3 rounded-lg bg-muted px-3 py-2 text-xs">
                     <span className="min-w-0 truncate">{t("memories.deleted", { text: undo.text })}</span>
-                    <button type="button" className="cursor-pointer font-medium text-primary hover:underline" onClick={() => void undoDelete()}>
+                    <Button variant="link" size="xs" onClick={() => void undoDelete()}>
                         {t("memories.undo")}
-                    </button>
+                    </Button>
                 </div>
             ) : null}
 

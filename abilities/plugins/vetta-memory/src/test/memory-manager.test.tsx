@@ -1,39 +1,67 @@
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import en from "../../locales/en.json";
 import { MemoryServices } from "../domain/memory-services";
 import { MemoryManagerView } from "../features/memory-manager/components/memory-manager-view";
 import type { MemoryManagerDeps } from "../shared/state/manager-deps";
 import { FakeStorage } from "./fake-storage";
 
+// jsdom lacks the pointer/scroll APIs Radix' select and dialog rely on.
+beforeAll(() => {
+    Element.prototype.scrollIntoView ??= () => {};
+    Element.prototype.hasPointerCapture ??= () => false;
+    Element.prototype.setPointerCapture ??= () => {};
+    Element.prototype.releasePointerCapture ??= () => {};
+});
+
 // The real hook resolves catalog keys against locales/en.json; mirror that so a missing key fails a test.
-vi.mock("@vetta-org/plugin-sdk", () => ({
-    useTranslation: () => ({
-        locale: "en",
-        t: (key: string, params?: Record<string, string | number>) => {
-            const text = (en as Record<string, string>)[key];
-            if (text === undefined) throw new Error(`Missing locale key: ${key}`);
-            return text.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(params?.[name] ?? ""));
-        },
-    }),
-}));
+// The host renders `ModelPicker` itself, so the test swaps in a plain select of the same shape.
+vi.mock("@vetta-org/plugin-sdk", async () => {
+    const { createElement } = await import("react");
+    return {
+        useTranslation: () => ({
+            locale: "en",
+            t: (key: string, params?: Record<string, string | number>) => {
+                const text = (en as Record<string, string>)[key];
+                if (text === undefined) throw new Error(`Missing locale key: ${key}`);
+                return text.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(params?.[name] ?? ""));
+            },
+        }),
+        ModelPicker: ({
+            value,
+            onChange,
+            emptyOption,
+            ariaLabel,
+        }: {
+            value: string | null;
+            onChange: (modelKey: string | null) => void;
+            emptyOption?: { label: string };
+            ariaLabel?: string;
+        }) =>
+            createElement(
+                "select",
+                { "aria-label": ariaLabel, value: value ?? "", onChange: (event: { target: EventTarget & HTMLSelectElement }) => onChange(event.target.value || null) },
+                [
+                    ...(emptyOption ? [createElement("option", { key: "", value: "" }, emptyOption.label)] : []),
+                    createElement("option", { key: "p/fast", value: "p/fast" }, "Fast model"),
+                ],
+            ),
+    };
+});
 
 afterEach(cleanup);
+
+/** Radix selects open a listbox; pick an option by its visible label. */
+async function choose(user: ReturnType<typeof userEvent.setup>, scope: HTMLElement, label: string, option: string) {
+    await user.click(within(scope).getByLabelText(label));
+    await user.click(await screen.findByRole("option", { name: option }));
+}
 
 function setup() {
     const services = new MemoryServices(new FakeStorage());
     const notify = vi.fn();
-    const deps: MemoryManagerDeps = {
-        services,
-        notify,
-        listModels: async () => ({
-            defaultModel: null,
-            models: [
-                { modelKey: "p/fast", provider: "p", id: "fast", name: "Fast model", api: "x", reasoning: false, input: ["text"], contextWindow: 8000 },
-            ],
-        }),
-    };
+    const deps: MemoryManagerDeps = { services, notify };
     render(<MemoryManagerView deps={deps} />);
     return { services, notify, user: userEvent.setup() };
 }
@@ -46,7 +74,7 @@ describe("Memory page", () => {
         await user.click(screen.getByRole("button", { name: "Add memory" }));
         const dialog = screen.getByRole("dialog", { name: "Add memory" });
         await user.type(within(dialog).getByRole("textbox"), "Always deploy on Fridays #decision");
-        await user.selectOptions(within(dialog).getByLabelText("Kind"), "decision");
+        await choose(user, dialog, "Kind", "Decision");
         await user.click(within(dialog).getByRole("button", { name: "Save" }));
 
         expect(await screen.findByText("Always deploy on Fridays #decision")).toBeTruthy();
@@ -102,7 +130,7 @@ describe("Memory page", () => {
         await user.click(await screen.findByRole("tab", { name: /Scratchpad/ }));
         await user.type(screen.getByRole("textbox", { name: "Add something to come back to" }), "Review the release notes");
         await user.click(screen.getByRole("button", { name: "Add" }));
-        const box = await screen.findByRole("checkbox", { name: "Review the release notes" });
+        const box = await screen.findByRole("switch", { name: "Review the release notes" });
         await user.click(box);
         await waitFor(() => expect(services.scratchpad.list()[0].done).toBe(true));
         await user.click(screen.getByRole("button", { name: "Clear finished" }));
@@ -125,7 +153,7 @@ describe("Memory page", () => {
 
         await user.click(screen.getByRole("switch", { name: "Learn automatically" }));
         await waitFor(() => expect(services.memories.getSettings().autoExtract).toBe(true));
-        await user.selectOptions(await screen.findByLabelText("Prompt refresh"), "per-turn");
+        await choose(user, document.body, "Prompt refresh", "Every turn");
         await waitFor(() => expect(services.memories.getSettings().snapshotMode).toBe("per-turn"));
         const limit = screen.getByRole("spinbutton", { name: "Memories shown per turn" });
         await user.clear(limit);

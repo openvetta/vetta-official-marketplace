@@ -1,9 +1,9 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta-org/ui";
 import type { ReactElement } from "react";
 import { projectName } from "../../../domain/memory-text";
 import type { MemoryRecord } from "../../../domain/memory-types";
 import { Badge } from "../../../shared/components/badge";
-import { IconButton } from "../../../shared/components/icon-button";
 import { formatDateTime } from "../../../shared/formatters/format-time";
 
 export function MemoryRow({
@@ -30,14 +30,30 @@ export function MemoryRow({
                 </div>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
-                <IconButton
-                    icon={record.pinned ? "icon-[solar--pin-bold]" : "icon-[solar--pin-linear]"}
-                    label={record.pinned ? t("memories.unpin") : t("memories.pin")}
-                    active={record.pinned}
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    title={record.pinned ? t("memories.unpin") : t("memories.pin")}
+                    aria-label={record.pinned ? t("memories.unpin") : t("memories.pin")}
+                    aria-pressed={record.pinned}
+                    className={record.pinned ? "text-primary hover:text-primary" : undefined}
                     onClick={onTogglePin}
-                />
-                <IconButton icon="icon-[solar--pen-linear]" label={t("memories.edit")} onClick={onEdit} />
-                <IconButton icon="icon-[solar--trash-bin-minimalistic-linear]" label={t("common.delete")} danger onClick={onDelete} />
+                >
+                    <span className={`${record.pinned ? "icon-[solar--pin-bold]" : "icon-[solar--pin-linear]"} size-4`} />
+                </Button>
+                <Button variant="ghost" size="icon-sm" title={t("memories.edit")} aria-label={t("memories.edit")} onClick={onEdit}>
+                    <span className="icon-[solar--pen-linear] size-4" />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    title={t("common.delete")}
+                    aria-label={t("common.delete")}
+                    className="hover:bg-destructive/10 hover:text-destructive"
+                    onClick={onDelete}
+                >
+                    <span className="icon-[solar--trash-bin-minimalistic-linear] size-4" />
+                </Button>
             </div>
         </li>
     );
