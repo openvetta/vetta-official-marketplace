@@ -10,7 +10,9 @@ export default defineConfig({
     tailwindcss(),
     vettaPluginFederation({
       name: "web_access",
-      entry: "./src/index.tsx"
+      entry: "./src/index.tsx",
+      // Host design-system primitives (@vetta-org/ui) come from the app singleton.
+      hostUi: true
     })
   ],
   esbuild: {

@@ -1,4 +1,5 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta-org/ui";
 import {
   DEFAULT_SETTINGS,
   JINA_SECRET_KEY,
@@ -14,8 +15,8 @@ import { Icon } from "../../../shared/components/icon";
 import { useWebAccessSettings } from "../hooks/use-web-access-settings";
 import { KeyRow } from "./key-row";
 import { NumberStepper } from "./number-stepper";
+import { OptionSelect } from "./option-select";
 import { ProviderChoiceGrid, type ProviderChoice } from "./provider-choice-grid";
-import { SegmentedControl } from "./segmented-control";
 import { SettingsCard } from "./settings-card";
 import { TestSearchPanel } from "./test-search-panel";
 import { TextField } from "./text-field";
@@ -181,7 +182,8 @@ export function WebAccessSettingsView({ store, call, notify }: WebAccessSettings
                   description={t("settings.fetch.section.desc")}
                 >
                   <div className="space-y-2">
-                    <SegmentedControl
+                    <span className="block text-[13px] font-medium text-foreground">{t("settings.fetch.mode")}</span>
+                    <OptionSelect
                       ariaLabel={t("settings.fetch.mode")}
                       value={settings.fetchMode}
                       onChange={(value) => update("fetchMode", value as WebAccessSettings["fetchMode"])}
@@ -312,14 +314,9 @@ export function WebAccessSettingsView({ store, call, notify }: WebAccessSettings
               </>
             )}
           </p>
-          <button
-            type="button"
-            disabled={form.saving || !form.dirty}
-            className="rounded-lg bg-primary px-4 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity disabled:opacity-40"
-            onClick={save}
-          >
+          <Button type="button" variant="primary" size="sm" disabled={form.saving || !form.dirty} onClick={save}>
             {t("settings.save")}
-          </button>
+          </Button>
         </div>
       </footer>
     </div>

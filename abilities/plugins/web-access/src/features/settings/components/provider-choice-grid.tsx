@@ -24,7 +24,8 @@ interface ProviderChoiceGridProps {
 /**
  * Provider selection as tiles rather than a dropdown: which service answers is
  * the page's main decision, and the qualifiers ("no key", "self-hosted") are
- * what the choice actually turns on.
+ * what the choice actually turns on. Tiles use the app's card surface so they
+ * sit in the same visual family as the rest of Vetta's list items.
  */
 export function ProviderChoiceGrid({ value, options, onChange, name, ariaLabel }: ProviderChoiceGridProps) {
   return (
@@ -34,13 +35,9 @@ export function ProviderChoiceGrid({ value, options, onChange, name, ariaLabel }
         return (
           <label
             key={option.value}
-            className={`group relative flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-all ${
+            className={`group relative flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors ${
               option.featured ? "sm:col-span-2" : ""
-            } ${
-              selected
-                ? "border-primary/50 bg-primary/[0.06] ring-1 ring-primary/25"
-                : "border-border/60 bg-muted/25 hover:border-border hover:bg-muted/50"
-            }`}
+            } ${selected ? "border-primary/60 bg-primary/[0.04]" : "border-border/60 bg-card hover:border-border hover:bg-accent/40"}`}
           >
             <input
               type="radio"

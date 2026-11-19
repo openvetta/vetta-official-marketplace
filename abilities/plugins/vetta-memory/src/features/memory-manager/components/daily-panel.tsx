@@ -1,13 +1,12 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button, Input } from "@vetta-org/ui";
 import { useEffect, useState, type FormEvent, type ReactElement } from "react";
 import { dateKey, projectName } from "../../../domain/memory-text";
 import type { DailyEntry } from "../../../domain/memory-types";
 import { Badge } from "../../../shared/components/badge";
 import { EmptyState } from "../../../shared/components/empty-state";
-import { IconButton } from "../../../shared/components/icon-button";
 import { formatClock, formatDateKey } from "../../../shared/formatters/format-time";
 import type { MemoryManagerDeps } from "../../../shared/state/manager-deps";
-import { INPUT_BASE, PRIMARY_BUTTON } from "../../../shared/styles/controls";
 
 export function DailyPanel({ deps, revision }: { deps: MemoryManagerDeps; revision: number }): ReactElement {
     const { t, locale } = useTranslation();
@@ -57,31 +56,30 @@ export function DailyPanel({ deps, revision }: { deps: MemoryManagerDeps; revisi
     return (
         <section className="flex flex-col gap-3">
             <form onSubmit={add} className="flex gap-2">
-                <input
+                <Input
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                     placeholder={t("daily.addPlaceholder")}
                     aria-label={t("daily.addPlaceholder")}
-                    className={`${INPUT_BASE} min-w-0 flex-1`}
+                    className="min-w-0 flex-1"
                 />
-                <button type="submit" className={PRIMARY_BUTTON} disabled={!note.trim()}>
+                <Button type="submit" variant="primary" disabled={!note.trim()}>
                     {t("common.add")}
-                </button>
+                </Button>
             </form>
             <div className="flex gap-4">
                 <nav aria-label={t("tab.daily")} className="flex w-36 shrink-0 flex-col gap-0.5">
                     {dayList.map((date) => (
-                        <button
+                        <Button
                             key={date}
-                            type="button"
+                            variant={date === selected ? "secondary" : "ghost"}
+                            size="sm"
                             aria-current={date === selected}
+                            className="justify-start text-xs font-normal tabular-nums"
                             onClick={() => setSelected(date)}
-                            className={`cursor-pointer rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors ${
-                                date === selected ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60"
-                            }`}
                         >
                             {date === today ? `${date} · ${t("daily.today")}` : date}
-                        </button>
+                        </Button>
                     ))}
                 </nav>
                 <div className="min-w-0 flex-1">
@@ -100,16 +98,20 @@ export function DailyPanel({ deps, revision }: { deps: MemoryManagerDeps; revisi
                                             {entry.cwd ? <Badge>{projectName(entry.cwd)}</Badge> : null}
                                         </div>
                                     </div>
-                                    <IconButton
-                                        icon="icon-[solar--trash-bin-minimalistic-linear]"
-                                        label={t("common.delete")}
-                                        danger
+                                    <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        title={t("common.delete")}
+                                        aria-label={t("common.delete")}
+                                        className="hover:bg-destructive/10 hover:text-destructive"
                                         onClick={() =>
                                             void daily
                                                 .removeEntry(selected ?? today, entry.id)
                                                 .catch((error: unknown) => deps.notify({ message: t("error.delete"), error }))
                                         }
-                                    />
+                                    >
+                                        <span className="icon-[solar--trash-bin-minimalistic-linear] size-4" />
+                                    </Button>
                                 </li>
                             ))}
                         </ul>

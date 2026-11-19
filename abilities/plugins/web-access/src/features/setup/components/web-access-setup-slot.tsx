@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button } from "@vetta-org/ui";
 import type { SearchHit } from "../../../domain/search-types";
 import type { WebAccessSettings } from "../../../domain/settings";
 import type { NetworkRequest } from "../../../services/network";
@@ -104,7 +105,7 @@ export function WebAccessSetupSlot({ store, call, openSettings }: WebAccessSetup
   const savedKeys = snapshot ? Object.values(snapshot.keys).filter(Boolean).length : 0;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card text-foreground ">
       <header className="flex flex-wrap items-center gap-3 border-b border-border/50 px-5 py-4">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-muted/40 text-foreground">
           <Icon name="globe" className="h-4 w-4" />
@@ -172,23 +173,14 @@ export function WebAccessSetupSlot({ store, call, openSettings }: WebAccessSetup
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 px-3 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
-              onClick={openSettings}
-            >
+            <Button type="button" variant="outline" size="xs" onClick={openSettings}>
               {t("setup.open")}
               <Icon name="chevron" className="h-3 w-3 -rotate-90" />
-            </button>
-            <button
-              type="button"
-              disabled={busy || !snapshot}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-medium text-primary-foreground transition-opacity disabled:opacity-40"
-              onClick={() => void run()}
-            >
+            </Button>
+            <Button type="button" variant="primary" size="xs" disabled={busy || !snapshot} onClick={() => void run()}>
               <Icon name="bolt" className={`h-3 w-3 ${busy ? "animate-pulse" : ""}`} />
               {busy ? t("setup.trying") : t("setup.try")}
-            </button>
+            </Button>
           </div>
         </div>
 

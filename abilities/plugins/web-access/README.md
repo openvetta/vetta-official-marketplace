@@ -47,7 +47,12 @@ keeps every URL on the machine and will fail loudly on bot-walled pages instead 
   `settings.json` and never echoed back into the UI.
 
 The settings page is a workspace view with `sidebar: false`, so it lives under
-**Settings → More options → Web Access**. The ability detail page carries a runtime card
+**Settings → More options → Web Access**. Its controls — switches, inputs, selects, buttons, number
+steppers — are the host's own design-system primitives (`@vetta-org/ui`, shared at runtime through
+Module Federation), so sizes, focus rings, hit areas and dark-mode colours track the app instead of
+being re-drawn here. Only the layouts Vetta has no equivalent for (provider tiles, the metric strip)
+are bespoke, and they use the host's card and muted surfaces. The ability detail page carries a
+runtime card
 (`features/setup`) with the current provider, reader, key state, a live test query and a link into
 that page; the surrounding story in `detail.json` / `detail.zh.json` ships with the marketplace
 distribution (a local `vetta-plugin-cli add` install only loads the packaged runtime card).

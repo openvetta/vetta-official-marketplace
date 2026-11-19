@@ -6,12 +6,12 @@ Vetta 的长期记忆插件。把偏好、事实、决定和项目约定保存�
 
 | 扩展点 | 说明 |
 | --- | --- |
-| 工作区视图 `memory` | 记忆 / 每日日志 / 待办 / 最近删除 / 设置五个标签页；默认在侧边栏「更多」里 |
+| 工作区视图 `memory` | 记忆 / 每日日志 / 待办 / 最近删除 / 设置五个标签页；默认在侧边栏「更多」里。界面控件全部取自宿主设计系统（`@vetta-org/ui` 的 Button / Input / Select / Switch / Dialog，`ModelPicker` 选模型），随 App 主题与尺寸变化 |
 | 系统提示词 Provider `memory-context` | 每轮注入：待办 → 今日日志 → 长期记忆 → 昨日日志，分段限长，总量 ≤ 16K 字符 |
 | Agent 工具（7 个） | `memory_write`、`memory_read`、`memory_search`、`memory_forget`、`memory_restore`、`scratchpad`、`memory_status` |
 | Hook | `SessionStart`、`UserPromptSubmit`、`Stop`（自动提取）、`PreCompact`（交接）、`PostCompact`、`SessionEnd`（会话总结） |
 
-权限：`ui.slot.workspace-view`、`storage.read/write`、`agent.tools.register`、`agent.toolHandler.execute`、`agent.systemPrompt.write`、`agent.hooks.register`、`agent.hookHandler.execute`、`ai.complete`、`ai.models.list`。`ai.*` 只用于可选的自动提取与会话总结。
+权限：`ui.slot.workspace-view`、`storage.read/write`、`agent.tools.register`、`agent.toolHandler.execute`、`agent.systemPrompt.write`、`agent.hooks.register`、`agent.hookHandler.execute`、`ai.complete`。`ai.complete` 只用于可选的自动提取与会话总结；选模型用宿主渲染的 `ModelPicker`，因此不需要 `ai.models.list`。
 
 ## 与 pi-memory 的对应
 
@@ -48,7 +48,7 @@ src/
 ├── hooks/                             # Hook 注册、自动提取、会话总结
 ├── prompt/                            # 系统提示词 Provider
 ├── features/memory-manager/           # 「记忆」页面（components / hooks）
-├── shared/                            # 基础组件、样式常量、格式化
+├── shared/                            # 宿主组件之上的薄封装、格式化
 └── test/
 ```
 

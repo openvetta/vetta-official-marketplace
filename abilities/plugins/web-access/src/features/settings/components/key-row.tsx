@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { Button, Input } from "@vetta-org/ui";
+import { useState } from "react";
 import type { KeyState } from "../hooks/use-web-access-settings";
 
 interface KeyRowProps {
@@ -40,7 +41,7 @@ export function KeyRow({ label, hint, monogram, secretKey, state, optional, onSa
   };
 
   return (
-    <div className="rounded-xl border border-border/50 bg-background/60 px-3 py-2.5">
+    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5">
       <div className="flex items-center gap-2.5">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-muted-foreground">
           {monogram}
@@ -67,34 +68,24 @@ export function KeyRow({ label, hint, monogram, secretKey, state, optional, onSa
           {saved ? t("settings.key.saved") : t("settings.key.missing")}
         </span>
         {saved && !editing ? (
-          <button
-            type="button"
-            disabled={busy}
-            className="shrink-0 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            onClick={() => setEditing(true)}
-          >
+          <Button type="button" variant="ghost" size="xs" disabled={busy} onClick={() => setEditing(true)}>
             {t("settings.key.change")}
-          </button>
+          </Button>
         ) : null}
         {!saved && !editing ? (
-          <button
-            type="button"
-            className="shrink-0 rounded-md border border-border/70 px-2 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-muted"
-            onClick={() => setEditing(true)}
-          >
+          <Button type="button" variant="outline" size="xs" onClick={() => setEditing(true)}>
             {t("settings.key.add")}
-          </button>
+          </Button>
         ) : null}
       </div>
 
       {editing ? (
         <div className="mt-2.5 space-y-2 border-t border-border/50 pt-2.5">
-          <input
+          <Input
             type="password"
             autoComplete="off"
             spellCheck={false}
             autoFocus
-            className="w-full rounded-lg border border-border/70 bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition-shadow placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
             placeholder={t("settings.key.placeholder")}
             value={value}
             onChange={(event) => setValue(event.target.value)}
@@ -105,34 +96,38 @@ export function KeyRow({ label, hint, monogram, secretKey, state, optional, onSa
           />
           <div className="flex items-center justify-end gap-2">
             {saved ? (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 disabled={busy}
-                className="rounded-md px-2 py-1 text-[11px] text-destructive transition-colors hover:bg-destructive/10"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => void run(() => onClear(secretKey))}
               >
                 {t("settings.key.clear")}
-              </button>
+              </Button>
             ) : null}
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="xs"
               disabled={busy}
-              className="rounded-md px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               onClick={() => {
                 setEditing(false);
                 setValue("");
               }}
             >
               {t("settings.key.cancel")}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="primary"
+              size="xs"
               disabled={busy || !value.trim()}
-              className="rounded-md bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground transition-opacity disabled:opacity-40"
               onClick={() => void run(() => onSave(secretKey, value))}
             >
               {t("settings.key.save")}
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

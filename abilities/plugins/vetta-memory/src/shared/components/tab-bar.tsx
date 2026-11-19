@@ -1,3 +1,4 @@
+import { Button } from "@vetta-org/ui";
 import type { ReactElement } from "react";
 
 export interface TabItem<T extends string> {
@@ -16,25 +17,23 @@ export function TabBar<T extends string>({
     onChange: (id: T) => void;
 }): ReactElement {
     return (
-        <div role="tablist" className="flex gap-1">
+        <div role="tablist" className="flex flex-wrap gap-1">
             {tabs.map((tab) => (
-                <button
+                <Button
                     key={tab.id}
                     type="button"
                     role="tab"
                     aria-selected={tab.id === active}
+                    variant={tab.id === active ? "secondary" : "ghost"}
+                    size="sm"
+                    className="gap-1.5 rounded-full"
                     onClick={() => onChange(tab.id)}
-                    className={`flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm transition-colors ${
-                        tab.id === active
-                            ? "bg-muted font-medium text-foreground"
-                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    }`}
                 >
                     {tab.label}
                     {tab.count ? (
                         <span className="rounded-full bg-background/60 px-1.5 text-[11px] leading-4 text-muted-foreground">{tab.count}</span>
                     ) : null}
-                </button>
+                </Button>
             ))}
         </div>
     );

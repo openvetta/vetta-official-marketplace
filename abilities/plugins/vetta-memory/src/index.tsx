@@ -13,7 +13,6 @@ export default definePlugin({
         const services = new MemoryServices(ctx.storage);
         const deps: MemoryManagerDeps = {
             services,
-            listModels: () => ctx.ai.listModels(),
             notify: (options) => ctx.ui.notify(options),
         };
         // Load eagerly so the first turn does not pay for it; failures surface on the Memory page.
