@@ -1058,7 +1058,7 @@
       "slug": "web-access",
       "name": "Web Access",
       "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
@@ -1139,6 +1139,27 @@
           "artifact": {
             "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-web-access/web-access-1.0.1.vettapkg",
             "sha256": "d9a41c515476b2a014c40e3db086a153f2930c0919434234d46dcd8fcc3c86d5"
+          }
+        },
+        {
+          "version": "1.0.2",
+          "minAppVersion": "0.6.13",
+          "pluginApiVersion": "^2.4.0",
+          "permissions": [
+            "agent.tools.register",
+            "agent.toolHandler.execute",
+            "ui.slot.workspace-view",
+            "ui.slot.ability-detail",
+            "storage.read",
+            "storage.write",
+            "secrets.read",
+            "secrets.write",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-web-access/web-access-1.0.2.vettapkg",
+            "sha256": "b4a7b98ec91858e8052fc8ac85337216b5ecc93334945416e571ab9876d92106"
           }
         }
       ]
@@ -1309,5 +1330,5 @@
       ]
     }
   ],
-  "marketplaceVersion": "2026.11.19-1"
+  "marketplaceVersion": "2026.11.20-1"
 }
