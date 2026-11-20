@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "type": "plugin",
   "slug": "web-access",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icon": "assets/icon.png",
   "name": "Web Access",
   "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",

@@ -11,8 +11,10 @@ export default defineConfig({
     vettaPluginFederation({
       name: "web_access",
       entry: "./src/index.tsx",
-      // Host design-system primitives (@vetta-org/ui) come from the app singleton.
-      hostUi: true
+      // Host design-system primitives (@vetta-org/ui) and the settings chrome the app
+      // exposes to plugins (@vetta-org/theme-ui/plugin-ui) come from the app singleton.
+      hostUi: true,
+      hostThemeUi: true
     })
   ],
   esbuild: {

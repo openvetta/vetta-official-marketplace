@@ -61,18 +61,36 @@ async function fakeSearch(call: NetworkCall): Promise<NetworkResult> {
   );
 }
 
+/** The provider picker is the host settings dropdown; its trigger is labelled by the row. */
+const providerTrigger = () => screen.getByRole("button", { name: "settings.search.provider" });
+
+async function chooseProvider(label: string) {
+  const user = userEvent.setup();
+  await user.click(providerTrigger());
+  await user.click(await screen.findByText(label));
+}
+
+const savedSettings = (files: Map<string, string>) =>
+  JSON.parse(files.get("settings.json") ?? "{}") as Record<string, unknown>;
+
 describe("Web Access settings page", () => {
-  it("loads defaults, saves the form and keeps keys out of settings.json", async () => {
+  it("saves each edit immediately, without a save button", async () => {
     const { backend, files, secrets } = memoryBackend();
     const store = createSettingsStore(backend);
-    const notify = vi.fn();
-    render(<WebAccessSettingsView store={store} call={fakeSearch} notify={notify} />);
+    render(<WebAccessSettingsView store={store} call={fakeSearch} notify={vi.fn()} />);
 
-    await screen.findByRole("radiogroup", { name: "settings.search.provider" });
-    expect((screen.getByRole("radio", { name: /provider\.auto/u }) as HTMLInputElement).checked).toBe(true);
+    await screen.findByRole("button", { name: "settings.search.provider" });
+    expect(providerTrigger().textContent).toContain("provider.auto");
+    // Nothing to press: the page persists edits on its own.
+    expect(screen.queryByRole("button", { name: /settings\.save/u })).toBeNull();
 
-    fireEvent.click(screen.getByRole("radio", { name: /provider\.brave/u }));
-    fireEvent.change(screen.getByLabelText(/^settings\.search\.count$/u), { target: { value: "3" } });
+    await chooseProvider("provider.brave · settings.badge.key");
+    await waitFor(() => expect(savedSettings(files).searchProvider).toBe("brave"));
+
+    const count = screen.getByLabelText(/^settings\.search\.count$/u);
+    fireEvent.change(count, { target: { value: "3" } });
+    fireEvent.blur(count);
+    await waitFor(() => expect(savedSettings(files).resultCount).toBe(3));
 
     const user = userEvent.setup();
     await user.click(screen.getAllByRole("button", { name: "settings.key.add" })[0]);
@@ -81,13 +99,20 @@ describe("Web Access settings page", () => {
     await waitFor(() => expect(secrets.get("exaApiKey")).toBe("secret-key"));
     await screen.findByText("settings.key.saved");
 
-    await user.click(screen.getByRole("button", { name: "settings.save" }));
-    await waitFor(() => expect(files.get("settings.json")).toBeTruthy());
-
-    const saved = JSON.parse(files.get("settings.json") ?? "{}") as Record<string, unknown>;
-    expect(saved).toMatchObject({ searchProvider: "brave", resultCount: 3 });
+    // A saved key never leaks into the settings file.
     expect(files.get("settings.json")).not.toContain("secret-key");
-    await waitFor(() => expect(notify).toHaveBeenCalledWith("settings.saved"));
+  });
+
+  it("keeps the last edit even when the page is left inside the write window", async () => {
+    const { backend, files } = memoryBackend();
+    const store = createSettingsStore(backend);
+    const view = render(<WebAccessSettingsView store={store} call={fakeSearch} notify={vi.fn()} />);
+
+    await screen.findByRole("button", { name: "settings.search.provider" });
+    await chooseProvider("provider.tavily · settings.badge.key");
+    view.unmount();
+
+    await waitFor(() => expect(savedSettings(files).searchProvider).toBe("tavily"));
   });
 
   it("runs a real query from the page and shows the answers", async () => {
@@ -115,9 +140,7 @@ describe("Web Access settings page", () => {
     render(<WebAccessSettingsView store={store} call={failing} notify={vi.fn()} />);
 
     const user = userEvent.setup();
-    await waitFor(() =>
-      expect((screen.getByRole("radio", { name: /provider\.brave/u }) as HTMLInputElement).checked).toBe(true)
-    );
+    await waitFor(() => expect(providerTrigger().textContent).toContain("provider.brave"));
     await user.click(screen.getByRole("button", { name: "settings.test.run" }));
 
     await screen.findByText(/settings.test.failed/u);
@@ -129,10 +152,22 @@ describe("Web Access settings page", () => {
     const store = createSettingsStore(backend);
     render(<WebAccessSettingsView store={store} call={fakeSearch} notify={vi.fn()} />);
 
-    await screen.findByRole("radiogroup", { name: "settings.search.provider" });
+    await screen.findByRole("button", { name: "settings.search.provider" });
     expect(screen.queryByLabelText(/settings\.search\.searxngUrl/u)).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("radio", { name: /provider\.brave/u }));
-    expect(screen.queryByLabelText(/settings\.search\.searxngUrl/u)).toBeNull();
+    await chooseProvider("provider.brave · settings.badge.key");
+    await waitFor(() => expect(screen.queryByLabelText(/settings\.search\.searxngUrl/u)).toBeNull());
+  });
+
+  it("drives both numeric settings through the host stepper", async () => {
+    const { backend } = memoryBackend();
+    const store = createSettingsStore(backend);
+    render(<WebAccessSettingsView store={store} call={fakeSearch} notify={vi.fn()} />);
+
+    await screen.findByRole("button", { name: "settings.search.provider" });
+    for (const label of ["settings.search.count", "settings.fetch.maxChars"]) {
+      const input = screen.getByLabelText(new RegExp(`^${label}$`, "u"));
+      expect(input.closest("[data-slot='stepper']")).toBeTruthy();
+    }
   });
 });
