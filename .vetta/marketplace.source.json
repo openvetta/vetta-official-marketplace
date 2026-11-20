@@ -761,7 +761,7 @@
       "slug": "web-access",
       "name": "Web Access",
       "description": "Search the web and read pages or PDFs inside a conversation — free by default, or with your own search and reader keys.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
@@ -801,7 +801,7 @@
       "source": {
         "path": "abilities/plugins/web-access"
       },
-      "minAppVersion": "0.5.59"
+      "minAppVersion": "0.6.13"
     },
     {
       "type": "plugin",

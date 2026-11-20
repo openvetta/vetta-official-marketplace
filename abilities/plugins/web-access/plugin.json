@@ -1,7 +1,7 @@
 {
   "id": "web-access",
   "name": "%plugin.name%",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icon": "assets/icon.png",
   "defaultLocale": "en",
   "pluginApiVersion": "^2.4.0",

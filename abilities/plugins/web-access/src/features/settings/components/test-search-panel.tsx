@@ -1,4 +1,5 @@
 import { useTranslation } from "@vetta-org/plugin-sdk";
+import { SettingRow } from "@vetta-org/theme-ui/plugin-ui";
 import { Button, Input } from "@vetta-org/ui";
 import { useState } from "react";
 import type { SearchOutcome } from "../../../domain/search-types";
@@ -21,6 +22,10 @@ function hostOf(url: string): string {
   }
 }
 
+/**
+ * Query box and results, rendered as rows of the surrounding `SettingSection` so
+ * the panel keeps the host's settings rhythm instead of a second card style.
+ */
 export function TestSearchPanel({ store, call, settings }: TestSearchPanelProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("Vetta desktop agent");
@@ -43,72 +48,66 @@ export function TestSearchPanel({ store, call, settings }: TestSearchPanelProps)
     }
   };
 
+  const results = result?.outcome.results ?? [];
+  const hasBody = Boolean(error || result);
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Input
-          aria-label={t("settings.test.query")}
-          className="flex-1"
-          value={query}
-          placeholder={t("settings.test.query")}
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !busy && query.trim()) void run();
-          }}
-        />
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          disabled={busy || !query.trim()}
-          onClick={() => void run()}
-        >
-          {busy ? t("settings.test.running") : t("settings.test.run")}
-        </Button>
-      </div>
+    <>
+      <SettingRow title={t("settings.test.query")} border={hasBody}>
+        <div className="flex items-center gap-2">
+          <Input
+            aria-label={t("settings.test.query")}
+            className="w-52"
+            value={query}
+            placeholder={t("settings.test.query")}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !busy && query.trim()) void run();
+            }}
+          />
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            disabled={busy || !query.trim()}
+            onClick={() => void run()}
+          >
+            {busy ? t("settings.test.running") : t("settings.test.run")}
+          </Button>
+        </div>
+      </SettingRow>
 
       {error ? (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/[0.07] px-3 py-2">
-          <p className="text-[11px] font-medium text-destructive">{t("settings.test.failed")}</p>
+        <div className="px-4 py-2.5">
+          <p className="text-[12px] font-medium text-destructive">{t("settings.test.failed")}</p>
           <p className="mt-0.5 break-words text-[11px] leading-relaxed text-destructive/80">{error}</p>
         </div>
       ) : null}
 
       {result ? (
-        <div className="space-y-2.5">
-          <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-            <span className="rounded-full bg-emerald-500/10 px-1.5 py-px font-medium text-emerald-600 dark:text-emerald-400">
-              {providerLabel(result.outcome.provider)}
-            </span>
-            <span>{t("settings.test.count", { count: String(result.outcome.results.length) })}</span>
-            <span className="text-muted-foreground/50">·</span>
+        <>
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-4 py-2 text-[11px] text-muted-foreground">
+            <span className="font-medium text-foreground">{providerLabel(result.outcome.provider)}</span>
+            <span>{t("settings.test.count", { count: String(results.length) })}</span>
+            <span>·</span>
             <span className="tabular-nums">{result.ms} ms</span>
           </div>
-          {result.outcome.results.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground">{t("settings.test.empty")}</p>
+          {results.length === 0 ? (
+            <p className="px-4 py-2.5 text-[11px] text-muted-foreground">{t("settings.test.empty")}</p>
           ) : (
-            <ol className="space-y-1.5">
-              {result.outcome.results.map((hit, index) => (
-                <li
-                  key={hit.url}
-                  className="group rounded-lg border border-transparent px-1.5 py-1 transition-colors hover:border-border/60 hover:bg-accent/40"
-                >
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[10px] tabular-nums text-muted-foreground/60">{index + 1}</span>
-                    <span className="truncate text-[11px] font-medium text-foreground">{hit.title}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 pl-3.5">
-                    <span className="truncate text-[10px] text-primary/80">{hostOf(hit.url)}</span>
-                  </div>
-                  <p className="line-clamp-2 pl-3.5 text-[11px] leading-relaxed text-muted-foreground">
-                    {hit.snippet}
-                  </p>
-                </li>
-              ))}
-            </ol>
+            results.map((hit, index) => (
+              <SettingRow
+                key={hit.url}
+                title={hit.title}
+                description={hit.snippet}
+                border={index < results.length - 1}
+              >
+                <span className="text-[11px] text-muted-foreground">{hostOf(hit.url)}</span>
+              </SettingRow>
+            ))
           )}
-        </div>
+        </>
       ) : null}
-    </div>
+    </>
   );
 }
