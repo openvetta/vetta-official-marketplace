@@ -10,9 +10,9 @@
     "@tailwindcss/vite": "^4.1.12",
     "@types/react": "^19.1.1",
     "@vetta-org/plugin-cli": "^0.1.7",
-    "@vetta-org/plugin-sdk": "^0.3.11",
+    "@vetta-org/plugin-sdk": "^0.3.14",
     "@vetta-org/plugin-vite": "^0.2.4",
-    "@vetta-org/ui": "^0.1.0",
+    "@vetta-org/ui": "^0.1.1",
     "react": "^19.1.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.7"

@@ -191,7 +191,7 @@ test("Shimo ships its reader Skills inside the plugin package", () => {
   assert.equal(ability?.type, "plugin");
   const directory = packageFile(root, ability.source.path);
   const packageJson = readJson(packageFile(directory, "package.json"));
-  assert.equal(packageJson.devDependencies["@vetta-org/ui"], "^0.1.0");
+  assert.equal(packageJson.devDependencies["@vetta-org/ui"], "^0.1.1");
   const plugin = readJson(packageFile(directory, "plugin.json"));
   assert.ok(plugin.permissions.includes("agent.skills.control"));
   assert.ok(plugin.permissions.includes("ai.models.list"));
