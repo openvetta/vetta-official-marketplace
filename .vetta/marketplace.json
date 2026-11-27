@@ -1332,9 +1332,9 @@
     {
       "type": "plugin",
       "slug": "generation-speed",
-      "name": "Generation Speed",
-      "description": "See the model's live generation speed (tok/s) under the latest reply, with first-token latency, a speed trend and token usage one click away.",
-      "version": "0.1.0",
+      "name": "Vetta Reply HUD",
+      "description": "A heads-up line under the latest reply: live generation speed (tok/s) and the sources used this turn, with first-token latency, a speed trend, token usage and a copyable source list one click away.",
+      "version": "0.2.0",
       "configVersion": 1,
       "license": "MIT",
       "author": "Vetta",
@@ -1344,23 +1344,26 @@
         "en": "Productivity"
       },
       "tags": [
+        "hud",
         "speed",
         "tokens per second",
+        "sources",
+        "citations",
         "latency",
-        "usage",
-        "metrics"
+        "usage"
       ],
       "detail": {
         "i18n": {
           "zh": {
-            "name": "生成速度",
-            "description": "在最新一轮回复下方实时显示模型生成速度（tok/s），点开可看首字延迟、速度走势与 token 用量。",
+            "name": "Vetta 回复增强 HUD",
+            "description": "最新一轮回复下方的信息条：实时生成速度（tok/s）与本轮来源，点开可看首字延迟、速度走势、token 用量和可复制的来源清单。",
             "tags": [
-              "速度",
+              "HUD",
               "生成速度",
+              "来源",
+              "引用",
               "首字延迟",
-              "用量",
-              "指标"
+              "用量"
             ]
           }
         }
@@ -1382,9 +1385,25 @@
             "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-generation-speed/generation-speed-0.1.0.vettapkg",
             "sha256": "96ae09abb0f5eba2ab0f8809b18a8a41d7d0ce5594714bab5ae7be5a0cf75265"
           }
+        },
+        {
+          "version": "0.2.0",
+          "minAppVersion": "0.6.32",
+          "pluginApiVersion": "^2.12.0",
+          "permissions": [
+            "ui.slot.turn-card",
+            "agent.session.read",
+            "shell.openExternal",
+            "network.fetch"
+          ],
+          "commands": [],
+          "artifact": {
+            "url": "https://github.com/openvetta/vetta-official-marketplace/releases/download/plugin-generation-speed/generation-speed-0.2.0.vettapkg",
+            "sha256": "72f661e8164f9d05487f15276cb04a9e4959bef07775f767422d056ec917a524"
+          }
         }
       ]
     }
   ],
-  "marketplaceVersion": "2026.11.27-1"
+  "marketplaceVersion": "2026.11.27-2"
 }

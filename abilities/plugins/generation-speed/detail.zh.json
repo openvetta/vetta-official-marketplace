@@ -3,13 +3,13 @@
   "blocks": [
     {
       "type": "hero",
-      "eyebrow": "生成速度",
-      "title": "模型在思考、在输出、在收尾，速度一目了然",
-      "description": "最新一轮回复下方有一行轻量读数：模型输出时显示此刻的 tok/s，结束后换成本轮的真实平均速度。点一下，完整详情就在眼前。",
+      "eyebrow": "Vetta 回复增强 HUD",
+      "title": "每一条回复下面，写得多快、看过哪些资料，一眼看清",
+      "description": "最新一轮回复下方只有一行：实时生成速度（tok/s）和这条回答用到的来源。点网站图标直接在浏览器打开，点开详情可看首字延迟、速度走势、token 用量和整份可复制的来源清单。",
       "badges": [
         "实时 tok/s",
-        "首字延迟",
-        "速度走势",
+        "网站图标",
+        "来源可复制",
         "只读数字"
       ]
     },
@@ -18,13 +18,13 @@
       "showcase": {
         "template": "chat-over-canvas",
         "canvas": "generic",
-        "user_prompt": "帮我重构支付模块，并说明改了什么。",
-        "assistant_reply": "改好了：重试逻辑收拢到一处，三个调用点共用。\n\n⏱ 118 tok/s · 首字 0.8 s · 输出 1,240 token · 3 次模型调用"
+        "user_prompt": "CSS 容器查询现在能上生产了吗？",
+        "assistant_reply": "可以。Chrome 105+、Firefox 110+、Safari 16+ 都已支持，2025 年 8 月起被列为广泛可用。\n\n⏱ 118 tok/s · 首字 0.8 s · 输出 1,240 token · 3 次模型调用\n🔗 caniuse.com · developer.mozilla.org · web.dev  全部 4 个来源"
       }
     },
     {
       "type": "feature-grid",
-      "title": "关于速度的一切，不用离开对话",
+      "title": "速度：正在生成时就看得见",
       "items": [
         {
           "icon": "solar:speedometer-max-linear",
@@ -45,6 +45,32 @@
           "icon": "solar:shield-check-linear",
           "title": "只看数字，不看内容",
           "description": "Vetta 只把速度和用量交给插件，你的对话内容它拿不到。"
+        }
+      ]
+    },
+    {
+      "type": "feature-grid",
+      "title": "来源：需要时才展开",
+      "items": [
+        {
+          "icon": "solar:link-round-linear",
+          "title": "三个以内逐个列出",
+          "description": "来源少时显示每个网站自己的图标和域名；超过三个就收成叠放的图标，写成「caniuse.com 等 4 个来源」。"
+        },
+        {
+          "icon": "solar:square-arrow-right-up-linear",
+          "title": "点开就在外部浏览器",
+          "description": "点网站图标，用系统默认浏览器打开那个页面，不挤在侧边栏里。"
+        },
+        {
+          "icon": "solar:copy-linear",
+          "title": "复制为 Markdown",
+          "description": "详情里每条来源都带标题，并标明是回复引用还是工具打开过，可一键复制成编号列表。"
+        },
+        {
+          "icon": "solar:shield-keyhole-linear",
+          "title": "图标由本机取回",
+          "description": "网站图标经 Vetta 代为请求，不经过任何第三方图标服务。"
         }
       ]
     },
@@ -79,16 +105,16 @@
       "title": "三步开始",
       "items": [
         {
-          "title": "安装「生成速度」",
+          "title": "安装「回复增强 HUD」",
           "description": "需要 Vetta 0.6.32 或更新版本，无需任何配置。"
         },
         {
           "title": "照常对话",
-          "description": "普通会话和项目会话里，最新一轮回复下方会出现速度读数。"
+          "description": "普通会话和项目会话里，最新一轮回复下方会出现这一行。"
         },
         {
-          "title": "点击读数",
-          "description": "打开详情，对比首字延迟、平均速度和 token 用量。"
+          "title": "点你需要的那部分",
+          "description": "点网站图标直接打开网页；点「全部来源」看完整清单并复制。"
         }
       ]
     },
@@ -96,7 +122,7 @@
       "type": "callout",
       "tone": "info",
       "title": "使用须知",
-      "content": "团队会话暂不提供速度数据，读数不会出现。速度走势只记录会话打开期间的当前这一轮。"
+      "content": "团队会话暂不提供速度数据，速度行不会出现。速度走势只记录会话打开期间的当前这一轮，来源清单每轮重新统计。"
     },
     {
       "type": "links",
