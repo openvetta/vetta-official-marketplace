@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "生成速度",
+      "title": "模型在思考、在输出、在收尾，速度一目了然",
+      "description": "最新一轮回复下方有一行轻量读数：模型输出时显示此刻的 tok/s，结束后换成本轮的真实平均速度。点一下，完整详情就在眼前。",
+      "badges": [
+        "实时 tok/s",
+        "首字延迟",
+        "速度走势",
+        "只读数字"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "generic",
+        "user_prompt": "帮我重构支付模块，并说明改了什么。",
+        "assistant_reply": "改好了：重试逻辑收拢到一处，三个调用点共用。\n\n⏱ 118 tok/s · 首字 0.8 s · 输出 1,240 token · 3 次模型调用"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "关于速度的一切，不用离开对话",
+      "items": [
+        {
+          "icon": "solar:speedometer-max-linear",
+          "title": "输出时实时跳动",
+          "description": "显示最近 2 秒的速度，以及模型此刻在做什么：思考、写回复、写工具参数，还是在执行工具。"
+        },
+        {
+          "icon": "solar:flag-linear",
+          "title": "结束后自动结算",
+          "description": "本轮结束后换成整轮平均速度，token 数换成模型服务商报回的真实值。"
+        },
+        {
+          "icon": "solar:chart-2-linear",
+          "title": "一点就看全",
+          "description": "固定尺寸的左右布局详情：实时走势、首字延迟、本次与本轮平均、生成耗时，以及上一次调用的 token 构成。"
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "只看数字，不看内容",
+          "description": "Vetta 只把速度和用量交给插件，你的对话内容它拿不到。"
+        }
+      ]
+    },
+    {
+      "type": "feature-grid",
+      "title": "这些数字怎么算",
+      "items": [
+        {
+          "icon": "solar:bolt-linear",
+          "title": "实时速度",
+          "description": "最近 2 秒的输出 token。模型停顿时会降向 0，一眼分清是卡住了还是本来就慢。"
+        },
+        {
+          "icon": "solar:calculator-minimalistic-linear",
+          "title": "本轮平均",
+          "description": "输出 token ÷ 实际生成时间，不算工具执行和等待首字的时间。"
+        },
+        {
+          "icon": "solar:stopwatch-linear",
+          "title": "首字延迟",
+          "description": "从发出请求到收到第一个思考、正文或工具参数 token 的时间。"
+        },
+        {
+          "icon": "solar:tag-price-linear",
+          "title": "≈ 估算值",
+          "description": "生成中按已收到的文字估算 token，每次调用结束后换成真实值。"
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "三步开始",
+      "items": [
+        {
+          "title": "安装「生成速度」",
+          "description": "需要 Vetta 0.6.32 或更新版本，无需任何配置。"
+        },
+        {
+          "title": "照常对话",
+          "description": "普通会话和项目会话里，最新一轮回复下方会出现速度读数。"
+        },
+        {
+          "title": "点击读数",
+          "description": "打开详情，对比首字延迟、平均速度和 token 用量。"
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "使用须知",
+      "content": "团队会话暂不提供速度数据，读数不会出现。速度走势只记录会话打开期间的当前这一轮。"
+    },
+    {
+      "type": "links",
+      "title": "了解更多",
+      "items": [
+        {
+          "label": "指标口径说明",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/generation-speed/README.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "generation-speed",
+  "name": "%plugin.name%",
+  "version": "0.1.0",
+  "pluginApiVersion": "^2.12.0",
+  "entry": "dist/mf-manifest.json",
+  "moduleFederation": {
+    "remoteName": "generation_speed",
+    "expose": "./plugin"
+  },
+  "styles": [
+    "dist/style.css"
+  ],
+  "permissions": [
+    "ui.slot.turn-card",
+    "agent.session.metrics"
+  ],
+  "description": "%plugin.description%",
+  "author": "Vetta",
+  "icon": "assets/icon.png",
+  "guidingWords": [],
+  "defaultLocale": "en"
+}

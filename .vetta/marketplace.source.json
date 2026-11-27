@@ -884,6 +884,47 @@
         "path": "abilities/plugins/vetta-generative-ui"
       },
       "minAppVersion": "0.5.59"
+    },
+    {
+      "type": "plugin",
+      "slug": "generation-speed",
+      "name": "Generation Speed",
+      "description": "See the model's live generation speed (tok/s) under the latest reply, with first-token latency, a speed trend and token usage one click away.",
+      "version": "0.1.0",
+      "configVersion": 1,
+      "license": "MIT",
+      "author": "Vetta",
+      "category": "Productivity",
+      "categoryI18n": {
+        "zh": "效率",
+        "en": "Productivity"
+      },
+      "tags": [
+        "speed",
+        "tokens per second",
+        "latency",
+        "usage",
+        "metrics"
+      ],
+      "detail": {
+        "i18n": {
+          "zh": {
+            "name": "生成速度",
+            "description": "在最新一轮回复下方实时显示模型生成速度（tok/s），点开可看首字延迟、速度走势与 token 用量。",
+            "tags": [
+              "速度",
+              "生成速度",
+              "首字延迟",
+              "用量",
+              "指标"
+            ]
+          }
+        }
+      },
+      "source": {
+        "path": "abilities/plugins/generation-speed"
+      },
+      "minAppVersion": "0.6.32"
     }
   ]
 }
