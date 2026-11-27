@@ -1,6 +1,6 @@
 {
-  "plugin.name": "Generation Speed",
-  "plugin.description": "Shows the model's live generation speed (tok/s) under the latest reply; click it for first-token latency, a speed trend and token usage.",
+  "plugin.name": "Vetta Reply HUD",
+  "plugin.description": "A heads-up line under the latest reply: live generation speed (tok/s) and the sources used this turn, with details one click away.",
   "readout.waiting": "Waiting…",
   "phase.idle": "Idle",
   "phase.waiting": "Waiting for the first token",
@@ -21,7 +21,7 @@
   "card.output": "{{value}} output tokens",
   "card.calls": "{{value}} model calls",
   "card.openDetails": "View generation details",
-  "details.title": "Generation speed",
+  "details.title": "Reply details",
   "details.liveSpeed": "Live speed · last 2 seconds",
   "details.turnAverage": "Average of this turn · excludes tool time",
   "details.callAverage": "Average of the last call",
@@ -34,5 +34,16 @@
   "turnStatus.completed": "Turn completed",
   "turnStatus.cancelled": "Turn cancelled",
   "turnStatus.failed": "Turn failed",
-  "details.trendEmpty": "Shows up while the model is generating"
+  "details.trendEmpty": "Shows up while the model is generating",
+  "details.speedEmpty": "No generation in this conversation yet.",
+  "tab.speed": "Speed",
+  "tab.sources": "Sources {{count}}",
+  "sources.showAll": "All {{count}} sources",
+  "sources.empty": "This reply has no linked or fetched pages.",
+  "sources.summary": "{{count}} sources from the latest reply",
+  "sources.copyMarkdown": "Copy as Markdown",
+  "sources.copied": "Copied",
+  "sources.originReply": "Cited",
+  "sources.originFetched": "Opened by tool",
+  "sources.collapsed": "{{site}} and {{count}} sources in total"
 }

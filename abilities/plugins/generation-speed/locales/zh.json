@@ -1,6 +1,6 @@
 {
-  "plugin.name": "生成速度",
-  "plugin.description": "在最新一轮回复下方实时显示模型生成速度（tok/s），点开可看首字延迟、速度走势与 token 用量。",
+  "plugin.name": "Vetta 回复增强 HUD",
+  "plugin.description": "最新一轮回复下方的信息条：实时生成速度（tok/s）与本轮来源，点开即看详情。",
   "readout.waiting": "等待中…",
   "phase.idle": "空闲",
   "phase.waiting": "等待首字",
@@ -21,7 +21,7 @@
   "card.output": "输出 {{value}} token",
   "card.calls": "{{value}} 次模型调用",
   "card.openDetails": "查看生成详情",
-  "details.title": "生成速度",
+  "details.title": "回复详情",
   "details.liveSpeed": "实时速度 · 最近 2 秒",
   "details.turnAverage": "本轮平均 · 不含工具执行时间",
   "details.callAverage": "上一次调用的平均速度",
@@ -34,5 +34,16 @@
   "turnStatus.completed": "本轮已完成",
   "turnStatus.cancelled": "本轮已取消",
   "turnStatus.failed": "本轮失败",
-  "details.trendEmpty": "模型生成时显示走势"
+  "details.trendEmpty": "模型生成时显示走势",
+  "details.speedEmpty": "这个会话还没有生成记录。",
+  "tab.speed": "速度",
+  "tab.sources": "来源 {{count}}",
+  "sources.showAll": "全部 {{count}} 个来源",
+  "sources.empty": "这条回复没有引用链接，也没有打开过网页。",
+  "sources.summary": "最新一轮回复的 {{count}} 个来源",
+  "sources.copyMarkdown": "复制为 Markdown",
+  "sources.copied": "已复制",
+  "sources.originReply": "回复引用",
+  "sources.originFetched": "工具打开",
+  "sources.collapsed": "{{site}} 等 {{count}} 个来源"
 }
