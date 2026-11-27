@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "eyebrow": "Generation Speed",
+      "title": "Watch the model think, write and finish — in tok/s",
+      "description": "A quiet line under the latest reply shows how fast the model is writing right now, then settles on the turn's real average when it finishes. One click opens the full picture.",
+      "badges": [
+        "Live tok/s",
+        "First-token latency",
+        "Speed trend",
+        "Reads numbers only"
+      ]
+    },
+    {
+      "type": "showcase",
+      "showcase": {
+        "template": "chat-over-canvas",
+        "canvas": "generic",
+        "user_prompt": "Refactor the payment module and explain what changed.",
+        "assistant_reply": "Done — the retry logic now lives in one place and the three call sites share it.\n\n⏱ 118 tok/s · first token 0.8 s · 1,240 output tokens · 3 model calls"
+      }
+    },
+    {
+      "type": "feature-grid",
+      "title": "Everything about speed, without leaving the chat",
+      "items": [
+        {
+          "icon": "solar:speedometer-max-linear",
+          "title": "Live while it writes",
+          "description": "See the speed of the last two seconds and what the model is doing: thinking, writing the reply, writing tool arguments or running tools."
+        },
+        {
+          "icon": "solar:flag-linear",
+          "title": "Settles when it's done",
+          "description": "When the turn ends, the line switches to the turn average with the provider's real token count."
+        },
+        {
+          "icon": "solar:chart-2-linear",
+          "title": "Details in one click",
+          "description": "A steady side-by-side panel: live trend, first-token latency, call and turn averages, generation time and the token mix of the last call."
+        },
+        {
+          "icon": "solar:shield-check-linear",
+          "title": "Sees numbers, not words",
+          "description": "Vetta hands the plugin speed and usage figures only. Your messages never reach it."
+        }
+      ]
+    },
+    {
+      "type": "feature-grid",
+      "title": "What the numbers mean",
+      "items": [
+        {
+          "icon": "solar:bolt-linear",
+          "title": "Live speed",
+          "description": "Output tokens in the last 2 seconds. Drops toward 0 when the model pauses, so you can tell a stall from a slow model."
+        },
+        {
+          "icon": "solar:calculator-minimalistic-linear",
+          "title": "Turn average",
+          "description": "Output tokens ÷ time spent generating. Tool execution and waiting for the first token are not counted."
+        },
+        {
+          "icon": "solar:stopwatch-linear",
+          "title": "First-token latency",
+          "description": "Time from sending the request to the first thinking, text or tool-argument token."
+        },
+        {
+          "icon": "solar:tag-price-linear",
+          "title": "≈ estimates",
+          "description": "While streaming, tokens are estimated from received text; real counts replace them when each call ends."
+        }
+      ]
+    },
+    {
+      "type": "steps",
+      "title": "Start in three steps",
+      "items": [
+        {
+          "title": "Install Generation Speed",
+          "description": "Requires Vetta 0.6.32 or newer. Nothing to configure."
+        },
+        {
+          "title": "Chat as usual",
+          "description": "In regular and project conversations, the speed line appears under the latest reply."
+        },
+        {
+          "title": "Click the line",
+          "description": "Open the details to compare latency, averages and token usage."
+        }
+      ]
+    },
+    {
+      "type": "callout",
+      "tone": "info",
+      "title": "Good to know",
+      "content": "Team conversations do not report speed yet, so the line stays hidden there. The trend chart covers the current turn while the conversation is open."
+    },
+    {
+      "type": "links",
+      "title": "Learn more",
+      "items": [
+        {
+          "label": "How the numbers are computed",
+          "href": "https://github.com/openvetta/vetta-official-marketplace/blob/main/abilities/plugins/generation-speed/README.md"
+        }
+      ]
+    }
+  ]
+}
